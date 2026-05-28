@@ -3,7 +3,7 @@ name: Release Please
 on:
   push:
     branches:
-      - develop
+      - main
 
 permissions:
   contents: write
@@ -16,5 +16,5 @@ jobs:
       - name: Run Release Please
         uses: googleapis/release-please-action@v4
         with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json

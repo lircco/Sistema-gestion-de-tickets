@@ -5,10 +5,7 @@
       "release-type": "node"
     },
     "backend": {
-      "release-type": "simple",
-      "extra-files": [
-        "backend/VERSION"
-      ]
+      "release-type": "python"
     }
   }
 }
