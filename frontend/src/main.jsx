@@ -1,10 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import './styles.css';
+import './lib/error-capture';
+import { startInstance } from './start';
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Minimal client entry to satisfy index.html. The TanStack Start
+// runtime and router are configured elsewhere; this file ensures
+// Vite can resolve /src/main.jsx without requiring a full client
+// bootstrap here.
+console.log('frontend client entry loaded', startInstance);
