@@ -1,6 +1,16 @@
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria
 
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = '__all__'
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
