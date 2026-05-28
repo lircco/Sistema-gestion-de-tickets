@@ -39,6 +39,7 @@ Se ha proporcionado un script de Bash `run_tests.sh` en la raíz del proyecto pa
 - **Archivos Ignorados:** Las pruebas del frontend en `src/lib/` podrían estar ignoradas por el `.gitignore` global si existe una regla para `lib/`. Se usó `git add -f` para incluirlas.
 
 ## Registro de Cambios (Commits)
+Al modificar o crear un archivo haz un add . y un commit antes de seguir.
 
 1. `feat: configurar vitest y scripts de pruebas en el frontend`
 2. `test: agregar pruebas unitarias para la utilidad cn`

@@ -2,7 +2,7 @@
  * Utilidad para interactuar con la API de Django usando Session Auth.
  */
 
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = '/api';
 
 // Función para obtener una cookie por nombre (necesaria para el CSRF token)
 function getCookie(name) {

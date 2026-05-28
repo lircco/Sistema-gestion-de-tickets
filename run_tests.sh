@@ -8,7 +8,7 @@ echo "--- Iniciando Pruebas del Sistema de Tickets ---"
 # 1. Pruebas del Backend (Django)
 echo ""
 echo ">>> Ejecutando pruebas del BACKEND (Django)..."
-cd ../backend || exit
+cd backend || exit
 # Asegurarse de que el entorno virtual esté activo o usar la ruta directa
 PYTHON_EXE="./venv/Scripts/python.exe"
 

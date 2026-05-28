@@ -17,24 +17,35 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 # 2. El ViewSet del Ticket
 class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all().order_by('-creado_el')
     serializer_class = TicketSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [permissions.IsAuthenticated]
 
-    # Habilitamos la búsqueda
+    # Habilitamos la bÃºsqueda
     filter_backends = [filters.SearchFilter]
-    search_fields = ['titulo', 'descripcion', 'estado'] # React podrá buscar por estos campos
+    search_fields = ['titulo', 'descripcion', 'estado'] # React podrÃ¡ buscar por estos campos
+
+    def get_queryset(self):
+        user = self.request.user
+        # Si el usuario es SUPERVISOR, ve todo
+        if hasattr(user, 'rol') and user.rol == 'SUPERVISOR':
+            return Ticket.objects.all().order_by('-creado_el')
+        # Si es STAFF, ve solo los de su Ã¡rea
+        elif hasattr(user, 'rol') and user.rol == 'STAFF':
+            return Ticket.objects.filter(area_responsable=user.area).order_by('-creado_el')
+        # Si es ESTUDIANTE, ve solo los suyos
+        return Ticket.objects.filter(creado_por=user).order_by('-creado_el')
 
     def perform_create(self, serializer):
-        # Asigna automáticamente el creador al usuario logueado
+        # Asigna automÃ¡ticamente el creador al usuario logueado
         serializer.save(creado_por=self.request.user)
 
-    # 3. Endpoint personalizado para el Dashboard (Estadísticas en tiempo real)
+    # 3. Endpoint personalizado para el Dashboard (EstadÃ­sticas en tiempo real)
     @action(detail=False, methods=['get'])
     def estadisticas(self, request):
-        # Calculamos en tiempo real como acordamos antes
-        stats = Ticket.objects.aggregate(
+        # Usamos el queryset filtrado para las estadÃ­sticas
+        queryset = self.get_queryset()
+        stats = queryset.aggregate(
             total=Count('id'),
             abiertos=Count('id', filter=models.Q(estado='ABIERTO')),
             en_progreso=Count('id', filter=models.Q(estado='EN_PROGRESO')),
