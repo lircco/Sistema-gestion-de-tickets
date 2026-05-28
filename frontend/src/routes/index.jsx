@@ -621,17 +621,17 @@ function UserHome({ user, tickets, onOpenNew, onGoTickets, }) {
             <TableBody>
               {tickets.slice(0, 5).map((r) => (<TableRow key={r.id}>
                   <TableCell>
-                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>{r.id} - {r.title}</Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.description}</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>#{r.id} - {r.titulo}</Typography>
+                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>
                   </TableCell>
-                  <TableCell><Chip size="small" label={r.category} sx={{ bgcolor: "#f3f4f6" }}/></TableCell>
+                  <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }}/></TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.statusColor }}/>
-                      <Typography sx={{ fontSize: 13 }}>{r.status}</Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.estado === 'ABIERTO' ? '#3b82f6' : '#f59e0b' }}/>
+                      <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>{r.date}</TableCell>
+                  <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
                 </TableRow>))}
             </TableBody>
           </Table>
@@ -646,7 +646,7 @@ function UserHome({ user, tickets, onOpenNew, onGoTickets, }) {
               {String(tickets.length).padStart(2, "0")}
             </Typography>
             <Typography sx={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
-              ↗ 1 resuelto hoy
+              ↗ {tickets.filter(t => t.estado === 'CERRADO').length} resuelto(s)
             </Typography>
           </Paper>
           <Paper sx={{ p: 3 }}>
@@ -679,22 +679,22 @@ function UserTicketsTable({ tickets, onOpenNew }) {
           </TableHead>
           <TableBody>
             {tickets.map((r) => (<TableRow key={r.id} hover>
-                <TableCell sx={{ fontWeight: 700 }}>{r.id}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
-                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.title}</Typography>
-                  <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.description}</Typography>
-                  {r.attachments && r.attachments.length > 0 && (<Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
-                      {r.attachments.map((a, i) => (<Chip key={i} size="small" component="a" href={a.url} target="_blank" rel="noopener noreferrer" clickable icon={a.type === "application/pdf" ? (<PictureAsPdfOutlined sx={{ fontSize: 14 }}/>) : a.type.startsWith("image/") ? (<ImageOutlined sx={{ fontSize: 14 }}/>) : (<InsertDriveFileOutlined sx={{ fontSize: 14 }}/>)} label={a.name} sx={{ fontSize: 11, maxWidth: 200 }}/>))}
+                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
+                  <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>
+                  {r.archivo_adjunto && (<Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
+                      <Chip size="small" component="a" href={r.archivo_adjunto} target="_blank" rel="noopener noreferrer" clickable icon={<AttachFileOutlined sx={{ fontSize: 14 }}/>} label="Ver adjunto" sx={{ fontSize: 11, maxWidth: 200 }}/>
                     </Stack>)}
                 </TableCell>
-                <TableCell><Chip size="small" label={r.category} sx={{ bgcolor: "#f3f4f6" }}/></TableCell>
+                <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }}/></TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.statusColor }}/>
-                    <Typography sx={{ fontSize: 13 }}>{r.status}</Typography>
+                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.estado === 'ABIERTO' ? '#3b82f6' : '#f59e0b' }}/>
+                    <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
                   </Stack>
                 </TableCell>
-                <TableCell sx={{ fontSize: 13 }}>{r.date}</TableCell>
+                <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
               </TableRow>))}
           </TableBody>
         </Table>
