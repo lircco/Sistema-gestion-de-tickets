@@ -1,48 +1,71 @@
-# Guía de Pruebas (AGENTS.md)
+# Guía del Proyecto y del Agente (AGENTS.md)
 
-Este documento detalla cómo ejecutar y mantener las pruebas para el sistema de tickets, tanto en el backend como en el frontend.
+Este documento explica la composición del proyecto, cómo operar en él y las reglas estrictas para los agentes que realicen modificaciones.
 
-## Estructura de Pruebas
+## Composición del Proyecto
 
-### Backend (Django)
-- **Framework:** Django Test Framework (unittest).
-- **Cobertura:** `coverage.py`.
-- **Ubicación:** `backend/api/tests.py`.
-- **Comandos:**
-  - Ejecutar tests: `python manage.py test api`
-  - Ejecutar con cobertura: `coverage run manage.py test api`
-  - Ver reporte: `coverage report`
+El sistema es una plataforma de gestión de tickets dividida en dos partes principales:
 
-### Frontend (React/Vite)
-- **Framework:** Vitest + React Testing Library.
-- **Cobertura:** `@vitest/coverage-v8`.
-- **Ubicación:** `frontend/src/**/*.test.{js,jsx}`.
-- **Comandos:**
-  - Ejecutar tests: `npm test`
-  - Ejecutar con cobertura: `npm run test:coverage`
+1.  **Backend (Directorio `backend/`):**
+    *   **Framework:** Django con Django REST Framework (DRF).
+    *   **Base de Datos:** SQLite (desarrollo).
+    *   **Autenticación:** Session-based Auth de Django.
+    *   **Características:** Modelos para Áreas, Categorías, Usuarios y Tickets. Incluye envío de notificaciones por email y seguridad a nivel de fila (los estudiantes solo ven sus tickets).
 
-## Ejecución Automatizada
+2.  **Frontend (Directorio `frontend/`):**
+    *   **Framework:** React con Vite.
+    *   **Enrutado:** TanStack Router.
+    *   **UI:** Material UI (MUI) y Tailwind CSS.
+    *   **Gestión de Estado:** TanStack Query.
 
-Se ha proporcionado un script de Bash `run_tests.sh` en la raíz del proyecto para ejecutar todas las pruebas secuencialmente:
+---
 
+## Cómo Correr los Comandos
+
+Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de estar en el directorio correspondiente):
+
+### Backend
+1.  **Activar entorno:** `.\venv\Scripts\activate` (Windows).
+2.  **Migraciones:** `python manage.py migrate`.
+3.  **Servidor:** `python manage.py runserver`.
+
+### Frontend
+1.  **Instalar dependencias:** `npm install`.
+2.  **Servidor de desarrollo:** `npm run dev`.
+
+---
+
+## Cómo Correr los Tests
+
+Existen dos formas de ejecutar las pruebas:
+
+### 1. Ejecución Unificada (Recomendado)
+Desde la raíz del proyecto, ejecuta el script automatizado:
 ```bash
 ./run_tests.sh
 ```
 
-**Nota para entornos Windows:** Si tienes problemas de permisos con `npm`, el script utiliza `powershell.exe -ExecutionPolicy Bypass` para asegurar la ejecución correcta.
+### 2. Ejecución Individual
+*   **Backend:** Entra a `backend/` y corre `.\venv\Scripts\python.exe manage.py test api`.
+*   **Frontend:** Entra a `frontend/` y corre `powershell.exe -ExecutionPolicy Bypass -Command "npm run test"`.
 
-## Notas de Implementación (Peculiaridades)
+---
 
-- **Ejecución de NPM:** En algunos sistemas Windows, la ejecución de scripts de PowerShell está deshabilitada. Si `npm test` falla, usa:
-  `powershell.exe -ExecutionPolicy Bypass -Command "npm test"`
-- **Importaciones en Backend:** Para evitar errores de `ImportError` al correr `manage.py test`, se recomienda usar importaciones absolutas (ej. `from api.models import ...`) en los archivos de prueba.
-- **Archivos Ignorados:** Las pruebas del frontend en `src/lib/` podrían estar ignoradas por el `.gitignore` global si existe una regla para `lib/`. Se usó `git add -f` para incluirlas.
+## Reglas de Trabajo y Git (Mandatorio)
 
-## Registro de Cambios (Commits)
-Al modificar o crear un archivo haz un add . y un commit antes de seguir.
+**IMPORTANTE:** Cada vez que modifiques o crees un archivo, debes realizar un `git add .` y un `git commit` antes de realizar cualquier otro cambio o continuar con la tarea.
 
-1. `feat: configurar vitest y scripts de pruebas en el frontend`
-2. `test: agregar pruebas unitarias para la utilidad cn`
-3. `feat: agregar coverage a las dependencias del backend`
-4. `test: agregar pruebas de modelos y api para el backend con cobertura`
-5. `ci: agregar script run_tests.sh para ejecución unificada de pruebas`
+### Formato de Commits
+Todos los mensajes de commit deben seguir esta convención:
+
+*   `feat`: Una nueva característica para el usuario.
+*   `fix`: Arregla un bug que afecta al usuario.
+*   `perf`: Cambios que mejoran el rendimiento del sitio.
+*   `build`: Cambios en el sistema de build, tareas de despliegue o instalación.
+*   `ci`: Cambios en la integración continua.
+*   `docs`: Cambios en la documentación.
+*   `refactor`: Refactorización del código como cambios de nombre de variables o funciones.
+*   `style`: Cambios de formato, tabulaciones, espacios o puntos y coma, etc; no afectan al usuario.
+*   `test`: Añade tests o refactoriza uno existente.
+
+Ejemplo: `feat: implementar filtrado de tickets por área`
