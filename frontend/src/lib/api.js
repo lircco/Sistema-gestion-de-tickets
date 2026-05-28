@@ -81,4 +81,10 @@ export const api = {
 
   getStats: () => 
     apiFetch('/tickets/estadisticas/'),
+
+  getAreas: () =>
+    apiFetch('/areas/'),
+  
+  getCategorias: () =>
+    apiFetch('/categorias/'),
 };
