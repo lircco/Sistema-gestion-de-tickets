@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
 from django.db import models
-from .models import Ticket
-from .serializers import TicketSerializer, UsuarioSerializer
+from .models import Ticket, Area, Categoria
+from .serializers import TicketSerializer, UsuarioSerializer, AreaSerializer, CategoriaSerializer
 
 # 1. Configuración de Paginación
 class StandardResultsSetPagination(PageNumberPagination):
@@ -41,6 +41,16 @@ class TicketViewSet(viewsets.ModelViewSet):
             cerrados=Count('id', filter=models.Q(estado='CERRADO'))
         )
         return Response(stats)
+
+class AreaViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 # 4. Vistas de Autenticación
 class LoginView(APIView):
