@@ -24,12 +24,19 @@ El sistema es una plataforma de gestión de tickets dividida en dos partes princ
 
 Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de estar en el directorio correspondiente):
 
-### Backend
+### 1. Ejecución Unificada de Servidores (Recomendado)
+Desde la raíz del proyecto, puedes levantar ambos servidores (Backend y Frontend) simultáneamente:
+```bash
+./run_dev.sh
+```
+
+### 2. Ejecución Individual
+#### Backend
 1.  **Activar entorno:** `.\venv\Scripts\activate` (Windows).
 2.  **Migraciones:** `python manage.py migrate`.
 3.  **Servidor:** `python manage.py runserver`.
 
-### Frontend
+#### Frontend
 1.  **Instalar dependencias:** `npm install`.
 2.  **Servidor de desarrollo:** `npm run dev`.
 
@@ -39,7 +46,7 @@ Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de est
 
 Existen dos formas de ejecutar las pruebas:
 
-### 1. Ejecución Unificada (Recomendado)
+### 1. Ejecución Unificada de Tests (Recomendado)
 Desde la raíz del proyecto, ejecuta el script automatizado:
 ```bash
 ./run_tests.sh
