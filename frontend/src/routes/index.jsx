@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../lib/api";
 import { Box, Card, Stack, Typography, TextField, Button, Link, IconButton, InputAdornment, Avatar, Chip, Divider, Table, TableBody, TableCell, TableHead, TableRow, LinearProgress, Tabs, Tab, Paper, CssBaseline, ThemeProvider, createTheme, Alert, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Drawer, Switch, FormControlLabel, useMediaQuery, Badge, Tooltip, } from "@mui/material";
 import { MailOutlined, LockOutlined, VisibilityOff, School, Person, AdminPanelSettings, DashboardOutlined, ConfirmationNumberOutlined, BarChartOutlined, ApartmentOutlined, MenuBookOutlined, SettingsOutlined, SupportAgentOutlined, LogoutOutlined, NotificationsNoneOutlined, HelpOutlineOutlined, SearchOutlined, AddCircleOutlined, 
 // removed duplicate
@@ -25,33 +27,38 @@ const buildTheme = (mode) => createTheme({
     shape: { borderRadius: 12 },
 });
 function Index() {
-    const [view, setView] = useState("login");
-    const [, setRole] = useState("alumno");
+    const queryClient = useQueryClient();
     const [mode, setMode] = useState("light");
     const theme = useMemo(() => buildTheme(mode), [mode]);
     const toggleMode = () => setMode((m) => (m === "light" ? "dark" : "light"));
-    const [accounts, setAccounts] = useState([
-        { email: "soporte@unraf.edu.ar", password: "unraf2025", role: "admin", name: "Lucía Fernández" },
-    ]);
-    const [currentUser, setCurrentUser] = useState(null);
-    const [userTickets, setUserTickets] = useState([
-        { id: "#12904", title: "Error Campus Virtual", description: "No puedo visualizar la materia de IA...", category: "Tecnología", status: "En Proceso", statusColor: "#f59e0b", date: "Hace 2 horas" },
-        { id: "#12850", title: "Certificado Alumno Regular", description: "Solicitud para trámite de beca...", category: "Académica", status: "Resuelto", statusColor: "#10b981", date: "Ayer" },
-        { id: "#12701", title: "Reinscripción Guaraní", description: "Error de validación de cuatrimestre...", category: "Sistemas", status: "Abierto", statusColor: "#3b82f6", date: "15/10/2023" },
-    ]);
+
+    const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+        queryKey: ["me"],
+        queryFn: api.getMe,
+        retry: false,
+    });
+
+    if (isLoadingUser) return <LinearProgress />;
+
+    const handleLogout = async () => {
+        try {
+            await api.logout();
+            queryClient.setQueryData(["me"], null);
+            queryClient.invalidateQueries();
+        } catch (e) {
+            console.error("Error logging out", e);
+        }
+    };
+
     return (<ThemeProvider theme={theme}>
       <CssBaseline />
-      {view === "login" && (<LoginScreen accounts={accounts} onRegister={(acc) => setAccounts((prev) => [...prev, acc])} onLogin={(acc) => {
-                setRole(acc.role);
-                setCurrentUser(acc);
-                setView(acc.role === "admin" ? "admin" : "user");
-            }}/>)}
-      {view === "admin" && (<AdminDashboard onLogout={() => setView("login")} admin={currentUser} mode={mode} onToggleMode={toggleMode}/>)}
-      {view === "user" && (<UserDashboard onLogout={() => setView("login")} user={currentUser} tickets={userTickets} onCreateTicket={(t) => setUserTickets((prev) => [t, ...prev])} mode={mode} onToggleMode={toggleMode}/>)}
+      {!currentUser && (<LoginScreen onLoginSuccess={(user) => queryClient.setQueryData(["me"], user)}/>)}
+      {currentUser && (currentUser.rol === "SUPERVISOR" || currentUser.rol === "STAFF") && (<AdminDashboard onLogout={handleLogout} admin={currentUser} mode={mode} onToggleMode={toggleMode}/>)}
+      {currentUser && currentUser.rol === "ESTUDIANTE" && (<UserDashboard onLogout={handleLogout} user={currentUser} mode={mode} onToggleMode={toggleMode}/>)}
     </ThemeProvider>);
 }
 /* ---------------- LOGIN ---------------- */
-function LoginScreen({ accounts, onLogin, onRegister, }) {
+function LoginScreen({ onLoginSuccess }) {
     const [tab, setTab] = useState(0);
     const [role, setRole] = useState("alumno");
     const [email, setEmail] = useState("");
@@ -61,44 +68,27 @@ function LoginScreen({ accounts, onLogin, onRegister, }) {
     const [show, setShow] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+
+    const loginMutation = useMutation({
+        mutationFn: ({ username, password }) => api.login(username, password),
+        onSuccess: (user) => {
+            onLoginSuccess(user);
+        },
+        onError: (err) => {
+            setError(err.message || "Error al iniciar sesión");
+        },
+    });
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setError("");
         setSuccess("");
         if (tab === 0) {
-            // login
-            const acc = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase() && a.password === password && a.role === role);
-            if (!acc) {
-                setError("Email, contraseña o rol incorrectos.");
-                return;
-            }
-            onLogin(acc);
+            loginMutation.mutate({ username: email, password });
         }
         else {
-            // register
-            if (!email || !password || !name) {
-                setError("Completá nombre, email y contraseña.");
-                return;
-            }
-            if (password.length < 6) {
-                setError("La contraseña debe tener al menos 6 caracteres.");
-                return;
-            }
-            if (password !== confirm) {
-                setError("Las contraseñas no coinciden.");
-                return;
-            }
-            if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
-                setError("Ya existe una cuenta con ese email.");
-                return;
-            }
-            const acc = { email, password, role: "alumno", name };
-            onRegister(acc);
-            setSuccess("¡Cuenta creada! Ya podés iniciar sesión.");
-            setTab(0);
-            setPassword("");
-            setConfirm("");
-            setName("");
+            // register (mocked for now as we don't have a register endpoint in the plan)
+            setError("El registro no está disponible en este momento.");
         }
     };
     return (<Box sx={{
@@ -380,6 +370,17 @@ function SideAction({ icon, label, danger, onClick, }) {
 function AdminDashboard({ onLogout, admin, mode, onToggleMode, }) {
     const [active, setActive] = useState("dashboard");
     const [openTicket, setOpenTicket] = useState(null);
+
+    const { data: tickets = [], isLoading: isLoadingTickets } = useQuery({
+        queryKey: ["tickets"],
+        queryFn: api.getTickets,
+    });
+
+    const { data: stats, isLoading: isLoadingStats } = useQuery({
+        queryKey: ["stats"],
+        queryFn: api.getStats,
+    });
+
     const items = [
         { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small"/> },
         { key: "tickets", label: "Ticket List", icon: <ConfirmationNumberOutlined fontSize="small"/> },
@@ -388,21 +389,24 @@ function AdminDashboard({ onLogout, admin, mode, onToggleMode, }) {
         { key: "kb", label: "Knowledge Base", icon: <MenuBookOutlined fontSize="small"/> },
         { key: "settings", label: "Settings", icon: <SettingsOutlined fontSize="small"/> },
     ];
+
+    if (isLoadingTickets || isLoadingStats) return <LinearProgress />;
+
     return (<AppShell items={items} active={active} onSelect={(k) => {
             setActive(k);
             setOpenTicket(null);
-        }} onLogout={onLogout} user={{ name: admin.name, role: "Administrador · Soporte UNRaf" }} mode={mode} onToggleMode={onToggleMode}>
-      {active === "dashboard" && <AdminHome onOpenTicket={(t) => { setActive("tickets"); setOpenTicket(t); }}/>}
-      {active === "tickets" && !openTicket && <TicketsTable onOpenTicket={(t) => setOpenTicket(t)}/>}
+        }} onLogout={onLogout} user={{ name: admin.username, role: admin.rol }} mode={mode} onToggleMode={onToggleMode}>
+      {active === "dashboard" && <AdminHome stats={stats} tickets={tickets.results || tickets} onOpenTicket={(t) => { setActive("tickets"); setOpenTicket(t); }}/>}
+      {active === "tickets" && !openTicket && <TicketsTable tickets={tickets.results || tickets} onOpenTicket={(t) => setOpenTicket(t)}/>}
       {active === "tickets" && openTicket && (<TicketDetail ticket={openTicket} onBack={() => setOpenTicket(null)} admin={admin}/>)}
       {active === "reports" && <ReportsSection />}
       {active === "areas" && <AreaManagementSection />}
       {active === "kb" && <KnowledgeBaseSection />}
-      {active === "settings" && (<SettingsSection person={admin} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142"/>)}
+      {active === "settings" && (<SettingsSection person={{ name: admin.username, email: admin.email }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142"/>)}
       {active !== "dashboard" && active !== "tickets" && active !== "reports" && active !== "areas" && active !== "kb" && active !== "settings" && (<PlaceholderSection title={items.find((i) => i.key === active)?.label || ""}/>)}
     </AppShell>);
 }
-function AdminHome({ onOpenTicket }) {
+function AdminHome({ stats, tickets, onOpenTicket }) {
     return (<Stack spacing={3}>
       <Box>
         <Typography variant="h4">¡Bienvenido, Administrador!</Typography>
@@ -412,10 +416,10 @@ function AdminHome({ onOpenTicket }) {
       </Box>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ flexWrap: { sm: "wrap", md: "nowrap" } }}>
-        <StatCard color="#0a3d62" icon={<MailOutlined />} value="24" label="TOTAL ACTIVOS" chip="+12% vs ayer" chipColor="#dbeafe" chipText="#1d4ed8"/>
-        <StatCard color="#f5b400" icon={<AssignmentOutlined />} value="18" label="PENDIENTES" chip="Activo" chipColor="#fef3c7" chipText="#92400e"/>
-        <StatCard color="#ef4444" icon={<HighlightOffOutlined />} value="5" label="PRIORIDAD ALTA" chip="Atención" chipColor="#fee2e2" chipText="#991b1b"/>
-        <StatCard color="#10b981" icon={<CheckCircleOutlined />} value="142" label="CERRADOS HOY" chip="92% Eficiencia" chipColor="#d1fae5" chipText="#065f46"/>
+        <StatCard color="#0a3d62" icon={<MailOutlined />} value={stats?.total || 0} label="TOTAL ACTIVOS" chip="+12% vs ayer" chipColor="#dbeafe" chipText="#1d4ed8"/>
+        <StatCard color="#f5b400" icon={<AssignmentOutlined />} value={stats?.abiertos || 0} label="ABIERTOS" chip="Activo" chipColor="#fef3c7" chipText="#92400e"/>
+        <StatCard color="#ef4444" icon={<HighlightOffOutlined />} value={stats?.en_progreso || 0} label="EN PROGRESO" chip="Atención" chipColor="#fee2e2" chipText="#991b1b"/>
+        <StatCard color="#10b981" icon={<CheckCircleOutlined />} value={stats?.cerrados || 0} label="CERRADOS" chip="92% Eficiencia" chipColor="#d1fae5" chipText="#065f46"/>
       </Stack>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
@@ -442,27 +446,23 @@ function AdminHome({ onOpenTicket }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {[
-            { id: "#TK-2045", t: "Falla en proyector Aula 5", s: "Sede Rafaela · Hace 2h", p: "Urgente", pc: "#fef3c7", pt: "#92400e", st: "Abierto", sc: "#3b82f6" },
-            { id: "#TK-2041", t: "Reseteo contraseña SIU", s: "Administración · Hace 5h", p: "Media", pc: "#e5e7eb", pt: "#374151", st: "En Proceso", sc: "#f59e0b" },
-            { id: "#TK-2038", t: "Instalación Software CAD", s: "Laboratorio 1 · Ayer", p: "Baja", pc: "#e5e7eb", pt: "#374151", st: "Cerrado", sc: "#6b7280" },
-        ].map((r) => (<TableRow key={r.id}>
-                  <TableCell sx={{ fontWeight: 600 }}>{r.id}</TableCell>
+              {tickets.slice(0, 3).map((r) => (<TableRow key={r.id}>
+                  <TableCell sx={{ fontWeight: 600 }}>#{r.id}</TableCell>
                   <TableCell>
-                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.t}</Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.s}</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
+                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.categoria_nombre}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip size="small" label={r.p} sx={{ bgcolor: r.pc, color: r.pt, fontWeight: 600 }}/>
+                    <Chip size="small" label={r.prioridad} sx={{ fontWeight: 600 }}/>
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.sc }}/>
-                      <Typography sx={{ fontSize: 13 }}>{r.st}</Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.estado === 'ABIERTO' ? '#3b82f6' : '#f59e0b' }}/>
+                      <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    <IconButton size="small" onClick={() => onOpenTicket({ id: r.id, title: r.t })}>
+                    <IconButton size="small" onClick={() => onOpenTicket(r)}>
                       <VisibilityOutlined fontSize="small"/>
                     </IconButton>
                   </TableCell>
@@ -485,14 +485,7 @@ function StatCard({ color, icon, value, label, chip, chipColor, chipText, }) {
       <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>{label}</Typography>
     </Paper>);
 }
-function TicketsTable({ onOpenTicket }) {
-    const rows = [
-        { id: "#TK-4829", t: "Problema acceso SIU Guaraní", c: "Sistemas", st: "EN PROGRESO", sc: "#fef3c7", stt: "#92400e", p: "ALTA", pc: "#ef4444", d: "12/05/2024" },
-        { id: "#TK-4831", t: "Reposición de tóners Aula 3", c: "Soporte Físico", st: "ABIERTO", sc: "#e5e7eb", stt: "#374151", p: "MEDIA", pc: "#9ca3af", d: "12/05/2024" },
-        { id: "#TK-4820", t: "Error carga de notas finales", c: "Alumnos", st: "RESUELTO", sc: "#dbeafe", stt: "#1d4ed8", p: "URGENTE", pc: "#ef4444", d: "11/05/2024" },
-        { id: "#TK-4795", t: "Pedido de proyector - Lab 2", c: "Infraestructura", st: "CERRADO", sc: "#e5e7eb", stt: "#374151", p: "BAJA", pc: "#f59e0b", d: "10/05/2024" },
-        { id: "#TK-4835", t: "Falla conexión Wi-Fi Comedor", c: "Sistemas", st: "ABIERTO", sc: "#e5e7eb", stt: "#374151", p: "MEDIA", pc: "#9ca3af", d: "12/05/2024" },
-    ];
+function TicketsTable({ tickets, onOpenTicket }) {
     return (<Stack spacing={3}>
       <Typography variant="h5">Lista de Tickets</Typography>
       <Paper sx={{ p: 2, overflowX: "auto" }}>
@@ -511,27 +504,27 @@ function TicketsTable({ onOpenTicket }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((r) => (<TableRow key={r.id} hover>
-                <TableCell sx={{ fontWeight: 700 }}>{r.id}</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>{r.t}</TableCell>
-                <TableCell>{r.c}</TableCell>
-                <TableCell><Chip size="small" label={r.st} sx={{ bgcolor: r.sc, color: r.stt, fontWeight: 700, fontSize: 11 }}/></TableCell>
+            {tickets.map((r) => (<TableRow key={r.id} hover>
+                <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{r.titulo}</TableCell>
+                <TableCell>{r.categoria_nombre}</TableCell>
+                <TableCell><Chip size="small" label={r.estado} sx={{ fontWeight: 700, fontSize: 11 }}/></TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.pc }}/>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{r.p}</Typography>
+                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.prioridad === 'ALTA' ? '#ef4444' : '#9ca3af' }}/>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{r.prioridad}</Typography>
                   </Stack>
                 </TableCell>
-                <TableCell>{r.d}</TableCell>
+                <TableCell>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <IconButton size="small" onClick={() => onOpenTicket({ id: r.id, title: r.t })}>
+                  <IconButton size="small" onClick={() => onOpenTicket(r)}>
                     <VisibilityOutlined fontSize="small"/>
                   </IconButton>
                 </TableCell>
               </TableRow>))}
           </TableBody>
         </Table>
-        <Typography sx={{ fontSize: 12, color: "#6b7280", mt: 2 }}>Mostrando 1-5 de 128 tickets</Typography>
+        <Typography sx={{ fontSize: 12, color: "#6b7280", mt: 2 }}>Mostrando {tickets.length} tickets</Typography>
       </Paper>
     </Stack>);
 }
@@ -542,25 +535,30 @@ function PlaceholderSection({ title }) {
     </Paper>);
 }
 /* ---------------- USER ---------------- */
-function UserDashboard({ onLogout, user, tickets, onCreateTicket, mode, onToggleMode, }) {
+function UserDashboard({ onLogout, user, mode, onToggleMode, }) {
     const [active, setActive] = useState("dashboard");
     const [openNew, setOpenNew] = useState(false);
+
+    const { data: tickets = [], isLoading } = useQuery({
+        queryKey: ["tickets"],
+        queryFn: api.getTickets,
+    });
+
     const items = [
         { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small"/> },
         { key: "tickets", label: "Mis Tickets", icon: <ConfirmationNumberOutlined fontSize="small"/> },
         { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small"/> },
     ];
+
+    if (isLoading) return <LinearProgress />;
+
     return (<>
-      <AppShell items={items} active={active} onSelect={setActive} onLogout={onLogout} user={{ name: user.name, role: "Alumno UNRaf" }} mode={mode} onToggleMode={onToggleMode}>
-        {active === "dashboard" && (<UserHome user={user} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => setActive("tickets")}/>)}
-        {active === "tickets" && <UserTicketsTable tickets={tickets} onOpenNew={() => setOpenNew(true)}/>}
-        {active === "settings" && (<SettingsSection person={user} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284"/>)}
+      <AppShell items={items} active={active} onSelect={setActive} onLogout={onLogout} user={{ name: user.username, role: "Alumno UNRaf" }} mode={mode} onToggleMode={onToggleMode}>
+        {active === "dashboard" && (<UserHome user={{ name: user.username }} tickets={tickets.results || tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => setActive("tickets")}/>)}
+        {active === "tickets" && <UserTicketsTable tickets={tickets.results || tickets} onOpenNew={() => setOpenNew(true)}/>}
+        {active === "settings" && (<SettingsSection person={{ name: user.username, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284"/>)}
       </AppShell>
-      <NewTicketDialog open={openNew} onClose={() => setOpenNew(false)} onCreate={(t) => {
-            onCreateTicket(t);
-            setOpenNew(false);
-            setActive("tickets");
-        }}/>
+      <NewTicketDialog open={openNew} onClose={() => setOpenNew(false)} />
     </>);
 }
 function UserHome({ user, tickets, onOpenNew, onGoTickets, }) {
@@ -706,12 +704,37 @@ function UserTicketsTable({ tickets, onOpenNew }) {
       </Paper>
     </Stack>);
 }
-function NewTicketDialog({ open, onClose, onCreate, }) {
+function NewTicketDialog({ open, onClose }) {
+    const queryClient = useQueryClient();
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [category, setCategory] = useState("Tecnología");
+    const [categoryId, setCategoryId] = useState("");
+    const [areaId, setAreaId] = useState("");
     const [error, setError] = useState("");
     const [files, setFiles] = useState([]);
+
+    const { data: categories = [] } = useQuery({ queryKey: ["categorias"], queryFn: api.getCategorias });
+    const { data: areas = [] } = useQuery({ queryKey: ["areas"], queryFn: api.getAreas });
+
+    const createMutation = useMutation({
+        mutationFn: api.createTicket,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["tickets"] });
+            onClose();
+            reset();
+        },
+        onError: (err) => setError(err.message || "Error al crear el ticket"),
+    });
+
+    const reset = () => {
+        setTitle("");
+        setDescription("");
+        setCategoryId("");
+        setAreaId("");
+        setFiles([]);
+        setError("");
+    };
+
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
     const ACCEPT = "image/*,application/pdf";
     const handleFiles = (incoming) => {
@@ -738,40 +761,38 @@ function NewTicketDialog({ open, onClose, onCreate, }) {
     };
     const handleSubmit = () => {
         setError("");
-        if (!title.trim() || !description.trim()) {
-            setError("Completá el título y la descripción.");
+        if (!title.trim() || !description.trim() || !categoryId || !areaId) {
+            setError("Completá todos los campos requeridos.");
             return;
         }
-        const attachments = files.map((f) => ({
-            name: f.name,
-            size: f.size,
-            type: f.type,
-            url: URL.createObjectURL(f),
-        }));
-        const ticket = {
-            id: `#${Math.floor(10000 + Math.random() * 89999)}`,
-            title: title.trim(),
-            description: description.trim(),
-            category,
-            status: "Abierto",
-            statusColor: "#3b82f6",
-            date: new Date().toLocaleDateString("es-AR"),
-            attachments,
-        };
-        onCreate(ticket);
-        setTitle("");
-        setDescription("");
-        setCategory("Tecnología");
-        setFiles([]);
+
+        const formData = new FormData();
+        formData.append("titulo", title.trim());
+        formData.append("descripcion", description.trim());
+        formData.append("categoria", categoryId);
+        formData.append("area_responsable", areaId);
+        
+        files.forEach((file) => {
+            formData.append("archivo_adjunto", file);
+        });
+
+        createMutation.mutate(formData);
     };
     return (<Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ fontWeight: 700 }}>Crear Nuevo Ticket</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth size="small"/>
-          <TextField select label="Categoría" value={category} onChange={(e) => setCategory(e.target.value)} fullWidth size="small">
-            {["Tecnología", "Académica", "Sistemas", "Infraestructura", "Trámites"].map((c) => (<MenuItem key={c} value={c}>{c}</MenuItem>))}
-          </TextField>
+          
+          <Stack direction="row" spacing={2}>
+            <TextField select label="Categoría" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} fullWidth size="small">
+              {(categories.results || categories).map((c) => (<MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>))}
+            </TextField>
+            <TextField select label="Área Responsable" value={areaId} onChange={(e) => setAreaId(e.target.value)} fullWidth size="small">
+              {(areas.results || areas).map((a) => (<MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>))}
+            </TextField>
+          </Stack>
+
           <TextField label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} fullWidth multiline minRows={4}/>
 
           <Box>
@@ -810,11 +831,12 @@ function NewTicketDialog({ open, onClose, onCreate, }) {
           </Box>
 
           {error && <Alert severity="error">{error}</Alert>}
+          {createMutation.isPending && <LinearProgress />}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSubmit}>Enviar Ticket</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={createMutation.isPending}>Enviar Ticket</Button>
       </DialogActions>
     </Dialog>);
 }
