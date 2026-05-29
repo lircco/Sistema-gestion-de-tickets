@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -15,22 +15,33 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 # 2. El ViewSet del Ticket
 class TicketViewSet(viewsets.ModelViewSet):
-    queryset = Ticket.objects.all().order_by('-creado_el')
+    # Ya no usamos queryset estático acá
     serializer_class = TicketSerializer
     pagination_class = StandardResultsSetPagination
     
+    # SOLUCIÓN 1: Acá DEBE ser IsAuthenticated para proteger los tickets
+    permission_classes = [permissions.IsAuthenticated] 
+    
     # Habilitamos la búsqueda
     filter_backends = [filters.SearchFilter]
-    search_fields = ['titulo', 'descripcion', 'estado'] # React podrá buscar por estos campos
+    search_fields = ['titulo', 'descripcion', 'estado']
+
+    # SOLUCIÓN 2: Recuperamos la validación de roles
+    def get_queryset(self):
+        user = self.request.user
+        # Si es Staff o Supervisor, ve todos los tickets
+        if user.rol in ['STAFF', 'SUPERVISOR'] or user.is_staff:
+            return Ticket.objects.all().order_by('-creado_el')
+        # Si es Estudiante, SOLO ve los suyos
+        return Ticket.objects.filter(creado_por=user).order_by('-creado_el')
 
     def perform_create(self, serializer):
-        # Asigna automáticamente el creador al usuario logueado
+        # Como exigimos IsAuthenticated, self.request.user siempre será válido
         serializer.save(creado_por=self.request.user)
 
-    # 3. Endpoint personalizado para el Dashboard (Estadísticas en tiempo real)
+    # 3. Endpoint personalizado para el Dashboard
     @action(detail=False, methods=['get'])
     def estadisticas(self, request):
-        # Calculamos en tiempo real como acordamos antes
         stats = Ticket.objects.aggregate(
             total=Count('id'),
             abiertos=Count('id', filter=models.Q(estado='ABIERTO')),
