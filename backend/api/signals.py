@@ -17,21 +17,24 @@ def notificar_cambio_ticket(sender, instance, created, **kwargs):
         asunto = f"Actualización del ticket #{instance.id}"
         cuerpo = f"Saludos {instance.creado_por.first_name},\n\nTu ticket #{instance.id} ('{instance.titulo}') ha cambiado de estado.\n\nNuevo Estado: {instance.get_estado_display()}."
 
-    # Intentamos enviar el correo real
+    # Intentamos enviar el correo real solo si el usuario tiene email
     exitoso = False
-    try:
-        send_mail(
-            subject=asunto,
-            message=cuerpo,
-            from_email=None, # Toma el DEFAULT_FROM_EMAIL de settings.py
-            recipient_list=[destinatario],
-            fail_silently=False, # Ponlo en False para capturar errores si el SMTP falla
-        )
-        exitoso = True
-    except Exception as e:
-        # Aquí podrías usar un logger para registrar el error exacto en producción
-        print(f"Error al enviar el correo: {e}")
-        exitoso = False
+    if destinatario:
+        try:
+            send_mail(
+                subject=asunto,
+                message=cuerpo,
+                from_email=None, # Toma el DEFAULT_FROM_EMAIL de settings.py
+                recipient_list=[destinatario],
+                fail_silently=False, # Ponlo en False para capturar errores si el SMTP falla
+            )
+            exitoso = True
+        except Exception as e:
+            # Aquí podrías usar un logger para registrar el error exacto en producción
+            print(f"Error al enviar el correo: {e}")
+            exitoso = False
+    else:
+        print(f"Advertencia: El usuario {instance.creado_por.username} no tiene email configurado.")
 
     # Guardamos el historial en la base de datos pase lo que pase
     RegistroEmail.objects.create(

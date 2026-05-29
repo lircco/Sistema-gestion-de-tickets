@@ -1,6 +1,21 @@
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria
 
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = '__all__'
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = '__all__'
+
+class UsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'rol', 'area']
+
 class TicketSerializer(serializers.ModelSerializer):
     # Agregamos campos de solo lectura para mostrar nombres en vez de IDs en el frontend
     creado_por_nombre = serializers.CharField(source='creado_por.username', read_only=True)
