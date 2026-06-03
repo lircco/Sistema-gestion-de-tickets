@@ -1,10 +1,5 @@
-/**
- * Utilidad para interactuar con la API de Django usando Session Auth.
- */
-
 const BASE_URL = '/api';
 
-// Función para obtener una cookie por nombre (necesaria para el CSRF token)
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -20,12 +15,9 @@ function getCookie(name) {
   return cookieValue;
 }
 
-/**
- * Wrapper de fetch que maneja credenciales y CSRF
- */
 async function apiFetch(endpoint, options = {}) {
   const url = `${BASE_URL}${endpoint}`;
-  
+
   const headers = {
     'Content-Type': 'application/json',
     'X-CSRFToken': getCookie('csrftoken'),
@@ -35,15 +27,15 @@ async function apiFetch(endpoint, options = {}) {
   const config = {
     ...options,
     headers,
-    credentials: 'include', // Importante para enviar cookies de sesión
+    credentials: 'include',
   };
 
   const response = await fetch(url, config);
 
   if (response.status === 204) return null;
-  
+
   const data = await response.json();
-  
+
   if (!response.ok) {
     throw new Error(data.error || data.detail || 'Error en la petición');
   }
@@ -52,20 +44,32 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 export const api = {
-  login: (username, password) => 
+  login: (username, password) =>
     apiFetch('/login/', { method: 'POST', body: JSON.stringify({ username, password }) }),
-  
-  logout: () => 
+
+  register: (username, password, email, first_name = '', last_name = '') =>
+    apiFetch('/registro/', {
+      method: 'POST',
+      body: JSON.stringify({
+        username,
+        password,
+        password_confirm: password,
+        email,
+        first_name,
+        last_name
+      })
+    }),
+
+  logout: () =>
     apiFetch('/logout/', { method: 'POST' }),
-  
-  getMe: () => 
+
+  getMe: () =>
     apiFetch('/me/'),
-  
-  getTickets: () => 
+
+  getTickets: () =>
     apiFetch('/tickets/'),
-  
+
   createTicket: (ticketData) => {
-    // Si hay archivos, usamos FormData en lugar de JSON
     if (ticketData instanceof FormData) {
       return fetch(`${BASE_URL}/tickets/`, {
         method: 'POST',
@@ -79,12 +83,12 @@ export const api = {
     return apiFetch('/tickets/', { method: 'POST', body: JSON.stringify(ticketData) });
   },
 
-  getStats: () => 
+  getStats: () =>
     apiFetch('/tickets/estadisticas/'),
 
   getAreas: () =>
     apiFetch('/areas/'),
-  
+
   getCategorias: () =>
     apiFetch('/categorias/'),
 };
