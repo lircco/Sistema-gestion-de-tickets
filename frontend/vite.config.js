@@ -9,7 +9,6 @@ export default defineConfig({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.js',
       disableTypes: true,
-      routeFileIgnorePattern: '((IndexRoute)|(AppShell)|(LoginScreen)|(admin/)|(user/)|(shared/))',
     }),
     react(),
   ],
