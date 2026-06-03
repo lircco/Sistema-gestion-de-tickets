@@ -99,7 +99,7 @@ function LoginScreen({ onLoginSuccess }) {
     setError("");
     setSuccess("");
     if (tab === 0) {
-      loginMutation.mutate({ username: email, password });
+      loginMutation.mutate({ username: email.split('@')[0], password });
     }
     else {
       if (!name || !email || !password || !confirm) {

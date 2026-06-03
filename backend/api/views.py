@@ -1,13 +1,14 @@
-from rest_framework import viewsets, filters, permissions
+from rest_framework import viewsets, filters, permissions, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
+from django.contrib.auth import authenticate, login, logout
 from django.db.models import Count
 from django.db import models
 
 from .models import Ticket, Usuario, Area, Categoria
-from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer
+from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer
 
 class RegistroUsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -73,3 +74,24 @@ class UsuarioActualView(APIView):
             'is_staff': usuario.is_staff
         }
         return Response(data)
+
+
+class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            login(request, user)
+            return Response(UsuarioSerializer(user).data)
+        return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({'message': 'Sesión cerrada correctamente'})
