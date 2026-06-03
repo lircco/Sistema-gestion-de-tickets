@@ -1,0 +1,11 @@
+{
+  "release-type": "node",
+  "packages": {
+    "frontend": {
+      "release-type": "node"
+    },
+    "backend": {
+      "release-type": "python"
+    }
+  }
+}

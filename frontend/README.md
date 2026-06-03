@@ -1,16 +1,25 @@
-# React + Vite
+# Sistema de Gestión de Tickets - UNRaf
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es el frontend del Sistema de Gestión de Tickets de la UNRaf, desarrollado con React y TanStack Start.
 
-Currently, two official plugins are available:
+## Tecnologías Principales
+- **Framework:** React + TanStack Start (SSR)
+- **Ruteo:** TanStack Router
+- **Estilos:** Tailwind CSS + Material UI (MUI)
+- **Componentes:** Shadcn UI
+- **Estado/Queries:** TanStack Query
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Configuración
+El frontend está configurado para comunicarse con un backend Django en `http://localhost:8000` mediante un proxy en Vite.
 
-## React Compiler
+## Desarrollo
+Para iniciar el entorno de desarrollo:
+```bash
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+El sistema generará automáticamente el árbol de rutas en `src/routeTree.gen.js`.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Cleanup Note
+Este proyecto fue limpiado para eliminar configuraciones específicas de Lovable y TypeScript, manteniendo un flujo de trabajo basado puramente en JSX/JS.
