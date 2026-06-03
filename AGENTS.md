@@ -76,3 +76,32 @@ Todos los mensajes de commit deben seguir esta convención:
 *   `test`: Añade tests o refactoriza uno existente.
 
 Ejemplo: `feat: implementar filtrado de tickets por área`
+
+---
+
+## Despliegue (Nginx + Producción)
+
+Para desplegar en un entorno de producción con Nginx, sigue estos pasos:
+
+### 1. Variables de Entorno
+Configura las siguientes variables de entorno en el servidor:
+*   `DJANGO_SECRET_KEY`: Una clave aleatoria y segura.
+*   `DJANGO_DEBUG`: `False`.
+*   `DJANGO_ALLOWED_HOSTS`: Dominio o IP del servidor (ej: `misitio.com,1.2.3.4`).
+*   `CORS_ALLOWED_ORIGINS`: URL del frontend (si aplica).
+*   `CSRF_TRUSTED_ORIGINS`: URL del frontend.
+
+### 2. Backend
+1.  Recolectar archivos estáticos: `python manage.py collectstatic`.
+2.  Ejecutar con un servidor WSGI como Gunicorn: `gunicorn config.wsgi:application`.
+
+### 3. Frontend
+1.  Construir el proyecto: `npm run build`.
+2.  Los archivos generados en `frontend/dist` deben ser servidos por Nginx.
+
+### 4. Nginx
+Utiliza el archivo `nginx.conf.example` como base para configurar el servidor. Este archivo maneja:
+*   Servicio de archivos estáticos y media.
+*   Proxy inverso para la API de Django.
+*   Soporte para Single Page Application (SPA) con React.
+
