@@ -1,94 +1,139 @@
-const BASE_URL = '/api';
-
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
-}
-
-async function apiFetch(endpoint, options = {}) {
-  const url = `${BASE_URL}${endpoint}`;
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-CSRFToken': getCookie('csrftoken'),
-    ...options.headers,
-  };
-
-  const config = {
-    ...options,
-    headers,
-    credentials: 'include',
-  };
-
-  const response = await fetch(url, config);
-
-  if (response.status === 204) return null;
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || data.detail || 'Error en la petición');
-  }
-
-  return data;
-}
+const BASE_URL = 'http://127.0.0.1:8000/api/';
 
 export const api = {
-  login: (username, password) =>
-    apiFetch('/login/', { method: 'POST', body: JSON.stringify({ username, password }) }),
+    // 1. FUNCIÓN DE INICIO DE SESIÓN
+    login: async (username, password) => {
+        const response = await fetch(`${BASE_URL}token/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
 
-  register: (username, password, email, first_name = '', last_name = '') =>
-    apiFetch('/registro/', {
-      method: 'POST',
-      body: JSON.stringify({
-        username,
-        password,
-        password_confirm: password,
-        email,
-        first_name,
-        last_name
-      })
-    }),
+        if (!response.ok) {
+            throw new Error("Credenciales incorrectas o usuario inexistente");
+        }
 
-  logout: () =>
-    apiFetch('/logout/', { method: 'POST' }),
+        const tokenData = await response.json();
+        localStorage.setItem('access_token', tokenData.access);
+        localStorage.setItem('refresh_token', tokenData.refresh);
 
-  getMe: () =>
-    apiFetch('/me/'),
+        const profileResponse = await fetch(`${BASE_URL}me/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${tokenData.access}`
+            }
+        });
 
-  getTickets: () =>
-    apiFetch('/tickets/'),
+        if (!profileResponse.ok) {
+            throw new Error("Error al cargar el perfil del usuario");
+        }
 
-  createTicket: (ticketData) => {
+        return await profileResponse.json(); 
+    },
+
+    // 2. FUNCIÓN DE REGISTRO
+    register: async (username, password, email, first_name, last_name) => {
+        const response = await fetch(`${BASE_URL}registro/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, email, first_name, last_name })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.detail || "Error al crear la cuenta. Intente con otro correo.");
+        }
+
+        return await response.json();
+    },
+    
+    // 3. BUSCAR ÁREAS 
+    getAreas: async () => {
+      const token = localStorage.getItem('access_token'); 
+      const response = await fetch(`${BASE_URL}areas/`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          }
+      });
+
+      if (!response.ok) throw new Error("No se pudieron cargar las áreas");
+      return await response.json(); 
+    },
+
+    // 4. BUSCAR CATEGORÍAS 
+    getCategorias: async () => {
+      const token = localStorage.getItem('access_token'); 
+      const response = await fetch(`${BASE_URL}categorias/`, {
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          }
+      });
+
+      if (!response.ok) throw new Error("No se pudieron cargar las categorías");
+      return await response.json();
+    }, 
+
+  // 5. CREAR UN TICKET NUEVO (Soporta archivos y texto)
+  createTicket: async (ticketData) => {
+    const token = localStorage.getItem('access_token');
+    
+    // Imprimimos en la consola del navegador (F12) para chusmear qué llega
+    console.log("Datos que recibe api.js:", ticketData);
+
+    // Preparamos las cabeceras base (Solo el token)
+    const headers = {
+        'Authorization': `Bearer ${token}`
+    };
+
+    let bodyData;
+
+    // ¿Viene con formato de archivos (FormData)?
     if (ticketData instanceof FormData) {
-      return fetch(`${BASE_URL}/tickets/`, {
-        method: 'POST',
-        body: ticketData,
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-        credentials: 'include',
-      }).then(res => res.json());
+        bodyData = ticketData;
+        // IMPORTANTE: No le ponemos 'Content-Type'. 
+        // Fetch es inteligente y le pone 'multipart/form-data' automáticamente.
+    } else {
+        // Si es un objeto de texto normal, lo convertimos a JSON
+        bodyData = JSON.stringify(ticketData);
+        headers['Content-Type'] = 'application/json';
     }
-    return apiFetch('/tickets/', { method: 'POST', body: JSON.stringify(ticketData) });
+
+    const response = await fetch(`${BASE_URL}tickets/`, {
+        method: 'POST',
+        headers: headers,
+        body: bodyData 
+    });
+
+    if (!response.ok) {
+        const errData = await response.json();
+        console.error("Motivo del rechazo de Django:", errData);
+        const mensajeError = errData.detail || JSON.stringify(errData);
+        throw new Error(mensajeError);
+    }
+
+    return await response.json();
   },
 
-  getStats: () =>
-    apiFetch('/tickets/estadisticas/'),
+  // 6. BUSCAR MIS TICKETS (Pasando el token para que Django me reconozca)
+  getTickets: async () => {
+    const token = localStorage.getItem('access_token');
+    
+    const response = await fetch(`${BASE_URL}tickets/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+        }
+    });
 
-  getAreas: () =>
-    apiFetch('/areas/'),
-
-  getCategorias: () =>
-    apiFetch('/categorias/'),
+    if (!response.ok) {
+        throw new Error("Error al cargar los tickets");
+    }
+    return await response.json();
+  }
 };
