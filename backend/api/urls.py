@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.views.generic import TemplateView
 from .views import TicketViewSet, AreaViewSet, CategoriaViewSet, RegistroUsuarioViewSet, UsuarioActualView, LoginView, LogoutView
 
 router = DefaultRouter()

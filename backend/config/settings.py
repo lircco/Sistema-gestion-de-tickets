@@ -138,3 +138,19 @@ AUTH_USER_MODEL = 'api.Usuario'
 
 # Redirigir a los tickets después de iniciar sesión en DRF
 LOGIN_REDIRECT_URL = '/api/tickets/'
+
+# 4. Configuración de Django REST Framework y JWT
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Configuración opcional para que los tokens duren más tiempo (por defecto duran 5 minutos)
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
