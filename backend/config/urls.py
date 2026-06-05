@@ -12,13 +12,13 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Conectamos todas las rutas de la app 'api' bajo el prefijo 'api/'
-    path('api/', include('api.urls')), 
-    path('api-auth/', include('rest_framework.urls')),
-    
     # 2. ESTAS SON LAS RUTAS QUE NECESITA REACT PARA EL LOGIN Y LOS TOKENS
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Conectamos todas las rutas de la app 'api' bajo el prefijo 'api/'
+    path('api/', include('api.urls')), 
+    path('api-auth/', include('rest_framework.urls')),
 ]
 
 if settings.DEBUG:
