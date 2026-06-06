@@ -1,8 +1,12 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 2. Obligamos a Django a leer el .env justo acá, usando el override
+load_dotenv(BASE_DIR / '.env', override=True)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-c9sgq$13)93=+vux=lazxrk()2u4fns2dzyb!-%kjnt!cf)@0w')
@@ -124,7 +128,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # ACÁ VAN TUS DATOS REALES:
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'onachiaverano@gmail.com')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'lirccoweb@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 DEFAULT_FROM_EMAIL = f"Sistema de Tickets Universidad <{EMAIL_HOST_USER}>"
