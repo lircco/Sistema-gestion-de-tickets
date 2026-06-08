@@ -1,6 +1,14 @@
 import React, { useState } from "react";
-import { Box, Stack, Divider, Drawer, IconButton, Tooltip, TextField, Badge, Avatar, useMediaQuery, Typography, InputAdornment } from "@mui/material";
-import { MenuOutlined, SearchOutlined, DarkModeOutlined, LightModeOutlined, NotificationsNoneOutlined, HelpOutlineOutlined, SupportAgentOutlined, LogoutOutlined, SchoolOutlined } from "@mui/icons-material";
+import {
+  Box, Stack, Divider, Drawer, IconButton, Tooltip, TextField,
+  Badge, Avatar, useMediaQuery, Typography, InputAdornment,
+  Menu, MenuItem, Button
+} from "@mui/material";
+import {
+  MenuOutlined, SearchOutlined, DarkModeOutlined, LightModeOutlined,
+  NotificationsNoneOutlined, HelpOutlineOutlined, SupportAgentOutlined,
+  LogoutOutlined, SchoolOutlined, DeleteSweepOutlined
+} from "@mui/icons-material";
 
 function SideAction({ icon, label, danger, onClick }) {
   return (
@@ -29,6 +37,26 @@ function SideAction({ icon, label, danger, onClick }) {
 export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, children }) {
   const isMobile = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Cambialo para que quede así:
+  const [notifications, setNotifications] = useState([]);
+  // 2. ESTADO PARA EL MENÚ DESPLEGABLE DE LA CAMPANITA
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
+
+  const handleOpenMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  // 3. FUNCIÓN PARA LIMPIAR TODO EL LISTADO
+  const handleClearNotifications = () => {
+    setNotifications([]);
+    handleCloseMenu();
+  };
 
   const sidebar = (
     <Box sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
@@ -132,20 +160,69 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
               {mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
             </IconButton>
           </Tooltip>
-          <IconButton>
-            <Badge badgeContent={3} color="error">
+
+          {/* CAMPANITA MODIFICADA */}
+          <IconButton onClick={handleOpenMenu}>
+            <Badge badgeContent={notifications.length} color="error">
               <NotificationsNoneOutlined />
             </Badge>
           </IconButton>
+
+          {/* MENÚ FLOTANTE DE NOTIFICACIONES */}
+          <Menu
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleCloseMenu}
+            disableScrollLock
+            PaperProps={{
+              sx: { width: 320, maxHeight: 400, mt: 1.5, borderRadius: 2, boxShadow: "0px 4px 20px rgba(0,0,0,0.08)" }
+            }}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Box sx={{ px: 2, py: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Notificaciones</Typography>
+              {notifications.length > 0 && (
+                <Button
+                  size="small"
+                  startIcon={<DeleteSweepOutlined />}
+                  onClick={handleClearNotifications}
+                  sx={{ textTransform: "none", fontSize: 12, color: "text.secondary" }}
+                >
+                  Limpiar todo
+                </Button>
+              )}
+            </Box>
+            <Divider />
+
+            {notifications.length === 0 ? (
+              <Box sx={{ py: 4, px: 2, textAlign: "center" }}>
+                <Typography sx={{ fontSize: 13, color: "text.secondary", fontWeight: 500 }}>
+                  No tenés notificaciones pendientes.
+                </Typography>
+              </Box>
+            ) : (
+              notifications.map((notif) => (
+                <MenuItem
+                  key={notif.id}
+                  onClick={handleCloseMenu}
+                  sx={{ py: 1.5, px: 2, whiteSpace: "normal", fontSize: 13, borderBottom: "1px solid #f0f0f0", "&:last-child": { borderBottom: 0 } }}
+                >
+                  {notif.text}
+                </MenuItem>
+              ))
+            )}
+          </Menu>
+
           <IconButton sx={{ display: { xs: "none", sm: "inline-flex" } }}>
             <HelpOutlineOutlined />
           </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user.name}</Typography>
-              <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user.role}</Typography>
+              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
+              <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
-            <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>{user.name.charAt(0)}</Avatar>
+            <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>{user?.name?.charAt(0) || "U"}</Avatar>
           </Stack>
         </Box>
 
