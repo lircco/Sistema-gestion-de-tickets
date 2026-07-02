@@ -32,7 +32,9 @@ Desde la raíz del proyecto, puedes levantar ambos servidores (Backend y Fronten
 
 ### 2. Ejecución Individual
 #### Backend
-1.  **Activar entorno:** `.\venv\Scripts\activate` (Windows).
+1.  **Activar entorno:** `.venv` en la raíz del proyecto.
+    *   Git Bash: `source .venv/Scripts/activate`.
+    *   PowerShell: `.\.venv\Scripts\Activate.ps1`.
 2.  **Migraciones:** `python manage.py migrate`.
 3.  **Servidor:** `python manage.py runserver`.
 
