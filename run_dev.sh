@@ -12,7 +12,7 @@ trap "kill 0" EXIT
 echo ""
 echo ">>> Iniciando BACKEND (Django) en puerto 8000..."
 cd backend || exit
-./venv/Scripts/python.exe manage.py runserver &
+../.venv/Scripts/python.exe manage.py runserver &
 
 # 2. Iniciar el Frontend en segundo plano
 echo ""

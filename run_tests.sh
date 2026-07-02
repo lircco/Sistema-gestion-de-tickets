@@ -9,11 +9,11 @@ echo "--- Iniciando Pruebas del Sistema de Tickets ---"
 echo ""
 echo ">>> Ejecutando pruebas del BACKEND (Django)..."
 cd backend || exit
-# Asegurarse de que el entorno virtual esté activo o usar la ruta directa
-PYTHON_EXE="./venv/Scripts/python.exe"
+# Entorno virtual canónico del proyecto en la raíz
+PYTHON_EXE="../.venv/Scripts/python.exe"
 
 if [ ! -f "$PYTHON_EXE" ]; then
-    echo "Error: No se encontró el entorno virtual en backend/venv."
+    echo "Error: No se encontró el entorno virtual en .venv."
     exit 1
 fi
 

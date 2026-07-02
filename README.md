@@ -17,6 +17,28 @@ Para levantar el entorno de desarrollo completo (Backend y Frontend) con un solo
 
 Esto iniciará el servidor de Django en `http://127.0.0.1:8000` y el de Vite en `http://localhost:5173`.
 
+### Entorno virtual
+
+El proyecto usa un único entorno virtual en la raíz: `.venv/`.
+
+Si necesitás recrearlo, ejecutá desde la raíz:
+
+```bash
+python -m venv .venv
+```
+
+En Git Bash sobre Windows, activalo con:
+
+```bash
+source .venv/Scripts/activate
+```
+
+Luego instalá las dependencias del backend con:
+
+```bash
+.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
+```
+
 ---
 
 ## Otros Comandos
