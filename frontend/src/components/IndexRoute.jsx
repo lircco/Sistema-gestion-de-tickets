@@ -41,10 +41,11 @@ export default function Index() {
   const handleLogout = async () => {
     try {
       await api.logout();
-      queryClient.setQueryData(["me"], null);
-      queryClient.invalidateQueries();
     } catch (e) {
       console.error("Error logging out", e);
+    } finally {
+      queryClient.setQueryData(["me"], null);
+      queryClient.invalidateQueries();
     }
   };
 
