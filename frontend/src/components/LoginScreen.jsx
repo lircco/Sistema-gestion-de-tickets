@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Box, Card, Stack, Typography, TextField, Button, Link, IconButton, InputAdornment, Avatar, Alert } from "@mui/material";
-import { MailOutlined, LockOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
+import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -164,42 +164,45 @@ export default function LoginScreen({ onLoginSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               size="small"
               sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <MailOutlined sx={{ color: "#9aa4b2" }} />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <MailOutlined sx={{ color: "#9aa4b2" }} />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
-            <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5 }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Contraseña</Typography>
+            <Box sx={{ position: "relative", mb: tab === 1 ? 2 : 3 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Contraseña</Typography>
+              <TextField
+                fullWidth
+                type={show ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                size="small"
+                sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setShow((s) => !s)}>
+                          {show ? <VisibilityOff fontSize="small" /> : <VisibilityOutlined fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
               {tab === 0 && (
-                <Link href="#" sx={{ fontSize: 12, color: "primary.main" }}>
+                <Link href="#" sx={{ position: "absolute", top: 0, right: 0, fontSize: 12, color: "primary.main" }}>
                   ¿Olvidó su contraseña?
                 </Link>
               )}
-            </Stack>
-
-            <TextField
-              fullWidth
-              type={show ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              size="small"
-              sx={{ mb: tab === 1 ? 2 : 3, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShow((s) => !s)}>
-                      {show ? <VisibilityOff fontSize="small" /> : <LockOutlined fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+            </Box>
 
             {tab === 1 && (
               <>
