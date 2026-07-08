@@ -24,6 +24,7 @@ function PlaceholderSection({ title }) {
 export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) {
   const [active, setActive] = useState("dashboard");
   const [openTicket, setOpenTicket] = useState(null);
+  const displayName = [admin.first_name, admin.last_name].filter(Boolean).join(" ") || admin.username;
 
   const { data: tickets = [], isLoading: isLoadingTickets } = useQuery({ queryKey: ["tickets"], queryFn: api.getTickets });
   const { data: stats, isLoading: isLoadingStats } = useQuery({ queryKey: ["stats"], queryFn: api.getStats });
@@ -50,7 +51,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
         setOpenTicket(null);
       }}
       onLogout={onLogout}
-      user={{ name: admin.username, role: admin.rol }}
+      user={{ name: displayName, role: admin.rol }}
       mode={mode}
       onToggleMode={onToggleMode}
     >

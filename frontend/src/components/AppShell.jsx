@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import {
   Box, Stack, Divider, Drawer, IconButton, Tooltip, TextField,
   Badge, Avatar, useMediaQuery, Typography, InputAdornment,
-  Menu, MenuItem, Button
+  Menu, MenuItem, Button, Dialog, DialogTitle, DialogContent, DialogContentText
 } from "@mui/material";
 import {
   MenuOutlined, SearchOutlined, DarkModeOutlined, LightModeOutlined,
@@ -58,6 +58,8 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
     handleCloseMenu();
   };
 
+  const [supportOpen, setSupportOpen] = useState(false);
+
   const sidebar = (
     <Box sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
       <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", mb: 3, px: 1 }}>
@@ -104,7 +106,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
 
       <Divider sx={{ my: 2 }} />
       <Stack spacing={0.5}>
-        <SideAction icon={<SupportAgentOutlined />} label="Soporte" />
+        <SideAction icon={<SupportAgentOutlined />} label="Soporte" onClick={() => setSupportOpen(true)} />
         <SideAction icon={<LogoutOutlined sx={{ color: "#dc2626" }} />} label="Cerrar Sesión" danger onClick={onLogout} />
       </Stack>
     </Box>
@@ -214,7 +216,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
             )}
           </Menu>
 
-          <IconButton sx={{ display: { xs: "none", sm: "inline-flex" } }}>
+          <IconButton sx={{ display: { xs: "none", sm: "inline-flex" } }} onClick={() => setSupportOpen(true)}>
             <HelpOutlineOutlined />
           </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
@@ -228,6 +230,15 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
 
         <Box sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
       </Box>
+
+      <Dialog open={supportOpen} onClose={() => setSupportOpen(false)}>
+        <DialogTitle>¿Necesitás ayuda?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Escribinos a <strong>soporte@unraf.edu.ar</strong> y te vamos a responder a la brevedad.
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
