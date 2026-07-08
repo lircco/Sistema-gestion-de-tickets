@@ -1,119 +1,120 @@
-const BASE_URL = 'http://127.0.0.1:8000/api/';
+const API = import.meta.env.VITE_API_URL;
+const BASE_URL = `${API}/api/`;
 
 export const api = {
-    // 1. FUNCIÓN DE INICIO DE SESIÓN
-    login: async (username, password) => {
-        const response = await fetch(`${BASE_URL}token/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
+  // 1. FUNCIÓN DE INICIO DE SESIÓN
+  login: async (username, password) => {
+    const response = await fetch(`${BASE_URL}token/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
 
-        if (!response.ok) {
-            throw new Error("Credenciales incorrectas o usuario inexistente");
-        }
+    if (!response.ok) {
+      throw new Error("Credenciales incorrectas o usuario inexistente");
+    }
 
-        const tokenData = await response.json();
-        localStorage.setItem('access_token', tokenData.access);
-        localStorage.setItem('refresh_token', tokenData.refresh);
+    const tokenData = await response.json();
+    localStorage.setItem("access_token", tokenData.access);
+    localStorage.setItem("refresh_token", tokenData.refresh);
 
-        const profileResponse = await fetch(`${BASE_URL}me/`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenData.access}`
-            }
-        });
+    const profileResponse = await fetch(`${BASE_URL}me/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${tokenData.access}`,
+      },
+    });
 
-        if (!profileResponse.ok) {
-            throw new Error("Error al cargar el perfil del usuario");
-        }
+    if (!profileResponse.ok) {
+      throw new Error("Error al cargar el perfil del usuario");
+    }
 
-        return await profileResponse.json(); 
-    },
+    return await profileResponse.json();
+  },
 
-    // 2. FUNCIÓN DE REGISTRO
-    register: async (username, password, email, first_name, last_name) => {
-        const response = await fetch(`${BASE_URL}registro/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email, first_name, last_name })
-        });
+  // 2. FUNCIÓN DE REGISTRO
+  register: async (username, password, email, first_name, last_name) => {
+    const response = await fetch(`${BASE_URL}registro/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, email, first_name, last_name }),
+    });
 
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.detail || "Error al crear la cuenta. Intente con otro correo.");
-        }
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.detail || "Error al crear la cuenta. Intente con otro correo.");
+    }
 
-        return await response.json();
-    },
-    
-    // 3. BUSCAR ÁREAS 
-    getAreas: async () => {
-      const token = localStorage.getItem('access_token'); 
-      const response = await fetch(`${BASE_URL}areas/`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-          }
-      });
+    return await response.json();
+  },
 
-      if (!response.ok) throw new Error("No se pudieron cargar las áreas");
-      return await response.json(); 
-    },
+  // 3. BUSCAR ÁREAS
+  getAreas: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}areas/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    // 4. BUSCAR CATEGORÍAS 
-    getCategorias: async () => {
-      const token = localStorage.getItem('access_token'); 
-      const response = await fetch(`${BASE_URL}categorias/`, {
-          method: 'GET',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-          }
-      });
+    if (!response.ok) throw new Error("No se pudieron cargar las áreas");
+    return await response.json();
+  },
 
-      if (!response.ok) throw new Error("No se pudieron cargar las categorías");
-      return await response.json();
-    }, 
+  // 4. BUSCAR CATEGORÍAS
+  getCategorias: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}categorias/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) throw new Error("No se pudieron cargar las categorías");
+    return await response.json();
+  },
 
   // 5. CREAR UN TICKET NUEVO (Soporta archivos y texto)
   createTicket: async (ticketData) => {
-    const token = localStorage.getItem('access_token');
-    
+    const token = localStorage.getItem("access_token");
+
     // Imprimimos en la consola del navegador (F12) para chusmear qué llega
     console.log("Datos que recibe api.js:", ticketData);
 
     // Preparamos las cabeceras base (Solo el token)
     const headers = {
-        'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     };
 
     let bodyData;
 
     // ¿Viene con formato de archivos (FormData)?
     if (ticketData instanceof FormData) {
-        bodyData = ticketData;
-        // IMPORTANTE: No le ponemos 'Content-Type'. 
-        // Fetch es inteligente y le pone 'multipart/form-data' automáticamente.
+      bodyData = ticketData;
+      // IMPORTANTE: No le ponemos 'Content-Type'.
+      // Fetch es inteligente y le pone 'multipart/form-data' automáticamente.
     } else {
-        // Si es un objeto de texto normal, lo convertimos a JSON
-        bodyData = JSON.stringify(ticketData);
-        headers['Content-Type'] = 'application/json';
+      // Si es un objeto de texto normal, lo convertimos a JSON
+      bodyData = JSON.stringify(ticketData);
+      headers["Content-Type"] = "application/json";
     }
 
     const response = await fetch(`${BASE_URL}tickets/`, {
-        method: 'POST',
-        headers: headers,
-        body: bodyData 
+      method: "POST",
+      headers: headers,
+      body: bodyData,
     });
 
     if (!response.ok) {
-        const errData = await response.json();
-        console.error("Motivo del rechazo de Django:", errData);
-        const mensajeError = errData.detail || JSON.stringify(errData);
-        throw new Error(mensajeError);
+      const errData = await response.json();
+      console.error("Motivo del rechazo de Django:", errData);
+      const mensajeError = errData.detail || JSON.stringify(errData);
+      throw new Error(mensajeError);
     }
 
     return await response.json();
@@ -121,19 +122,19 @@ export const api = {
 
   // 6. BUSCAR MIS TICKETS (Pasando el token para que Django me reconozca)
   getTickets: async () => {
-    const token = localStorage.getItem('access_token');
-    
+    const token = localStorage.getItem("access_token");
+
     const response = await fetch(`${BASE_URL}tickets/`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` 
-        }
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-        throw new Error("Error al cargar los tickets");
+      throw new Error("Error al cargar los tickets");
     }
     return await response.json();
-  }
+  },
 };
