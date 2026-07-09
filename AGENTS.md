@@ -24,13 +24,20 @@ El sistema es una plataforma de gestión de tickets dividida en dos partes princ
 
 Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de estar en el directorio correspondiente):
 
-### 1. Ejecución Unificada de Servidores (Recomendado)
-Desde la raíz del proyecto, puedes levantar ambos servidores (Backend y Frontend) simultáneamente:
-```bash
-./run_dev.sh
-```
+### 1. Ejecución con Docker Compose (Recomendado para Producción/Despliegue)
+El stack completo puede ser levantado utilizando contenedores Docker.
 
-### 2. Ejecución Individual
+1. **Crear la red externa de Nginx:**
+   ```bash
+   docker network create nginx-proxy
+   ```
+2. **Construir y levantar contenedores:**
+   ```bash
+   docker compose build
+   docker compose up -d
+   ```
+
+### 2. Ejecución de Desarrollo Local
 #### Backend
 1.  **Activar entorno:** `.venv` en la raíz del proyecto.
     *   Git Bash: `source .venv/Scripts/activate`.
@@ -46,17 +53,9 @@ Desde la raíz del proyecto, puedes levantar ambos servidores (Backend y Fronten
 
 ## Cómo Correr los Tests
 
-Existen dos formas de ejecutar las pruebas:
-
-### 1. Ejecución Unificada de Tests (Recomendado)
-Desde la raíz del proyecto, ejecuta el script automatizado:
-```bash
-./run_tests.sh
-```
-
-### 2. Ejecución Individual
 *   **Backend:** Entra a `backend/` y corre `.\venv\Scripts\python.exe manage.py test api`.
 *   **Frontend:** Entra a `frontend/` y corre `powershell.exe -ExecutionPolicy Bypass -Command "npm run test"`.
+
 
 ---
 
