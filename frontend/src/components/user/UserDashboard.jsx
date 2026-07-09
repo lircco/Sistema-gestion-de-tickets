@@ -55,9 +55,9 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
         onToggleMode={onToggleMode}
       >
         <Routes>
-          <Route index element={<UserHome user={{ name: user.username }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} />} />
+          <Route index element={<UserHome user={{ name: displayName }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} />} />
           <Route path="tickets" element={<UserTicketsTable tickets={tickets} onOpenNew={() => setOpenNew(true)} />} />
-          <Route path="settings" element={<SettingsSection person={{ name: user.username, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
+          <Route path="settings" element={<SettingsSection person={{ name: displayName, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
           <Route path="*" element={<Paper sx={{ p: 6, textAlign: "center" }}><Typography variant="h5">Página no encontrada</Typography></Paper>} />
         </Routes>
       </AppShell>
