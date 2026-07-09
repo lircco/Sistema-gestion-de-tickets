@@ -33,13 +33,13 @@ export const api = {
     return await profileResponse.json();
   },
 
-  // 2. FUNCIÓN DE REGISTRO
-  register: async (username, password, email, first_name, last_name) => {
-    const response = await fetch(`${BASE_URL}registro/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, email, first_name, last_name }),
-    });
+    // 2. FUNCIÓN DE REGISTRO
+    register: async (username, password, email, first_name, last_name, password_confirm) => {
+        const response = await fetch(`${BASE_URL}registro/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm })
+        });
 
     if (!response.ok) {
       const errData = await response.json();
@@ -137,4 +137,61 @@ export const api = {
     }
     return await response.json();
   },
+
+  // 7. USUARIO ACTUAL
+  getMe: async () => {
+    const token = localStorage.getItem('access_token');
+
+    const response = await fetch(`${BASE_URL}me/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("No se pudo cargar el usuario actual");
+    }
+    return await response.json();
+  },
+
+  // 8. CERRAR SESIÓN
+  logout: async () => {
+    const token = localStorage.getItem('access_token');
+
+    try {
+        await fetch(`${BASE_URL}logout/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    } catch (e) {
+        console.error("Error al cerrar sesión en el servidor", e);
+    } finally {
+        // Siempre limpiamos los tokens locales, incluso si el servidor falla.
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+    }
+  },
+
+  // 9. ESTADÍSTICAS DE TICKETS
+  getStats: async () => {
+    const token = localStorage.getItem('access_token');
+
+    const response = await fetch(`${BASE_URL}tickets/estadisticas/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("No se pudieron cargar las estadísticas");
+    }
+    return await response.json();
+  }
 };

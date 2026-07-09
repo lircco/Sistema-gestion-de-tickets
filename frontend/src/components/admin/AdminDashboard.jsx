@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect, useCallback } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import AppShell from "../AppShell";
 import AdminHome from "./AdminHome";
@@ -22,11 +22,29 @@ function PlaceholderSection({ title }) {
 }
 
 export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) {
-  const [active, setActive] = useState("dashboard");
-  const [openTicket, setOpenTicket] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const displayName = [admin.first_name, admin.last_name].filter(Boolean).join(" ") || admin.username;
 
-  const { data: tickets = [], isLoading: isLoadingTickets } = useQuery({ queryKey: ["tickets"], queryFn: api.getTickets });
-  const { data: stats, isLoading: isLoadingStats } = useQuery({ queryKey: ["stats"], queryFn: api.getStats });
+  const [tickets, setTickets] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      const [ticketsData, statsData] = await Promise.all([api.getTickets(), api.getStats()]);
+      setTickets(ticketsData.results || ticketsData);
+      setStats(statsData);
+    } catch (err) {
+      console.error("Error cargando el panel", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const items = [
     { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small" /> },
@@ -37,33 +55,30 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     { key: "settings", label: "Settings", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
-  if (isLoadingTickets || isLoadingStats) return <LinearProgress />;
+  if (isLoading) return <LinearProgress />;
 
-  const ticketList = tickets.results || tickets;
+  const active = location.pathname.split("/").filter(Boolean)[1] || "dashboard";
 
   return (
     <AppShell
       items={items}
       active={active}
-      onSelect={(k) => {
-        setActive(k);
-        setOpenTicket(null);
-      }}
+      onSelect={(k) => navigate(k === "dashboard" ? "/admin" : `/admin/${k}`)}
       onLogout={onLogout}
-      user={{ name: admin.username, role: admin.rol }}
+      user={{ name: displayName, role: admin.rol }}
       mode={mode}
       onToggleMode={onToggleMode}
     >
-      {active === "dashboard" && <AdminHome stats={stats} tickets={ticketList} onOpenTicket={(t) => { setActive("tickets"); setOpenTicket(t); }} />}
-      {active === "tickets" && !openTicket && <TicketsTable tickets={ticketList} onOpenTicket={(t) => setOpenTicket(t)} />}
-      {active === "tickets" && openTicket && <TicketDetail ticket={openTicket} onBack={() => setOpenTicket(null)} admin={admin} />}
-      {active === "reports" && <ReportsSection />}
-      {active === "areas" && <AreaManagementSection />}
-      {active === "kb" && <KnowledgeBaseSection />}
-      {active === "settings" && <SettingsSection person={{ name: admin.username, email: admin.email }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />}
-      {active !== "dashboard" && active !== "tickets" && active !== "reports" && active !== "areas" && active !== "kb" && active !== "settings" && (
-        <PlaceholderSection title={items.find((i) => i.key === active)?.label || ""} />
-      )}
+      <Routes>
+        <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route path="tickets" element={<TicketsTable tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} />} />
+        <Route path="reports" element={<ReportsSection />} />
+        <Route path="areas" element={<AreaManagementSection />} />
+        <Route path="kb" element={<KnowledgeBaseSection />} />
+        <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
+        <Route path="*" element={<PlaceholderSection title="Página no encontrada" />} />
+      </Routes>
     </AppShell>
   );
 }

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { Box, Card, Stack, Typography, TextField, Button, Link, IconButton, InputAdornment, Avatar, Alert } from "@mui/material";
-import { MailOutlined, LockOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
+import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -39,30 +38,23 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const loginMutation = useMutation({
-    mutationFn: ({ username, password: pwd }) => api.login(username, pwd),
-    onSuccess: (user) => onLoginSuccess(user),
-    onError: (err) => setError(err.message || "Error al iniciar sesión"),
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: ({ username, password: pwd, email: mail, first_name, last_name }) =>
-      api.register(username, pwd, mail, first_name, last_name),
-    onSuccess: (user) => {
-      setSuccess("¡Registro exitoso! Iniciando sesión...");
-      setTimeout(() => onLoginSuccess(user), 1000);
-    },
-    onError: (err) => setError(err.message || "Error al registrarse"),
-  });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
     if (tab === 0) {
-      loginMutation.mutate({ username: email.split("@")[0], password });
+      setLoading(true);
+      try {
+        const user = await api.login(email.split("@")[0], password);
+        onLoginSuccess(user);
+      } catch (err) {
+        setError(err.message || "Error al iniciar sesión");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -76,13 +68,16 @@ export default function LoginScreen({ onLoginSuccess }) {
     }
 
     const [firstName = "", lastName = ""] = name.split(" ", 2);
-    registerMutation.mutate({
-      username: email.split("@")[0],
-      password,
-      email,
-      first_name: firstName,
-      last_name: lastName,
-    });
+    setLoading(true);
+    try {
+      const user = await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
+      setSuccess("¡Registro exitoso! Iniciando sesión...");
+      setTimeout(() => onLoginSuccess(user), 1000);
+    } catch (err) {
+      setError(err.message || "Error al registrarse");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -164,42 +159,45 @@ export default function LoginScreen({ onLoginSuccess }) {
               onChange={(e) => setEmail(e.target.value)}
               size="small"
               sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <MailOutlined sx={{ color: "#9aa4b2" }} />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <MailOutlined sx={{ color: "#9aa4b2" }} />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
-            <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5 }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Contraseña</Typography>
+            <Box sx={{ position: "relative", mb: tab === 1 ? 2 : 3 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Contraseña</Typography>
+              <TextField
+                fullWidth
+                type={show ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                size="small"
+                sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setShow((s) => !s)}>
+                          {show ? <VisibilityOff fontSize="small" /> : <VisibilityOutlined fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
               {tab === 0 && (
-                <Link href="#" sx={{ fontSize: 12, color: "primary.main" }}>
+                <Link href="#" sx={{ position: "absolute", top: 0, right: 0, fontSize: 12, color: "primary.main" }}>
                   ¿Olvidó su contraseña?
                 </Link>
               )}
-            </Stack>
-
-            <TextField
-              fullWidth
-              type={show ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              size="small"
-              sx={{ mb: tab === 1 ? 2 : 3, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setShow((s) => !s)}>
-                      {show ? <VisibilityOff fontSize="small" /> : <LockOutlined fontSize="small" />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+            </Box>
 
             {tab === 1 && (
               <>
@@ -219,7 +217,7 @@ export default function LoginScreen({ onLoginSuccess }) {
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-            <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.4, fontWeight: 700, letterSpacing: 1 }}>
+            <Button type="submit" fullWidth variant="contained" size="large" disabled={loading} sx={{ py: 1.4, fontWeight: 700, letterSpacing: 1 }}>
               {tab === 1
                 ? "CREAR CUENTA"
                 : role === "admin"
