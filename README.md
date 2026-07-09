@@ -7,15 +7,30 @@ Plataforma institucional para la gestión de tickets de soporte técnico, diseñ
 - **Backend:** Django + Django REST Framework.
 - **Frontend:** React + Vite + TanStack Router + MUI + Tailwind.
 
-## Inicio Rápido
+## Inicio Rápido con Docker
 
-Para levantar el entorno de desarrollo completo (Backend y Frontend) con un solo comando, utiliza:
+El proyecto está preparado para correr en contenedores Docker mediante Docker Compose.
+
+### 1. Crear la red externa de Nginx
+El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para la comunicación y el ruteo inverso. Créala antes de levantar los servicios:
 
 ```bash
-./run_dev.sh
+docker network create nginx-proxy
 ```
 
-Esto iniciará el servidor de Django en `http://127.0.0.1:8000` y el de Vite en `http://localhost:5173`.
+### 2. Levantar el entorno completo
+Para construir y levantar todos los servicios (Base de datos, Backend, Frontend y Adminer) en segundo plano:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+---
+
+## Desarrollo Local (Sin Docker)
+
+Si prefieres correr los servicios localmente para desarrollo:
 
 ### Entorno virtual
 
@@ -39,14 +54,4 @@ Luego instalá las dependencias del backend con:
 .venv/Scripts/python.exe -m pip install -r backend/requirements.txt
 ```
 
----
-
-## Otros Comandos
-
-### Ejecución de Pruebas
-Para correr todos los tests del sistema:
-```bash
-./run_tests.sh
-```
-
-Para más detalles sobre la arquitectura, convenciones y comandos específicos, consulta el archivo [AGENTS.md](./AGENTS.md).
+Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [AGENTS.md](./AGENTS.md).
