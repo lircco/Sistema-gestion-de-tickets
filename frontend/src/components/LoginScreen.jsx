@@ -47,8 +47,8 @@ export default function LoginScreen({ onLoginSuccess }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: ({ username, password: pwd, email: mail, first_name, last_name }) =>
-      api.register(username, pwd, mail, first_name, last_name),
+    mutationFn: ({ username, password: pwd, email: mail, first_name, last_name, password_confirm }) =>
+      api.register(username, pwd, mail, first_name, last_name, password_confirm),
     onSuccess: (user) => {
       setSuccess("¡Registro exitoso! Iniciando sesión...");
       setTimeout(() => onLoginSuccess(user), 1000);
@@ -82,6 +82,7 @@ export default function LoginScreen({ onLoginSuccess }) {
       email,
       first_name: firstName,
       last_name: lastName,
+      password_confirm: confirm,
     });
   };
 

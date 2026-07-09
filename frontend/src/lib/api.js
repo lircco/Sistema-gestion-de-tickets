@@ -33,11 +33,11 @@ export const api = {
     },
 
     // 2. FUNCIÓN DE REGISTRO
-    register: async (username, password, email, first_name, last_name) => {
+    register: async (username, password, email, first_name, last_name, password_confirm) => {
         const response = await fetch(`${BASE_URL}registro/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email, first_name, last_name })
+            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm })
         });
 
         if (!response.ok) {
