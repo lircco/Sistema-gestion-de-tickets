@@ -12,6 +12,7 @@ import { DashboardOutlined, ConfirmationNumberOutlined, SettingsOutlined } from 
 export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
   const [active, setActive] = useState("dashboard");
   const [openNew, setOpenNew] = useState(false);
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username;
 
   const { data: tickets = [], isLoading } = useQuery({ queryKey: ["tickets"], queryFn: api.getTickets });
   const ticketList = tickets.results || tickets;
@@ -31,7 +32,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
         active={active}
         onSelect={setActive}
         onLogout={onLogout}
-        user={{ name: user.username, role: "Alumno UNRaf" }}
+        user={{ name: displayName, role: "Alumno UNRaf" }}
         mode={mode}
         onToggleMode={onToggleMode}
       >
