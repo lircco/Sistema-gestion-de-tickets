@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { Box, Card, Stack, Typography, TextField, Button, Link, IconButton, InputAdornment, Avatar, Alert } from "@mui/material";
 import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
 import { api } from "../lib/api";
@@ -39,30 +38,23 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const loginMutation = useMutation({
-    mutationFn: ({ username, password: pwd }) => api.login(username, pwd),
-    onSuccess: (user) => onLoginSuccess(user),
-    onError: (err) => setError(err.message || "Error al iniciar sesión"),
-  });
-
-  const registerMutation = useMutation({
-    mutationFn: ({ username, password: pwd, email: mail, first_name, last_name, password_confirm }) =>
-      api.register(username, pwd, mail, first_name, last_name, password_confirm),
-    onSuccess: (user) => {
-      setSuccess("¡Registro exitoso! Iniciando sesión...");
-      setTimeout(() => onLoginSuccess(user), 1000);
-    },
-    onError: (err) => setError(err.message || "Error al registrarse"),
-  });
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
     if (tab === 0) {
-      loginMutation.mutate({ username: email.split("@")[0], password });
+      setLoading(true);
+      try {
+        const user = await api.login(email.split("@")[0], password);
+        onLoginSuccess(user);
+      } catch (err) {
+        setError(err.message || "Error al iniciar sesión");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -76,14 +68,16 @@ export default function LoginScreen({ onLoginSuccess }) {
     }
 
     const [firstName = "", lastName = ""] = name.split(" ", 2);
-    registerMutation.mutate({
-      username: email.split("@")[0],
-      password,
-      email,
-      first_name: firstName,
-      last_name: lastName,
-      password_confirm: confirm,
-    });
+    setLoading(true);
+    try {
+      const user = await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
+      setSuccess("¡Registro exitoso! Iniciando sesión...");
+      setTimeout(() => onLoginSuccess(user), 1000);
+    } catch (err) {
+      setError(err.message || "Error al registrarse");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -223,7 +217,7 @@ export default function LoginScreen({ onLoginSuccess }) {
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-            <Button type="submit" fullWidth variant="contained" size="large" sx={{ py: 1.4, fontWeight: 700, letterSpacing: 1 }}>
+            <Button type="submit" fullWidth variant="contained" size="large" disabled={loading} sx={{ py: 1.4, fontWeight: 700, letterSpacing: 1 }}>
               {tab === 1
                 ? "CREAR CUENTA"
                 : role === "admin"

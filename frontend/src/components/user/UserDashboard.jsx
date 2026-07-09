@@ -1,23 +1,37 @@
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect, useCallback } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import AppShell from "../AppShell";
 import UserHome from "./UserHome";
 import UserTicketsTable from "./UserTicketsTable";
 import NewTicketDialog from "./NewTicketDialog";
 import SettingsSection from "../admin/SettingsSection";
-import { LinearProgress } from "@mui/material";
+import { Paper, Typography, LinearProgress } from "@mui/material";
 import { DashboardOutlined, ConfirmationNumberOutlined, SettingsOutlined } from "@mui/icons-material";
 
 export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
-  const [active, setActive] = useState("dashboard");
+  const location = useLocation();
+  const navigate = useNavigate();
   const [openNew, setOpenNew] = useState(false);
   const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.username;
 
-  const { data: tickets = [], isLoading } = useQuery({ queryKey: ["tickets"], queryFn: api.getTickets });
-  const ticketList = tickets.results || tickets;
+  const [tickets, setTickets] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (isLoading) return <LinearProgress />;
+  const loadTickets = useCallback(async () => {
+    try {
+      const data = await api.getTickets();
+      setTickets(data.results || data);
+    } catch (err) {
+      console.error("Error cargando los tickets", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
 
   const items = [
     { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small" /> },
@@ -25,26 +39,29 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
     { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
+  if (isLoading) return <LinearProgress />;
+
+  const active = location.pathname.split("/").filter(Boolean)[0] || "dashboard";
+
   return (
     <>
       <AppShell
         items={items}
         active={active}
-        onSelect={setActive}
+        onSelect={(k) => navigate(k === "dashboard" ? "/" : `/${k}`)}
         onLogout={onLogout}
         user={{ name: displayName, role: "Alumno UNRaf" }}
         mode={mode}
         onToggleMode={onToggleMode}
       >
-        {active === "dashboard" && (
-          <UserHome user={{ name: user.username }} tickets={ticketList} onOpenNew={() => setOpenNew(true)} onGoTickets={() => setActive("tickets")} />
-        )}
-        {active === "tickets" && <UserTicketsTable tickets={ticketList} onOpenNew={() => setOpenNew(true)} />}
-        {active === "settings" && (
-          <SettingsSection person={{ name: user.username, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />
-        )}
+        <Routes>
+          <Route index element={<UserHome user={{ name: user.username }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} />} />
+          <Route path="tickets" element={<UserTicketsTable tickets={tickets} onOpenNew={() => setOpenNew(true)} />} />
+          <Route path="settings" element={<SettingsSection person={{ name: user.username, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
+          <Route path="*" element={<Paper sx={{ p: 6, textAlign: "center" }}><Typography variant="h5">Página no encontrada</Typography></Paper>} />
+        </Routes>
       </AppShell>
-      <NewTicketDialog open={openNew} onClose={() => setOpenNew(false)} />
+      <NewTicketDialog open={openNew} onClose={() => setOpenNew(false)} onCreated={loadTickets} />
     </>
   );
 }

@@ -135,5 +135,62 @@ export const api = {
         throw new Error("Error al cargar los tickets");
     }
     return await response.json();
+  },
+
+  // 7. USUARIO ACTUAL
+  getMe: async () => {
+    const token = localStorage.getItem('access_token');
+
+    const response = await fetch(`${BASE_URL}me/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("No se pudo cargar el usuario actual");
+    }
+    return await response.json();
+  },
+
+  // 8. CERRAR SESIÓN
+  logout: async () => {
+    const token = localStorage.getItem('access_token');
+
+    try {
+        await fetch(`${BASE_URL}logout/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    } catch (e) {
+        console.error("Error al cerrar sesión en el servidor", e);
+    } finally {
+        // Siempre limpiamos los tokens locales, incluso si el servidor falla.
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+    }
+  },
+
+  // 9. ESTADÍSTICAS DE TICKETS
+  getStats: async () => {
+    const token = localStorage.getItem('access_token');
+
+    const response = await fetch(`${BASE_URL}tickets/estadisticas/`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("No se pudieron cargar las estadísticas");
+    }
+    return await response.json();
   }
 };

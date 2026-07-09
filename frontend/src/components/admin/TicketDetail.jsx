@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField } from "@mui/material";
+import { useParams } from "react-router-dom";
+import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button } from "@mui/material";
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
 
-export default function TicketDetail({ ticket, onBack, admin }) {
+export default function TicketDetail({ tickets, onBack, admin }) {
+  const { id } = useParams();
+  const ticket = (tickets || []).find((t) => String(t.id) === String(id));
   const [reply, setReply] = useState("");
   const [messages, setMessages] = useState([
     { who: "Julián Martinez", role: "user", time: "Hoy, 10:45 AM", text: "Buenos días, no estoy pudiendo ingresar al campus. Me dice que mi usuario está bloqueado o que la contraseña es incorrecta, pero ayer funcionaba bien. Necesito subir un trabajo práctico antes del mediodía. ¡Gracias!" },
@@ -17,6 +20,17 @@ export default function TicketDetail({ ticket, onBack, admin }) {
     setMessages((prev) => [...prev, { who: admin.name, role: "agent", time: "Ahora", text: reply.trim() }]);
     setReply("");
   };
+
+  if (!ticket) {
+    return (
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+          <IconButton onClick={onBack}><ArrowBack /></IconButton>
+          <Typography variant="h5">Ticket no encontrado</Typography>
+        </Stack>
+      </Stack>
+    );
+  }
 
   return (
     <Stack spacing={2.5}>
