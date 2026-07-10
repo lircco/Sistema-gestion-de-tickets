@@ -1,7 +1,21 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
-from .models import Ticket, RegistroEmail
+from .models import Ticket, RegistroEmail, Usuario
+
+
+@receiver(post_save, sender=Usuario)
+def asignar_rol_superusuario(sender, instance, created, **kwargs):
+    """
+    Asigna automáticamente el rol SUPERVISOR a cualquier usuario con is_superuser=True.
+    Esto resuelve el problema de que `createsuperuser` dejaba el rol como ESTUDIANTE
+    (el valor por defecto del campo), ya que ese comando no pasa por el flujo de
+    registro personalizado de la API.
+    Se usa `update_fields` para evitar un bucle de señales infinito.
+    """
+    if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
+        Usuario.objects.filter(pk=instance.pk).update(rol=Usuario.Roles.SUPERVISOR)
+
 
 @receiver(post_save, sender=Ticket)
 def notificar_cambio_ticket(sender, instance, created, **kwargs):

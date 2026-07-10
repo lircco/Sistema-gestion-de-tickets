@@ -107,5 +107,59 @@ class SecurityTests(APITestCase):
         url = reverse('ticket-detail', args=[self.ticket1.id])
         response = self.client.get(url)
         
-        # DeberÃ­a ser 404 Not Found si no tiene permiso
+        # Debería ser 404 Not Found si no tiene permiso
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class SuperusuarioRolTests(TestCase):
+    """
+    Tests para verificar que la señal asignar_rol_superusuario funciona correctamente.
+    Issue #45: Al crear un superusuario con createsuperuser, debería tener rol SUPERVISOR.
+    """
+
+    def test_superusuario_obtiene_rol_supervisor(self):
+        """Un superusuario creado programáticamente debe tener rol SUPERVISOR tras la señal."""
+        superuser = Usuario.objects.create_superuser(
+            username="admin_test",
+            password="admin123",
+            email="admin@test.com"
+        )
+        # Refresca desde la base de datos para obtener el valor actualizado por la señal
+        superuser.refresh_from_db()
+        self.assertEqual(
+            superuser.rol,
+            Usuario.Roles.SUPERVISOR,
+            "Un superusuario debe tener rol SUPERVISOR automáticamente"
+        )
+
+    def test_usuario_normal_mantiene_rol_estudiante(self):
+        """Un usuario normal (no superusuario) debe conservar su rol ESTUDIANTE."""
+        usuario = Usuario.objects.create_user(
+            username="alumno_test",
+            password="alumno123",
+            email="alumno@test.com"
+        )
+        usuario.refresh_from_db()
+        self.assertEqual(
+            usuario.rol,
+            Usuario.Roles.ESTUDIANTE,
+            "Un usuario normal debe mantener el rol ESTUDIANTE"
+        )
+
+    def test_usuario_staff_existente_que_se_vuelve_superusuario(self):
+        """Si un usuario existente es promovido a superusuario, debe obtener rol SUPERVISOR."""
+        usuario = Usuario.objects.create_user(
+            username="staff_test",
+            password="staff123",
+            email="staff@test.com",
+            rol=Usuario.Roles.STAFF
+        )
+        # Promovemos a superusuario
+        usuario.is_superuser = True
+        usuario.save()
+        usuario.refresh_from_db()
+        self.assertEqual(
+            usuario.rol,
+            Usuario.Roles.SUPERVISOR,
+            "Un usuario promovido a superusuario debe obtener rol SUPERVISOR"
+        )
