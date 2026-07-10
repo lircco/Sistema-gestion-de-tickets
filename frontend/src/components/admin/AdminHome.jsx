@@ -3,11 +3,11 @@ import { Box, Stack, Typography, Button, Link, Table, TableBody, TableCell, Tabl
 import { MailOutlined, AssignmentOutlined, ArrowForward, VisibilityOutlined, CheckCircleOutlined, HighlightOffOutlined } from "@mui/icons-material";
 import StatCard from "../shared/StatCard";
 
-export default function AdminHome({ stats, tickets, onOpenTicket }) {
+export default function AdminHome({ displayName, stats, tickets, onOpenTicket, onGoTickets }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">¡Bienvenido, Administrador!</Typography>
+        <Typography variant="h4">¡Bienvenido, {displayName || "Administrador"}!</Typography>
         <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>
@@ -23,7 +23,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket }) {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ p: 3, width: { md: 280 }, display: "flex", flexDirection: "column" }}>
           <Typography sx={{ fontWeight: 700, mb: 3 }}>Accesos Rápidos</Typography>
-          <Button variant="outlined" endIcon={<ArrowForward />} startIcon={<AssignmentOutlined />} sx={{ justifyContent: "space-between", py: 1.5 }}>
+          <Button variant="outlined" endIcon={<ArrowForward />} startIcon={<AssignmentOutlined />} onClick={onGoTickets} sx={{ justifyContent: "space-between", py: 1.5 }}>
             Mis Tickets
           </Button>
         </Paper>

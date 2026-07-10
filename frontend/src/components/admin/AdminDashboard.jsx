@@ -47,12 +47,12 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
   }, [loadData]);
 
   const items = [
-    { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small" /> },
-    { key: "tickets", label: "Ticket List", icon: <ConfirmationNumberOutlined fontSize="small" /> },
-    { key: "reports", label: "Reports", icon: <BarChartOutlined fontSize="small" /> },
-    { key: "areas", label: "Area Management", icon: <ApartmentOutlined fontSize="small" /> },
-    { key: "kb", label: "Knowledge Base", icon: <MenuBookOutlined fontSize="small" /> },
-    { key: "settings", label: "Settings", icon: <SettingsOutlined fontSize="small" /> },
+    { key: "dashboard", label: "Inicio", icon: <DashboardOutlined fontSize="small" /> },
+    { key: "tickets", label: "Lista de Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
+    { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
+    { key: "areas", label: "Gestión de Áreas", icon: <ApartmentOutlined fontSize="small" /> },
+    { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
+    { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
   if (isLoading) return <LinearProgress />;
@@ -70,7 +70,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       onToggleMode={onToggleMode}
     >
       <Routes>
-        <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route index element={<AdminHome displayName={displayName} stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} />} />
         <Route path="tickets" element={<TicketsTable tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} />} />
         <Route path="reports" element={<ReportsSection />} />

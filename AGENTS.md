@@ -81,7 +81,7 @@ Todos los mensajes de commit deben seguir esta convención:
 - `test`: Añade tests o refactoriza uno existente.
 
 Ejemplo: `feat: implementar filtrado de tickets por área`
-
+Uso de la voz pasiva refleja en español
 ---
 
 ## Despliegue (Nginx + Producción)
