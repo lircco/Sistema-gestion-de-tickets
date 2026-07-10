@@ -210,6 +210,17 @@ export default function LoginScreen({ onLoginSuccess }) {
                   onChange={(e) => setConfirm(e.target.value)}
                   size="small"
                   sx={{ mb: 3, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setShow((s) => !s)}>
+                            {show ? <VisibilityOff fontSize="small" /> : <VisibilityOutlined fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               </>
             )}
