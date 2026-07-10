@@ -1,8 +1,22 @@
-import React from "react";
-import { Box, Stack, Typography, Button, Paper, LinearProgress } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
 import { ReportKpi } from "../shared/ReportKpi";
+import { PrintOutlined, CalendarTodayOutlined } from "@mui/icons-material";
 
 export default function ReportsSection() {
+  const [filtro, setFiltro] = useState("30d");
+  const [snackOpen, setSnackOpen] = useState(false);
+
+  const handleExportPDF = () => {
+    // Imprime la sección actual usando la API nativa del navegador
+    window.print();
+  };
+
+  const handleFiltro = (valor) => {
+    setFiltro(valor);
+    setSnackOpen(true);
+  };
+
   return (
     <Stack spacing={3}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -13,8 +27,20 @@ export default function ReportsSection() {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Button variant="outlined">Últimos 30 días</Button>
-          <Button variant="outlined">Exportar PDF</Button>
+          <Button
+            variant={filtro === "30d" ? "contained" : "outlined"}
+            startIcon={<CalendarTodayOutlined fontSize="small" />}
+            onClick={() => handleFiltro("30d")}
+          >
+            Últimos 30 días
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<PrintOutlined fontSize="small" />}
+            onClick={handleExportPDF}
+          >
+            Exportar PDF
+          </Button>
         </Stack>
       </Box>
 
@@ -61,6 +87,17 @@ export default function ReportsSection() {
           </Stack>
         </Paper>
       </Stack>
+
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity="info" onClose={() => setSnackOpen(false)}>
+          Filtro aplicado: últimos 30 días. Las estadísticas reales estarán disponibles próximamente.
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }
