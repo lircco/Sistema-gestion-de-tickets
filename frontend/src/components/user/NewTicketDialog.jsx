@@ -16,8 +16,12 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
   const [areas, setAreas] = useState([]);
 
   useEffect(() => {
-    api.getCategorias().then((d) => setCategories(d.results || d)).catch(() => {});
-    api.getAreas().then((d) => setAreas(d.results || d)).catch(() => {});
+    api.getCategorias()
+      .then((d) => setCategories(d.results || d))
+      .catch(() => setError("No se pudieron cargar las categorías."));
+    api.getAreas()
+      .then((d) => setAreas(d.results || d))
+      .catch(() => setError("No se pudieron cargar las áreas responsables."));
   }, []);
 
   const reset = () => {
