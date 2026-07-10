@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf  /var/lib/apt/lists/*
 
 # Instala dependencias de Python
-COPY /backend/requirements.txt /app/
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 

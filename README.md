@@ -12,6 +12,7 @@ Plataforma institucional para la gestión de tickets de soporte técnico, diseñ
 El proyecto está preparado para correr en contenedores Docker mediante Docker Compose.
 
 ### 1. Crear la red externa de Nginx
+
 El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para la comunicación y el ruteo inverso. Créala antes de levantar los servicios:
 
 ```bash
@@ -19,6 +20,7 @@ docker network create nginx-proxy
 ```
 
 ### 2. Levantar el entorno completo
+
 Para construir y levantar todos los servicios (Base de datos, Backend, Frontend y Adminer) en segundo plano:
 
 ```bash
