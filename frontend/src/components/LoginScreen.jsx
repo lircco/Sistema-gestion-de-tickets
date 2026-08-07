@@ -48,7 +48,10 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
-        const user = await api.login(email.split("@")[0], password);
+        const usernameToLogin = role === "alumno"
+          ? (email.includes("@") ? email.split("@")[0] : email.trim())
+          : email.trim();
+        const user = await api.login(usernameToLogin, password);
         onLoginSuccess(user);
       } catch (err) {
         setError(err.message || "Error al iniciar sesión");
@@ -150,11 +153,13 @@ export default function LoginScreen({ onLoginSuccess }) {
               </>
             )}
 
-            <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Email</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>
+              {tab === 0 && role === "admin" ? "Nombre de Usuario" : "Email"}
+            </Typography>
             <TextField
               fullWidth
-              type="email"
-              placeholder="usuario@gmail.com"
+              type={tab === 0 && role === "admin" ? "text" : "email"}
+              placeholder={tab === 0 && role === "admin" ? "Ej. Ona" : "usuario@gmail.com"}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               size="small"
@@ -163,7 +168,11 @@ export default function LoginScreen({ onLoginSuccess }) {
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <MailOutlined sx={{ color: "#9aa4b2" }} />
+                      {tab === 0 && role === "admin" ? (
+                        <Person sx={{ color: "#9aa4b2" }} />
+                      ) : (
+                        <MailOutlined sx={{ color: "#9aa4b2" }} />
+                      )}
                     </InputAdornment>
                   ),
                 },
