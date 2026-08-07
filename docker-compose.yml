@@ -74,6 +74,7 @@ services:
       ADMINER_DEFAULT_SERVER: db
     networks:
       - internal
+      - nginx-proxy
 
 volumes:
   app2-postgres-data:
@@ -83,3 +84,5 @@ networks:
     driver: bridge
   nginx-proxy:
     external: true
+    name: nginx-proxy
+
