@@ -1,5 +1,5 @@
 import React from "react";
-import { Stack, Box, Typography, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Link, Divider } from "@mui/material";
+import { Stack, Box, Typography, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Link, Divider, LinearProgress } from "@mui/material";
 import { VisibilityOutlined } from "@mui/icons-material";
 
 export default function AreaManagementSection() {

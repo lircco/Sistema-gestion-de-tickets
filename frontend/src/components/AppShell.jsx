@@ -148,7 +148,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
               display: { xs: "none", sm: "flex" },
               "& .MuiOutlinedInput-root": { bgcolor: "action.hover" },
             }}
-            InputProps={{
+            inputprops={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchOutlined sx={{ color: "#9aa4b2" }} />
