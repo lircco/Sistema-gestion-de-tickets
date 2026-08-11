@@ -1,7 +1,32 @@
 import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Box, Card, Stack, Typography, TextField, Button, Link, IconButton, InputAdornment, Avatar, Alert } from "@mui/material";
-import { MailOutlined, LockOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
+import {
+  Box,
+  Card,
+  Stack,
+  Typography,
+  TextField,
+  Button,
+  Link,
+  IconButton,
+  InputAdornment,
+  Avatar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
+} from "@mui/material";
+import {
+  MailOutlined,
+  LockOutlined,
+  VisibilityOff,
+  Person,
+  AdminPanelSettings,
+  VisibilityOutlined,
+  SchoolOutlined
+} from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -39,6 +64,41 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  // NUEVOS ESTADOS: Para controlar el flujo del cartel flotante de recuperación
+  const [openModal, setOpenModal] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [isSent, setIsSent] = useState(false);
+
+  // Funciones para abrir y cerrar el cartel de recuperación
+  const handleOpenModal = (e) => {
+    e.preventDefault(); // Evita que recargue la página al clickear el Link
+    setOpenModal(true);
+    setIsSent(false);
+    setRecoveryEmail("");
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  const handleSendRecovery = async (e) => {
+    e.preventDefault();
+    setError(""); // Limpiamos errores generales si los hubiera
+    
+    if (recoveryEmail) {
+      try {
+        // Llamamos a la API real pasándole el email que escribió el usuario
+        await api.recuperarPassword(recoveryEmail);
+        
+        // Si Django responde un 200 OK, pasamos a la pantalla verde
+        setIsSent(true);
+      } catch (err) {
+        // Si el mail no existe en la base de datos o falla Gmail, te salta el cartel real
+        alert(err.message || "Hubo un error al procesar la solicitud.");
+      }
+    }
+  };
 
   const loginMutation = useMutation({
     mutationFn: ({ username, password: pwd }) => api.login(username, pwd),
@@ -176,7 +236,12 @@ export default function LoginScreen({ onLoginSuccess }) {
             <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5 }}>
               <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Contraseña</Typography>
               {tab === 0 && (
-                <Link href="#" sx={{ fontSize: 12, color: "primary.main" }}>
+                // MODIFICADO: Ahora el Link tiene una acción onClick para abrir el cartel flotante
+                <Link
+                  href="#"
+                  onClick={handleOpenModal}
+                  sx={{ fontSize: 12, color: "primary.main", cursor: "pointer", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                >
                   ¿Olvidó su contraseña?
                 </Link>
               )}
@@ -223,8 +288,8 @@ export default function LoginScreen({ onLoginSuccess }) {
               {tab === 1
                 ? "CREAR CUENTA"
                 : role === "admin"
-                ? "INGRESAR COMO ADMINISTRADOR"
-                : "INGRESAR COMO ALUMNO"}
+                  ? "INGRESAR COMO ADMINISTRADOR"
+                  : "INGRESAR COMO ALUMNO"}
             </Button>
           </Box>
         </Card>
@@ -236,6 +301,58 @@ export default function LoginScreen({ onLoginSuccess }) {
           </Link>
         </Typography>
       </Stack>
+
+      {/* NUEVO COMPONENTE: Cartel flotante (Dialog) para el flujo de Olvidó su Contraseña */}
+      <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="xs">
+        {!isSent ? (
+          // Paso 1: Formulario para ingresar el Gmail
+          <Box component="form" onSubmit={handleSendRecovery}>
+            <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Recuperar Contraseña</DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
+                Ingresá tu correo electrónico de Gmail y te enviaremos los pasos para restablecer tu contraseña.
+              </DialogContentText>
+              <TextField
+                autoFocus
+                required
+                fullWidth
+                type="email"
+                label="Correo Electrónico"
+                placeholder="tu_usuario@gmail.com"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                variant="outlined"
+                size="small"
+              />
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2.5 }}>
+              <Button onClick={handleCloseModal} color="inherit" sx={{ fontWeight: 600 }}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }}>
+                Enviar Correo
+              </Button>
+            </DialogActions>
+          </Box>
+        ) : (
+          // Paso 2: Mensaje de confirmación exitosa una vez presionado "Enviar"
+          <Box sx={{ p: 2, textAlign: "center" }}>
+            <DialogTitle sx={{ color: "success.main", fontWeight: 700, fontSize: 22 }}>
+              ¡Contraseña Cambiada!
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ fontSize: 14, color: "#374151" }}>
+                Se ha enviado un mensaje a tu casilla <strong>{recoveryEmail}</strong> indicando que la contraseña fue modificada con éxito y el sistema se encuentra actualizado. Por favor, revisá tu bandeja de entrada.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "center", pb: 1.5 }}>
+              <Button onClick={handleCloseModal} variant="contained" color="success" sx={{ fontWeight: 600, px: 4 }}>
+                Entendido
+              </Button>
+            </DialogActions>
+          </Box>
+        )}
+      </Dialog>
     </Box>
   );
 }

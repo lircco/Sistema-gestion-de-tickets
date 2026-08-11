@@ -138,3 +138,9 @@ AUTH_USER_MODEL = 'api.Usuario'
 
 # Redirigir a los tickets después de iniciar sesión en DRF
 LOGIN_REDIRECT_URL = '/api/tickets/'
+
+# ACÁ VAN TUS DATOS REALES:
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'onachiaverano@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'xxxx xxxx xxxx xxxx') # <-- Pegá acá tus 16 letras
+
+DEFAULT_FROM_EMAIL = f"Sistema de Tickets Universidad <{EMAIL_HOST_USER}>"

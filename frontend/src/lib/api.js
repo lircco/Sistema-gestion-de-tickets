@@ -1,4 +1,5 @@
-const BASE_URL = '/api';
+// 1. CORREGIMOS AQUÍ: Ahora le pega directamente al puerto 8000 de Django
+const BASE_URL = 'http://localhost:8000/api';
 
 function getCookie(name) {
   let cookieValue = null;
@@ -91,4 +92,8 @@ export const api = {
 
   getCategorias: () =>
     apiFetch('/categorias/'),
+
+  // --- SUMAMOS TU NUEVA FUNCIÓN DE RECUPERACIÓN AQUÍ ---
+  recuperarPassword: (email) =>
+    apiFetch('/auth/recuperar-password/', { method: 'POST', body: JSON.stringify({ email }) }),
 };
