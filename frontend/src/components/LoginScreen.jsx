@@ -31,6 +31,7 @@ function RoleCard({ active, onClick, icon, label }) {
 export default function LoginScreen({ onLoginSuccess }) {
   const [tab, setTab] = useState(0);
   const [role, setRole] = useState("alumno");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -48,9 +49,16 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
-        const usernameToLogin = role === "alumno"
-          ? (email.includes("@") ? email.split("@")[0] : email.trim())
-          : email.trim();
+        const usernameToLogin = role === "admin" 
+          ? username.trim() 
+          : (email.includes("@") ? email.split("@")[0] : email.trim());
+        
+        if (!usernameToLogin) {
+          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+          setLoading(false);
+          return;
+        }
+
         const user = await api.login(usernameToLogin, password);
         onLoginSuccess(user);
       } catch (err) {
@@ -134,8 +142,8 @@ export default function LoginScreen({ onLoginSuccess }) {
           <Box component="form" onSubmit={handleSubmit}>
             {tab === 0 && (
               <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-                <RoleCard active={role === "alumno"} onClick={() => setRole("alumno")} icon={<Person />} label="Soy Alumno" />
-                <RoleCard active={role === "admin"} onClick={() => setRole("admin")} icon={<AdminPanelSettings />} label="Soy Administrador" />
+                <RoleCard active={role === "alumno"} onClick={() => { setRole("alumno"); setError(""); }} icon={<Person />} label="Soy Alumno" />
+                <RoleCard active={role === "admin"} onClick={() => { setRole("admin"); setError(""); }} icon={<AdminPanelSettings />} label="Soy Administrador" />
               </Stack>
             )}
 
@@ -153,31 +161,53 @@ export default function LoginScreen({ onLoginSuccess }) {
               </>
             )}
 
-            <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>
-              {tab === 0 && role === "admin" ? "Nombre de Usuario" : "Email"}
-            </Typography>
-            <TextField
-              fullWidth
-              type={tab === 0 && role === "admin" ? "text" : "email"}
-              placeholder={tab === 0 && role === "admin" ? "Ej. Ona" : "usuario@gmail.com"}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              size="small"
-              sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      {tab === 0 && role === "admin" ? (
-                        <Person sx={{ color: "#9aa4b2" }} />
-                      ) : (
-                        <MailOutlined sx={{ color: "#9aa4b2" }} />
-                      )}
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+            {tab === 0 && role === "admin" ? (
+              <>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
+                <TextField
+                  key="admin-username-input"
+                  fullWidth
+                  type="text"
+                  placeholder="Ej. Pedro Gonzalez"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  size="small"
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Person sx={{ color: "#9aa4b2" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Email</Typography>
+                <TextField
+                  key="student-email-input"
+                  fullWidth
+                  type="email"
+                  placeholder="usuario@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  size="small"
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <MailOutlined sx={{ color: "#9aa4b2" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </>
+            )}
 
             <Box sx={{ position: "relative", mb: tab === 1 ? 2 : 3 }}>
               <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Contraseña</Typography>

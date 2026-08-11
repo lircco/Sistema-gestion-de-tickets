@@ -41,8 +41,8 @@ services:
       LETSENCRYPT_EMAIL: admin@academia.ar
     volumes:
       - ./backend/media:/app/media
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     networks:
       - internal
       - nginx-proxy
