@@ -193,5 +193,22 @@ export const api = {
         throw new Error("No se pudieron cargar las estadísticas");
     }
     return await response.json();
+  },
+
+  // --- SUMAMOS TU NUEVA FUNCIÓN DE RECUPERACIÓN AQUÍ ---
+  recuperarPassword: async (email) => {
+    const response = await fetch(`${BASE_URL}auth/recuperar-password/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || errData.detail || "Error al procesar la solicitud.");
+    }
+    return await response.json();
   }
 };

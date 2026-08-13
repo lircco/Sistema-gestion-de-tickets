@@ -34,9 +34,14 @@ function SideAction({ icon, label, danger, onClick }) {
   );
 }
 
-export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, children }) {
+export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, children }) {
   const isMobile = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifAnchor, setNotifAnchor] = useState(null);
+
+  const handleNotifOpen = (event) => setNotifAnchor(event.currentTarget);
+  const handleNotifClose = () => setNotifAnchor(null);
+  const openNotif = Boolean(notifAnchor);
 
   // Cambialo para que quede así:
   const [notifications, setNotifications] = useState([]);
