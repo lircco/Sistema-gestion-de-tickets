@@ -57,8 +57,27 @@ El stack completo puede ser levantado utilizando contenedores Docker.
 
 ## Cómo Correr los Tests
 
-- **Backend:** Entra a `backend/` y corre `.\venv\Scripts\python.exe manage.py test api`.
-- **Frontend:** Entra a `frontend/` y corre `powershell.exe -ExecutionPolicy Bypass -Command "npm run test"`.
+- **Backend (Pruebas Unitarias y de Integración DRF):**
+  - Entra a `backend/` y asegúrate de tener el entorno virtual activado.
+  - Para correr los tests normales: `python manage.py test api`.
+  - Para correr los tests con reporte de **cobertura** (requiere `coverage` instalado según `requirements.txt`): 
+    ```bash
+    # Para usar SQLite en la prueba, asegurate de setear la variable de entorno:
+    # (En PowerShell): $env:DATABASE_URL="sqlite:///db.sqlite3"
+    coverage run manage.py test api
+    coverage report
+    ```
+
+- **Frontend (Pruebas Unitarias y Cobertura con Vitest):**
+  - Entra a `frontend/` y asegúrate de haber corrido `npm install`.
+  - Para correr los tests normales: `npm run test`.
+  - Para correr los tests con reporte de **cobertura**: `npm run test:coverage`.
+
+- **Frontend (Pruebas End-to-End con Playwright):**
+  - Playwright testea la aplicación completa simulando clics en un navegador real, comunicándose con el backend.
+  - Entra a `frontend/` y asegúrate de haber instalado los navegadores: `npx playwright install --with-deps chromium`.
+  - Para correr los tests: `npx playwright test`. 
+  - *(Nota: Playwright levantará automáticamente los servidores locales del frontend en el puerto 5173 y del backend en el 8000 usando SQLite para ejecutar las pruebas).*
 
 ---
 
