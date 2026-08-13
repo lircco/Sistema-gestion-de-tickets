@@ -25,8 +25,19 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+.env.local
+.env.*.local
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/
+
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Coverage
+coverage/

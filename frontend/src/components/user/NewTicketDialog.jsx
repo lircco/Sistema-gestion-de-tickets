@@ -1,30 +1,28 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Box, Stack, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Typography, Alert, LinearProgress } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Stack, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Typography, Alert, LinearProgress } from "@mui/material";
 import { AttachFileOutlined, PictureAsPdfOutlined, ImageOutlined, InsertDriveFileOutlined, CloseOutlined } from "@mui/icons-material";
 import { api } from "../../lib/api";
 
-export default function NewTicketDialog({ open, onClose }) {
-  const queryClient = useQueryClient();
+export default function NewTicketDialog({ open, onClose, onCreated }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [areaId, setAreaId] = useState("");
   const [error, setError] = useState("");
   const [files, setFiles] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  const { data: categories = [] } = useQuery({ queryKey: ["categorias"], queryFn: api.getCategorias });
-  const { data: areas = [] } = useQuery({ queryKey: ["areas"], queryFn: api.getAreas });
+  const [categories, setCategories] = useState([]);
+  const [areas, setAreas] = useState([]);
 
-  const createMutation = useMutation({
-    mutationFn: api.createTicket,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      onClose();
-      reset();
-    },
-    onError: (err) => setError(err.message || "Error al crear el ticket"),
-  });
+  useEffect(() => {
+    api.getCategorias()
+      .then((d) => setCategories(d.results || d))
+      .catch(() => setError("No se pudieron cargar las categorías."));
+    api.getAreas()
+      .then((d) => setAreas(d.results || d))
+      .catch(() => setError("No se pudieron cargar las áreas responsables."));
+  }, []);
 
   const reset = () => {
     setTitle("");
@@ -60,7 +58,7 @@ export default function NewTicketDialog({ open, onClose }) {
     setFiles(next);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     if (!title.trim() || !description.trim() || !categoryId || !areaId) {
       setError("Completá todos los campos requeridos.");
@@ -74,7 +72,17 @@ export default function NewTicketDialog({ open, onClose }) {
     formData.append("area_responsable", areaId);
     files.forEach((file) => formData.append("archivo_adjunto", file));
 
-    createMutation.mutate(formData);
+    setSubmitting(true);
+    try {
+      await api.createTicket(formData);
+      onCreated?.();
+      onClose();
+      reset();
+    } catch (err) {
+      setError(err.message || "Error al crear el ticket");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -85,12 +93,12 @@ export default function NewTicketDialog({ open, onClose }) {
           <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth size="small" />
           <Stack direction="row" spacing={2}>
             <TextField select label="Categoría" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} fullWidth size="small">
-              {(categories.results || categories).map((c) => (
+              {categories.map((c) => (
                 <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>
               ))}
             </TextField>
             <TextField select label="Área Responsable" value={areaId} onChange={(e) => setAreaId(e.target.value)} fullWidth size="small">
-              {(areas.results || areas).map((a) => (
+              {areas.map((a) => (
                 <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>
               ))}
             </TextField>
@@ -122,12 +130,12 @@ export default function NewTicketDialog({ open, onClose }) {
             )}
           </Box>
           {error && <Alert severity="error">{error}</Alert>}
-          {createMutation.isPending && <LinearProgress />}
+          {submitting && <LinearProgress />}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={createMutation.isPending}>Enviar Ticket</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={submitting}>Enviar Ticket</Button>
       </DialogActions>
     </Dialog>
   );

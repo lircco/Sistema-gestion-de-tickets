@@ -1,0 +1,88 @@
+services:
+  db:
+    image: postgres:16
+    container_name: app2-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - app2-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  backend:
+    build: ./backend
+    container_name: app2-backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: api.app2.academia.ar,localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,https://app2.academia.ar
+      CSRF_TRUSTED_ORIGINS: http://localhost:5173,https://app2.academia.ar,https://api.app2.academia.ar
+      VIRTUAL_HOST: api.app2.academia.ar
+      VIRTUAL_PORT: 8000
+      LETSENCRYPT_HOST: api.app2.academia.ar
+      LETSENCRYPT_EMAIL: admin@academia.ar
+    volumes:
+      - ./backend/media:/app/media
+    expose:
+      - "8000"
+    networks:
+      - internal
+      - nginx-proxy
+
+  frontend:
+    build: ./frontend
+    container_name: app2-frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      VIRTUAL_HOST: app2.academia.ar
+      VIRTUAL_PORT: 80
+      LETSENCRYPT_HOST: app2.academia.ar
+      LETSENCRYPT_EMAIL: admin@academia.ar
+    networks:
+      - nginx-proxy
+
+  adminer:
+    image: adminer:4
+    container_name: app2-adminer
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    networks:
+      - internal
+      - nginx-proxy
+
+volumes:
+  app2-postgres-data:
+
+networks:
+  internal:
+    driver: bridge
+  nginx-proxy:
+    external: true
+    name: nginx-proxy
+
