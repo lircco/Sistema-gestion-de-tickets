@@ -10,6 +10,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
+    coverage: {
+      provider: 'v8',
+      all: true,
+      include: ['src/**/*.js', 'src/**/*.jsx'],
+      exclude: ['src/main.jsx', 'src/**/*.test.js']
+    }
   },
   server: {
     proxy: {
