@@ -2,7 +2,6 @@ const API = import.meta.env.VITE_API_URL;
 const BASE_URL = `${API}/api/`;
 
 export const api = {
-  // 1. FUNCIÓN DE INICIO DE SESIÓN
   login: async (username, password) => {
     const response = await fetch(`${BASE_URL}token/`, {
       method: "POST",
