@@ -25,7 +25,7 @@ export default defineConfig({
       cwd: './',
     },
     {
-      command: 'set DATABASE_URL=sqlite:///db.sqlite3&& ..\\.venv\\Scripts\\python.exe manage.py runserver 8000',
+      command: process.platform === 'win32' ? 'set DATABASE_URL=sqlite:///db.sqlite3&& ..\\.venv\\Scripts\\python.exe manage.py runserver 8000' : 'export DATABASE_URL=sqlite:///db.sqlite3 && python manage.py runserver 8000',
       url: 'http://127.0.0.1:8000/admin/login/',
       reuseExistingServer: !process.env.CI,
       cwd: '../backend',
