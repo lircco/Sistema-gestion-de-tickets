@@ -149,3 +149,18 @@
     display: none;
   }
 }
+
+/* Al exportar a PDF con window.print() (botón "Exportar PDF" en Reports),
+   oculta el sidebar y el header del dashboard para que el PDF quede con
+   solo el contenido de la sección, no todo el layout de la app. */
+@media print {
+  .app-shell-sidebar,
+  .app-shell-header {
+    display: none !important;
+  }
+
+  .app-shell-content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+}

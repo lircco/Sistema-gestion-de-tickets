@@ -66,7 +66,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
   const [supportOpen, setSupportOpen] = useState(false);
 
   const sidebar = (
-    <Box sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
+    <Box className="app-shell-sidebar" sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
       <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", mb: 3, px: 1 }}>
         <Box sx={{ width: 36, height: 36, borderRadius: 1.2, bgcolor: "primary.main", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <SchoolOutlined sx={{ color: "#fff", fontSize: 22 }} />
@@ -128,6 +128,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Box
+          className="app-shell-header"
           sx={{
             height: 64,
             bgcolor: "background.paper",
@@ -241,7 +242,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
           </Stack>
         </Box>
 
-        <Box sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
+        <Box className="app-shell-content" sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
       </Box>
 
       <Dialog open={supportOpen} onClose={() => setSupportOpen(false)}>
