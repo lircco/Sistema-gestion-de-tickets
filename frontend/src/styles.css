@@ -141,4 +141,11 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Oculta el ícono nativo de "mostrar contraseña" de Edge para que no se
+     superponga con el ícono de ojo propio de los campos de contraseña. */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
 }
