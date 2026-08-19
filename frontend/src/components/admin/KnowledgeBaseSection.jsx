@@ -1,8 +1,10 @@
-import React from "react";
-import { Stack, Typography, Paper, Chip } from "@mui/material";
+import React, { useState } from "react";
+import { Stack, Typography, Paper, Chip, Snackbar, Alert } from "@mui/material";
 import { MenuBookOutlined } from "@mui/icons-material";
 
 export default function KnowledgeBaseSection() {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
   return (
     <Stack spacing={3}>
       <Typography variant="h4">Base de Conocimiento</Typography>
@@ -14,7 +16,11 @@ export default function KnowledgeBaseSection() {
           { t: "Solicitar certificado de alumno regular", c: "Trámites", v: 745 },
           { t: "Conectarse a Wi-Fi UNRaf", c: "Infraestructura", v: 610 },
         ].map((a) => (
-          <Paper key={a.t} sx={{ p: 3, flex: "1 1 280px", cursor: "pointer", '&:hover': { boxShadow: 4 } }}>
+          <Paper
+            key={a.t}
+            onClick={() => setSnackbarOpen(true)}
+            sx={{ p: 3, flex: "1 1 280px", cursor: "pointer", '&:hover': { boxShadow: 4 } }}
+          >
             <MenuBookOutlined sx={{ color: "primary.main", mb: 1 }} />
             <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{a.t}</Typography>
             <Chip size="small" label={a.c} sx={{ bgcolor: "#f3f4f6", mb: 1 }} />
@@ -22,6 +28,12 @@ export default function KnowledgeBaseSection() {
           </Paper>
         ))}
       </Stack>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+        <Alert severity="info" onClose={() => setSnackbarOpen(false)} sx={{ width: "100%" }}>
+          El artículo estará disponible próximamente.
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

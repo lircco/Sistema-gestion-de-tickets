@@ -1,8 +1,16 @@
-import React from "react";
-import { Box, Stack, Typography, Button, Paper, LinearProgress } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
 import { ReportKpi } from "../shared/ReportKpi";
 
 export default function ReportsSection() {
+  const [last30Active, setLast30Active] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleLast30Click = () => {
+    setLast30Active(true);
+    setSnackbarOpen(true);
+  };
+
   return (
     <Stack spacing={3}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -13,10 +21,16 @@ export default function ReportsSection() {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Button variant="outlined">Últimos 30 días</Button>
-          <Button variant="outlined">Exportar PDF</Button>
+          <Button variant={last30Active ? "contained" : "outlined"} onClick={handleLast30Click}>Últimos 30 días</Button>
+          <Button variant="outlined" onClick={() => window.print()}>Exportar PDF</Button>
         </Stack>
       </Box>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)}>
+        <Alert severity="info" onClose={() => setSnackbarOpen(false)} sx={{ width: "100%" }}>
+          Las estadísticas en tiempo real por rango de fechas requieren endpoints adicionales en el backend (ver issue #40).
+        </Alert>
+      </Snackbar>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <ReportKpi color="#0a3d62" label="TICKETS TOTALES" value="1,284" delta="↗ +12%" deltaColor="#10b981" />
