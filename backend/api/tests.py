@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import Area, Categoria, Usuario, Ticket
+from api.models import Area, Categoria, Usuario, Ticket, Respuesta
 
 class ModelTests(TestCase):
     def test_create_area(self):
@@ -168,3 +168,41 @@ class SuperuserRolSignalTests(TestCase):
         user.save()
         user.refresh_from_db()
         self.assertEqual(user.rol, Usuario.Roles.SUPERVISOR)
+
+
+class TicketDetailDatosRealesTests(APITestCase):
+    def setUp(self):
+        self.area = Area.objects.create(nombre="Soporte IT")
+        self.categoria = Categoria.objects.create(nombre="Redes")
+        self.estudiante = Usuario.objects.create_user(
+            username="alumno2", password="password123", rol=Usuario.Roles.ESTUDIANTE,
+            email="alumno2@example.com", first_name="Maria", last_name="Lopez"
+        )
+        self.staff = Usuario.objects.create_user(
+            username="agente1", password="password123", rol=Usuario.Roles.STAFF,
+            area=self.area, email="agente1@example.com", first_name="Carlos", last_name="Diaz"
+        )
+        self.ticket = Ticket.objects.create(
+            titulo="Falla de proyector", descripcion="El proyector no prende",
+            creado_por=self.estudiante, area_responsable=self.area, categoria=self.categoria
+        )
+        Respuesta.objects.create(ticket=self.ticket, autor=self.staff, mensaje="Ya lo estamos revisando")
+        self.client.login(username="agente1", password="password123")
+
+    def test_ticket_detail_incluye_datos_reales_del_solicitante(self):
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['creado_por_first_name'], 'Maria')
+        self.assertEqual(response.data['creado_por_last_name'], 'Lopez')
+        self.assertEqual(response.data['creado_por_email'], 'alumno2@example.com')
+        self.assertEqual(response.data['creado_por_rol'], 'ESTUDIANTE')
+
+    def test_ticket_detail_incluye_respuestas_reales(self):
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.get(url)
+        self.assertEqual(len(response.data['respuestas']), 1)
+        respuesta = response.data['respuestas'][0]
+        self.assertEqual(respuesta['mensaje'], 'Ya lo estamos revisando')
+        self.assertEqual(respuesta['autor_nombre'], 'Carlos Diaz')
+        self.assertEqual(respuesta['autor_rol'], 'STAFF')

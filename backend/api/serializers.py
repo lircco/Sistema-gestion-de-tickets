@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Ticket, Usuario, Area, Categoria
+from .models import Ticket, Usuario, Area, Categoria, Respuesta
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,11 +39,29 @@ class RegistroSerializer(serializers.ModelSerializer):
         user = Usuario.objects.create_user(password=password, **validated_data)
         return user
 
+class RespuestaSerializer(serializers.ModelSerializer):
+    autor_nombre = serializers.SerializerMethodField()
+    autor_rol = serializers.CharField(source='autor.rol', read_only=True)
+
+    class Meta:
+        model = Respuesta
+        fields = ['id', 'mensaje', 'creado_el', 'autor_nombre', 'autor_rol']
+
+    def get_autor_nombre(self, obj):
+        nombre = f"{obj.autor.first_name} {obj.autor.last_name}".strip()
+        return nombre or obj.autor.username
+
+
 class TicketSerializer(serializers.ModelSerializer):
     # Agregamos campos de solo lectura para mostrar nombres en vez de IDs en el frontend
     creado_por_nombre = serializers.CharField(source='creado_por.username', read_only=True)
+    creado_por_email = serializers.EmailField(source='creado_por.email', read_only=True)
+    creado_por_first_name = serializers.CharField(source='creado_por.first_name', read_only=True)
+    creado_por_last_name = serializers.CharField(source='creado_por.last_name', read_only=True)
+    creado_por_rol = serializers.CharField(source='creado_por.rol', read_only=True)
     area_nombre = serializers.CharField(source='area_responsable.nombre', read_only=True)
     categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)
+    respuestas = RespuestaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Ticket
