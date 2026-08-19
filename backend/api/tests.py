@@ -106,6 +106,44 @@ class SecurityTests(APITestCase):
         self.client.login(username="estudiante2", password="password123")
         url = reverse('ticket-detail', args=[self.ticket1.id])
         response = self.client.get(url)
-        
+
         # DeberÃ­a ser 404 Not Found si no tiene permiso
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class CambiarPasswordTests(APITestCase):
+    def setUp(self):
+        self.user = Usuario.objects.create_user(
+            username="alumno1",
+            password="ClaveVieja123",
+            rol=Usuario.Roles.ESTUDIANTE,
+            email="alumno1@example.com"
+        )
+        self.client.login(username="alumno1", password="ClaveVieja123")
+
+    def test_cambiar_password_exitoso(self):
+        url = reverse('cambiar_password')
+        response = self.client.post(url, {"password_actual": "ClaveVieja123", "password_nueva": "ClaveNueva456"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("ClaveNueva456"))
+
+    def test_cambiar_password_actual_incorrecta(self):
+        url = reverse('cambiar_password')
+        response = self.client.post(url, {"password_actual": "incorrecta", "password_nueva": "ClaveNueva456"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("ClaveVieja123"))
+
+    def test_cambiar_password_nueva_no_cumple_validadores(self):
+        url = reverse('cambiar_password')
+        response = self.client.post(url, {"password_actual": "ClaveVieja123", "password_nueva": "123"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("ClaveVieja123"))
+
+    def test_cambiar_password_requiere_autenticacion(self):
+        self.client.logout()
+        url = reverse('cambiar_password')
+        response = self.client.post(url, {"password_actual": "ClaveVieja123", "password_nueva": "ClaveNueva456"})
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])

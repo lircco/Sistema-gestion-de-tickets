@@ -209,5 +209,24 @@ export const api = {
       throw new Error(errData.error || errData.detail || "Error al procesar la solicitud.");
     }
     return await response.json();
+  },
+
+  // --- CAMBIAR CONTRASEÑA (usuario ya logueado, desde su perfil) ---
+  changePassword: async (passwordActual, passwordNueva) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}auth/cambiar-password/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ password_actual: passwordActual, password_nueva: passwordNueva }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
+    }
+    return await response.json();
   }
 };

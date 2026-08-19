@@ -82,12 +82,38 @@ describe('api.js', () => {
   it('logout should clear localStorage even if server call fails', async () => {
     localStorage.setItem('access_token', 'token123');
     localStorage.setItem('refresh_token', 'refresh123');
-    
+
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
     await api.logout();
 
     expect(localStorage.getItem('access_token')).toBeNull();
     expect(localStorage.getItem('refresh_token')).toBeNull();
+  });
+
+  it('changePassword should send both passwords with authorization header', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Contraseña actualizada correctamente.' })
+    });
+
+    const result = await api.changePassword('vieja123', 'nueva456');
+
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('auth/cambiar-password/'), expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+      body: JSON.stringify({ password_actual: 'vieja123', password_nueva: 'nueva456' }),
+    }));
+    expect(result).toEqual({ message: 'Contraseña actualizada correctamente.' });
+  });
+
+  it('changePassword should throw the backend error message on failure', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'La contraseña actual es incorrecta.' })
+    });
+
+    await expect(api.changePassword('mala', 'nueva456')).rejects.toThrow('La contraseña actual es incorrecta.');
   });
 });
