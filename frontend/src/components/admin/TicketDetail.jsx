@@ -109,7 +109,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>
-        <Stack spacing={2.5} sx={{ width: { lg: 280 }, flexShrink: 0 }}>
+        <Stack spacing={2.5} sx={{ width: { lg: 280 }, flexShrink: 0, order: { xs: 2, lg: 0 } }}>
           <Paper sx={{ p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Solicitante</Typography>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
@@ -166,7 +166,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
           </Paper>
         </Stack>
 
-        <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0 }}>
+        <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0, order: { xs: 1, lg: 0 } }}>
           <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
             <Typography sx={{ fontWeight: 700 }}>● Historial de Mensajes</Typography>
             <Stack direction="row">
