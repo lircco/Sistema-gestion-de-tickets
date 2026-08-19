@@ -206,3 +206,72 @@ class TicketDetailDatosRealesTests(APITestCase):
         self.assertEqual(respuesta['mensaje'], 'Ya lo estamos revisando')
         self.assertEqual(respuesta['autor_nombre'], 'Carlos Diaz')
         self.assertEqual(respuesta['autor_rol'], 'STAFF')
+
+
+class TicketAccionesRapidasTests(APITestCase):
+    def setUp(self):
+        self.area1 = Area.objects.create(nombre="Soporte IT")
+        self.area2 = Area.objects.create(nombre="Mesa de Entradas")
+        self.categoria = Categoria.objects.create(nombre="Redes")
+        self.estudiante = Usuario.objects.create_user(
+            username="alumno3", password="password123", rol=Usuario.Roles.ESTUDIANTE, email="alumno3@example.com"
+        )
+        self.staff = Usuario.objects.create_user(
+            username="agente2", password="password123", rol=Usuario.Roles.STAFF,
+            area=self.area1, email="agente2@example.com", first_name="Lucia", last_name="Fernandez"
+        )
+        self.ticket = Ticket.objects.create(
+            titulo="Ticket de prueba", descripcion="desc",
+            creado_por=self.estudiante, area_responsable=self.area1, categoria=self.categoria,
+            estado="ABIERTO", prioridad="MEDIA"
+        )
+
+    def test_staff_puede_responder_un_ticket(self):
+        self.client.login(username="agente2", password="password123")
+        url = reverse('ticket-responder', args=[self.ticket.id])
+        response = self.client.post(url, {"mensaje": "Estamos revisando tu caso"})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Respuesta.objects.count(), 1)
+        respuesta = Respuesta.objects.first()
+        self.assertEqual(respuesta.mensaje, "Estamos revisando tu caso")
+        self.assertEqual(respuesta.autor, self.staff)
+        self.assertEqual(respuesta.ticket, self.ticket)
+
+    def test_responder_con_mensaje_vacio_falla(self):
+        self.client.login(username="agente2", password="password123")
+        url = reverse('ticket-responder', args=[self.ticket.id])
+        response = self.client.post(url, {"mensaje": "   "})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Respuesta.objects.count(), 0)
+
+    def test_staff_puede_cambiar_estado_del_ticket(self):
+        self.client.login(username="agente2", password="password123")
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.patch(url, {"estado": "CERRADO"}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.estado, "CERRADO")
+
+    def test_staff_puede_derivar_el_ticket_a_otra_area(self):
+        self.client.login(username="agente2", password="password123")
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.patch(url, {"area_responsable": self.area2.id}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.area_responsable, self.area2)
+
+    def test_estudiante_no_puede_cambiar_estado_de_su_propio_ticket(self):
+        self.client.login(username="alumno3", password="password123")
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.patch(url, {"estado": "CERRADO"}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.estado, "ABIERTO")
+
+    def test_estudiante_no_puede_derivar_su_propio_ticket(self):
+        self.client.login(username="alumno3", password="password123")
+        url = reverse('ticket-detail', args=[self.ticket.id])
+        response = self.client.patch(url, {"area_responsable": self.area2.id}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.ticket.refresh_from_db()
+        self.assertEqual(self.ticket.area_responsable, self.area1)

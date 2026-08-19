@@ -78,8 +78,12 @@ class TicketSerializer(serializers.ModelSerializer):
         
         # Si el usuario está logueado y su rol es ESTUDIANTE
         if request and hasattr(request.user, 'rol') and request.user.rol == 'ESTUDIANTE':
-            # Bloqueamos el campo estado para que sea solo de lectura
-            if 'estado' in fields:
-                fields['estado'].read_only = True
-                
+            # Bloqueamos los campos que solo el staff puede modificar desde
+            # las Acciones Rápidas del detalle de ticket (Derivar, Cambiar
+            # Estado): un estudiante no debería poder reasignar el área ni
+            # el estado/prioridad de su propio ticket.
+            for campo in ('estado', 'area_responsable', 'prioridad'):
+                if campo in fields:
+                    fields[campo].read_only = True
+
         return fields

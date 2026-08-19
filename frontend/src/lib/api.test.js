@@ -116,4 +116,47 @@ describe('api.js', () => {
 
     await expect(api.changePassword('mala', 'nueva456')).rejects.toThrow('La contraseña actual es incorrecta.');
   });
+
+  it('updateTicket should PATCH the ticket with authorization header', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 5, estado: 'CERRADO' })
+    });
+
+    const result = await api.updateTicket(5, { estado: 'CERRADO' });
+
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('tickets/5/'), expect.objectContaining({
+      method: 'PATCH',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+      body: JSON.stringify({ estado: 'CERRADO' }),
+    }));
+    expect(result).toEqual({ id: 5, estado: 'CERRADO' });
+  });
+
+  it('enviarRespuesta should POST the message to the ticket responder endpoint', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 1, mensaje: 'Hola' })
+    });
+
+    const result = await api.enviarRespuesta(5, 'Hola');
+
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('tickets/5/responder/'), expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+      body: JSON.stringify({ mensaje: 'Hola' }),
+    }));
+    expect(result).toEqual({ id: 1, mensaje: 'Hola' });
+  });
+
+  it('enviarRespuesta should throw the backend error message on failure', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'El mensaje no puede estar vacío.' })
+    });
+
+    await expect(api.enviarRespuesta(5, '')).rejects.toThrow('El mensaje no puede estar vacío.');
+  });
 });

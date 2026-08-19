@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button } from "@mui/material";
+import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button, Menu, MenuItem, Snackbar, Alert } from "@mui/material";
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import { api } from "../../lib/api";
 
 const ESTADO_COLOR = {
   ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
   EN_PROGRESO: { bg: "#fef3c7", fg: "#92400e" },
   CERRADO: { bg: "#d1fae5", fg: "#065f46" },
 };
+
+const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
 const PRIORIDAD_COLOR = {
   ALTA: { bg: "#fee2e2", fg: "#991b1b" },
@@ -18,18 +21,62 @@ const PRIORIDAD_COLOR = {
 
 const ROL_LABELS = { ESTUDIANTE: "Estudiante", STAFF: "Staff de Área", SUPERVISOR: "Supervisor" };
 
-export default function TicketDetail({ tickets, onBack, admin }) {
+export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }) {
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
+
+  const [areas, setAreas] = useState([]);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [reply, setReply] = useState("");
-  const [followUps, setFollowUps] = useState([]);
+  const [sending, setSending] = useState(false);
 
-  const adminName = [admin?.first_name, admin?.last_name].filter(Boolean).join(" ") || admin?.username || "Vos";
+  useEffect(() => {
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
 
-  const handleSend = () => {
-    if (!reply.trim()) return;
-    setFollowUps((prev) => [...prev, { text: reply.trim(), time: "Ahora" }]);
-    setReply("");
+  const handleOpenMenu = (menu) => (e) => {
+    setMenuAnchor(e.currentTarget);
+    setOpenMenu(menu);
+  };
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setOpenMenu(null);
+  };
+
+  const runAction = async (data, successMessage) => {
+    if (!ticket) return;
+    setActionLoading(true);
+    handleCloseMenu();
+    try {
+      await api.updateTicket(ticket.id, data);
+      await onTicketUpdated?.();
+      setSnackbar({ open: true, message: successMessage, severity: "success" });
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || "No se pudo actualizar el ticket.", severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDerivar = (area) => runAction({ area_responsable: area.id }, `Ticket derivado a ${area.nombre}.`);
+  const handleCambiarEstado = (estado) => runAction({ estado }, `Estado actualizado a "${ESTADO_LABELS[estado]}".`);
+  const handleCerrar = () => runAction({ estado: "CERRADO" }, "Ticket cerrado.");
+
+  const handleSend = async () => {
+    if (!reply.trim() || !ticket) return;
+    setSending(true);
+    try {
+      await api.enviarRespuesta(ticket.id, reply.trim());
+      await onTicketUpdated?.();
+      setReply("");
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || "No se pudo enviar la respuesta.", severity: "error" });
+    } finally {
+      setSending(false);
+    }
   };
 
   if (!ticket) {
@@ -82,10 +129,40 @@ export default function TicketDetail({ tickets, onBack, admin }) {
           <Paper sx={{ p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Acciones Rápidas</Typography>
             <Stack spacing={1}>
-              <Button variant="outlined" startIcon={<CallSplitOutlined />} fullWidth>Derivar Ticket</Button>
-              <Button variant="outlined" startIcon={<SwapHorizOutlined />} fullWidth>Cambiar Estado</Button>
-              <Button variant="outlined" color="error" startIcon={<HighlightOffOutlined />} fullWidth>Cerrar Ticket</Button>
+              <Button variant="outlined" startIcon={<CallSplitOutlined />} fullWidth onClick={handleOpenMenu("derivar")} disabled={actionLoading}>
+                Derivar Ticket
+              </Button>
+              <Button variant="outlined" startIcon={<SwapHorizOutlined />} fullWidth onClick={handleOpenMenu("estado")} disabled={actionLoading}>
+                Cambiar Estado
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<HighlightOffOutlined />}
+                fullWidth
+                onClick={handleCerrar}
+                disabled={actionLoading || ticket.estado === "CERRADO"}
+              >
+                Cerrar Ticket
+              </Button>
             </Stack>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "derivar"} onClose={handleCloseMenu}>
+              {areas.length === 0 && <MenuItem disabled>Cargando áreas...</MenuItem>}
+              {areas.map((a) => (
+                <MenuItem key={a.id} selected={ticket.area_responsable === a.id} onClick={() => handleDerivar(a)}>
+                  {a.nombre}
+                </MenuItem>
+              ))}
+            </Menu>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "estado"} onClose={handleCloseMenu}>
+              {Object.entries(ESTADO_LABELS).map(([value, label]) => (
+                <MenuItem key={value} selected={ticket.estado === value} onClick={() => handleCambiarEstado(value)}>
+                  {label}
+                </MenuItem>
+              ))}
+            </Menu>
           </Paper>
         </Stack>
 
@@ -93,7 +170,7 @@ export default function TicketDetail({ tickets, onBack, admin }) {
           <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
             <Typography sx={{ fontWeight: 700 }}>● Historial de Mensajes</Typography>
             <Stack direction="row">
-              <IconButton size="small"><PrintOutlined fontSize="small" /></IconButton>
+              <IconButton size="small" onClick={() => window.print()}><PrintOutlined fontSize="small" /></IconButton>
               <IconButton size="small"><MoreVertOutlined fontSize="small" /></IconButton>
             </Stack>
           </Stack>
@@ -129,16 +206,6 @@ export default function TicketDetail({ tickets, onBack, admin }) {
                 </Box>
               );
             })}
-
-            {followUps.map((m, i) => (
-              <Box key={i} sx={{ p: 1.8, borderRadius: 2, bgcolor: "primary.main", color: "#fff", alignSelf: "flex-end", maxWidth: { xs: "100%", md: "85%" }, ml: "auto" }}>
-                <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{adminName}</Typography>
-                  <Typography sx={{ fontSize: 11, opacity: 0.8 }}>{m.time}</Typography>
-                </Stack>
-                <Typography sx={{ fontSize: 13 }}>{m.text}</Typography>
-              </Box>
-            ))}
           </Stack>
 
           <Divider sx={{ my: 2 }} />
@@ -150,14 +217,21 @@ export default function TicketDetail({ tickets, onBack, admin }) {
             multiline
             minRows={3}
             fullWidth
+            disabled={sending}
           />
           <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
-            <Button variant="contained" endIcon={<SendOutlined />} onClick={handleSend}>
-              Enviar Respuesta
+            <Button variant="contained" endIcon={<SendOutlined />} onClick={handleSend} disabled={sending || !reply.trim()}>
+              {sending ? "Enviando..." : "Enviar Respuesta"}
             </Button>
           </Stack>
         </Paper>
       </Stack>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

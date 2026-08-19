@@ -12,8 +12,8 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .models import Ticket, Usuario, Area, Categoria
-from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer
+from .models import Ticket, Usuario, Area, Categoria, Respuesta
+from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer
 
 class RegistroUsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -52,6 +52,17 @@ class TicketViewSet(viewsets.ModelViewSet):
             cerrados=Count('id', filter=models.Q(estado='CERRADO'))
         )
         return Response(stats)
+
+    @action(detail=True, methods=['post'])
+    def responder(self, request, pk=None):
+        ticket = self.get_object()
+        mensaje = (request.data.get('mensaje') or '').strip()
+
+        if not mensaje:
+            return Response({'error': 'El mensaje no puede estar vacío.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        respuesta = Respuesta.objects.create(ticket=ticket, autor=request.user, mensaje=mensaje)
+        return Response(RespuestaSerializer(respuesta).data, status=status.HTTP_201_CREATED)
 
 
 class AreaViewSet(viewsets.ReadOnlyModelViewSet):
