@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, Button, Box } from "@mui/material";
 import { AddCircleOutlined, AttachFileOutlined } from "@mui/icons-material";
 
-export default function UserTicketsTable({ tickets, onOpenNew }) {
+export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
   return (
     <Stack spacing={3}>
       <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between" }}>
@@ -22,7 +22,7 @@ export default function UserTicketsTable({ tickets, onOpenNew }) {
           </TableHead>
           <TableBody>
             {tickets.map((r) => (
-              <TableRow key={r.id} hover>
+              <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: "pointer" }}>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
@@ -36,6 +36,7 @@ export default function UserTicketsTable({ tickets, onOpenNew }) {
                         target="_blank"
                         rel="noopener noreferrer"
                         clickable
+                        onClick={(e) => e.stopPropagation()}
                         icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                         label="Ver adjunto"
                         sx={{ fontSize: 11, maxWidth: 200 }}
