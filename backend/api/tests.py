@@ -147,3 +147,24 @@ class CambiarPasswordTests(APITestCase):
         url = reverse('cambiar_password')
         response = self.client.post(url, {"password_actual": "ClaveVieja123", "password_nueva": "ClaveNueva456"})
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+
+class SuperuserRolSignalTests(TestCase):
+    def test_createsuperuser_asigna_rol_supervisor(self):
+        admin = Usuario.objects.create_superuser(username="admin1", password="password123", email="admin1@example.com")
+        admin.refresh_from_db()
+        self.assertEqual(admin.rol, Usuario.Roles.SUPERVISOR)
+
+    def test_usuario_normal_mantiene_rol_estudiante(self):
+        user = Usuario.objects.create_user(username="estudiante3", password="password123", rol=Usuario.Roles.ESTUDIANTE)
+        user.refresh_from_db()
+        self.assertEqual(user.rol, Usuario.Roles.ESTUDIANTE)
+
+    def test_promocion_a_superusuario_actualiza_el_rol(self):
+        user = Usuario.objects.create_user(username="staff1", password="password123", rol=Usuario.Roles.STAFF)
+        self.assertEqual(user.rol, Usuario.Roles.STAFF)
+
+        user.is_superuser = True
+        user.save()
+        user.refresh_from_db()
+        self.assertEqual(user.rol, Usuario.Roles.SUPERVISOR)
