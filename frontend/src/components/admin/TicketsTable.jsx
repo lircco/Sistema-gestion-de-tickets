@@ -1,11 +1,49 @@
-import React, { useState } from "react";
-import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment } from "@mui/material";
-import { SearchOutlined, VisibilityOutlined } from "@mui/icons-material";
+import React, { useMemo, useState } from "react";
+import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment, Menu, MenuItem } from "@mui/material";
+import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined } from "@mui/icons-material";
+import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
+
+const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
+
+const FECHA_OPTIONS = [
+  { key: "", label: "Todas" },
+  { key: "7", label: "Últimos 7 días" },
+  { key: "30", label: "Últimos 30 días" },
+  { key: "90", label: "Últimos 90 días" },
+];
 
 export default function TicketsTable({ tickets, onOpenTicket }) {
   const [search, setSearch] = useState("");
-  const visibleTickets = filterTickets(tickets, search);
+  const [categoriaFilter, setCategoriaFilter] = useState("");
+  const [estadoFilter, setEstadoFilter] = useState("");
+  const [fechaFilter, setFechaFilter] = useState("");
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const categorias = useMemo(
+    () => [...new Set(tickets.map((t) => t.categoria_nombre).filter(Boolean))],
+    [tickets]
+  );
+
+  const handleOpenMenu = (menu) => (e) => {
+    setMenuAnchor(e.currentTarget);
+    setOpenMenu(menu);
+  };
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setOpenMenu(null);
+  };
+
+  let visibleTickets = filterTickets(tickets, search);
+  if (categoriaFilter) visibleTickets = visibleTickets.filter((t) => t.categoria_nombre === categoriaFilter);
+  if (estadoFilter) visibleTickets = visibleTickets.filter((t) => t.estado === estadoFilter);
+  if (fechaFilter) {
+    const since = subDays(new Date(), Number(fechaFilter));
+    visibleTickets = visibleTickets.filter((t) => new Date(t.creado_el) >= since);
+  }
+
+  const fechaLabel = FECHA_OPTIONS.find((o) => o.key === fechaFilter)?.label;
 
   return (
     <Stack spacing={3}>
@@ -27,9 +65,50 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             }}
           />
           <Stack direction="row" spacing={1} sx={{ flexShrink: 0, flexWrap: "wrap" }}>
-            <Button variant="outlined" size="small">Categoría</Button>
-            <Button variant="outlined" size="small">Estado</Button>
-            <Button variant="outlined" size="small">Fechas</Button>
+            <Button
+              variant={categoriaFilter ? "contained" : "outlined"}
+              size="small"
+              endIcon={<KeyboardArrowDownOutlined />}
+              onClick={handleOpenMenu("categoria")}
+            >
+              {categoriaFilter || "Categoría"}
+            </Button>
+            <Button
+              variant={estadoFilter ? "contained" : "outlined"}
+              size="small"
+              endIcon={<KeyboardArrowDownOutlined />}
+              onClick={handleOpenMenu("estado")}
+            >
+              {estadoFilter ? ESTADO_LABELS[estadoFilter] : "Estado"}
+            </Button>
+            <Button
+              variant={fechaFilter ? "contained" : "outlined"}
+              size="small"
+              endIcon={<KeyboardArrowDownOutlined />}
+              onClick={handleOpenMenu("fechas")}
+            >
+              {fechaFilter ? fechaLabel : "Fechas"}
+            </Button>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "categoria"} onClose={handleCloseMenu}>
+              <MenuItem selected={!categoriaFilter} onClick={() => { setCategoriaFilter(""); handleCloseMenu(); }}>Todas</MenuItem>
+              {categorias.map((c) => (
+                <MenuItem key={c} selected={categoriaFilter === c} onClick={() => { setCategoriaFilter(c); handleCloseMenu(); }}>{c}</MenuItem>
+              ))}
+            </Menu>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "estado"} onClose={handleCloseMenu}>
+              <MenuItem selected={!estadoFilter} onClick={() => { setEstadoFilter(""); handleCloseMenu(); }}>Todos</MenuItem>
+              {Object.entries(ESTADO_LABELS).map(([value, label]) => (
+                <MenuItem key={value} selected={estadoFilter === value} onClick={() => { setEstadoFilter(value); handleCloseMenu(); }}>{label}</MenuItem>
+              ))}
+            </Menu>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "fechas"} onClose={handleCloseMenu}>
+              {FECHA_OPTIONS.map((o) => (
+                <MenuItem key={o.key} selected={fechaFilter === o.key} onClick={() => { setFechaFilter(o.key); handleCloseMenu(); }}>{o.label}</MenuItem>
+              ))}
+            </Menu>
           </Stack>
         </Stack>
         <Table size="small" sx={{ minWidth: 720 }}>
