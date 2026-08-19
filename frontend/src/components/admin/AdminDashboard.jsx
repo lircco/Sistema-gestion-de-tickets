@@ -78,7 +78,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
         <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} adminName={displayName} />} />
         <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} />} />
-        <Route path="reports" element={<ReportsSection />} />
+        <Route path="reports" element={<ReportsSection tickets={tickets} stats={stats} />} />
         <Route path="areas" element={<AreaManagementSection />} />
         <Route path="kb" element={<KnowledgeBaseSection />} />
         <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
