@@ -233,7 +233,11 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
-            <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>{user?.name?.charAt(0) || "U"}</Avatar>
+            <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
+              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+                {user?.name?.charAt(0) || "U"}
+              </Avatar>
+            </Tooltip>
           </Stack>
         </Box>
 
