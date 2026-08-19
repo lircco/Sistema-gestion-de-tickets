@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import { filterTickets } from "../../lib/utils";
 import AppShell from "../AppShell";
 import AdminHome from "./AdminHome";
 import TicketsTable from "./TicketsTable";
@@ -29,6 +30,8 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const filteredTickets = filterTickets(tickets, search);
 
   const loadData = useCallback(async () => {
     try {
@@ -68,10 +71,12 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       user={{ name: displayName, role: admin.rol }}
       mode={mode}
       onToggleMode={onToggleMode}
+      searchValue={search}
+      onSearchChange={setSearch}
     >
       <Routes>
         <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
-        <Route path="tickets" element={<TicketsTable tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} />} />
         <Route path="reports" element={<ReportsSection />} />
         <Route path="areas" element={<AreaManagementSection />} />

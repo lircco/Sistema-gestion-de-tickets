@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment } from "@mui/material";
 import { SearchOutlined, VisibilityOutlined } from "@mui/icons-material";
+import { filterTickets } from "../../lib/utils";
 
 export default function TicketsTable({ tickets, onOpenTicket }) {
+  const [search, setSearch] = useState("");
+  const visibleTickets = filterTickets(tickets, search);
+
   return (
     <Stack spacing={3}>
       <Typography variant="h5">Lista de Tickets</Typography>
@@ -12,6 +16,8 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             placeholder="Buscar por ID, título o descripción..."
             size="small"
             fullWidth
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -35,7 +41,7 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {tickets.map((r) => (
+            {visibleTickets.map((r) => (
               <TableRow key={r.id} hover>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>{r.titulo}</TableCell>
@@ -57,7 +63,7 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             ))}
           </TableBody>
         </Table>
-        <Typography sx={{ fontSize: 12, color: '#6b7280', mt: 2 }}>Mostrando {tickets.length} tickets</Typography>
+        <Typography sx={{ fontSize: 12, color: '#6b7280', mt: 2 }}>Mostrando {visibleTickets.length} tickets</Typography>
       </Paper>
     </Stack>
   );

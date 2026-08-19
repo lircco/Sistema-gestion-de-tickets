@@ -34,7 +34,7 @@ function SideAction({ icon, label, danger, onClick }) {
   );
 }
 
-export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, children }) {
+export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, searchValue = "", onSearchChange, children }) {
   const isMobile = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifAnchor, setNotifAnchor] = useState(null);
@@ -147,18 +147,22 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
           <TextField
             placeholder="Buscar ticket por ID o asunto..."
             size="small"
+            value={searchValue}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             sx={{
               flex: 1,
               maxWidth: 420,
               display: { xs: "none", sm: "flex" },
               "& .MuiOutlinedInput-root": { bgcolor: "action.hover" },
             }}
-            inputprops={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined sx={{ color: "#9aa4b2" }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined sx={{ color: "#9aa4b2" }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <Box sx={{ flex: 1 }} />

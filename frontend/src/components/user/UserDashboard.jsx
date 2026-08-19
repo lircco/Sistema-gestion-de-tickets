@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import { filterTickets } from "../../lib/utils";
 import AppShell from "../AppShell";
 import UserHome from "./UserHome";
 import UserTicketsTable from "./UserTicketsTable";
@@ -17,6 +18,8 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
 
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const filteredTickets = filterTickets(tickets, search);
 
   const loadTickets = useCallback(async () => {
     try {
@@ -53,10 +56,12 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
         user={{ name: displayName, role: "Alumno UNRaf" }}
         mode={mode}
         onToggleMode={onToggleMode}
+        searchValue={search}
+        onSearchChange={setSearch}
       >
         <Routes>
           <Route index element={<UserHome user={{ name: displayName }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} />} />
-          <Route path="tickets" element={<UserTicketsTable tickets={tickets} onOpenNew={() => setOpenNew(true)} />} />
+          <Route path="tickets" element={<UserTicketsTable tickets={filteredTickets} onOpenNew={() => setOpenNew(true)} />} />
           <Route path="settings" element={<SettingsSection person={{ name: displayName, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
           <Route path="*" element={<Paper sx={{ p: 6, textAlign: "center" }}><Typography variant="h5">Página no encontrada</Typography></Paper>} />
         </Routes>
