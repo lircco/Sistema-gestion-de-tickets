@@ -3,11 +3,11 @@ import { Box, Stack, Typography, Button, Link, Table, TableBody, TableCell, Tabl
 import { MailOutlined, AssignmentOutlined, ArrowForward, VisibilityOutlined, CheckCircleOutlined, HighlightOffOutlined } from "@mui/icons-material";
 import StatCard from "../shared/StatCard";
 
-export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets }) {
+export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, adminName }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">¡Bienvenido, Administrador!</Typography>
+        <Typography variant="h4">¡Bienvenido, {adminName || "Administrador"}!</Typography>
         <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>

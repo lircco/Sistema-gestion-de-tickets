@@ -75,7 +75,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       onSearchChange={setSearch}
     >
       <Routes>
-        <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} />} />
+        <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} adminName={displayName} />} />
         <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} />} />
         <Route path="reports" element={<ReportsSection />} />
