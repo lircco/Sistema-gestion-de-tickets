@@ -9,8 +9,10 @@ class PuedeGestionarTicket(permissions.BasePermission):
     Controla quién puede modificar los campos de gestión de un ticket
     (estado, prioridad, area_responsable):
     - SUPERVISOR (o is_staff de Django): cualquier ticket.
-    - STAFF: solo tickets de su propia área.
-    - ESTUDIANTE: nunca.
+    - STAFF: solo tickets de su propia área (STAFF de otra área recibe 403 acá).
+    - ESTUDIANTE: no se bloquea con 403 en este permiso; TicketSerializer.get_fields()
+      ya marca esos campos como read_only para ESTUDIANTE, así que el PATCH
+      responde 200 y los ignora en silencio.
     El resto de las operaciones queda como antes (la visibilidad ya viene
     filtrada por get_queryset()).
     """
@@ -25,8 +27,6 @@ class PuedeGestionarTicket(permissions.BasePermission):
 
         user = request.user
         rol = getattr(user, 'rol', None)
-        if rol == 'SUPERVISOR' or user.is_staff:
+        if rol != 'STAFF':
             return True
-        if rol == 'STAFF' and user.area_id is not None and user.area_id == obj.area_responsable_id:
-            return True
-        return False
+        return user.area_id is not None and user.area_id == obj.area_responsable_id
