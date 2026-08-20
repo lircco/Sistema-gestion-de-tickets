@@ -56,4 +56,4 @@ Luego instalá las dependencias del backend con:
 .venv/Scripts/python.exe -m pip install -r backend/requirements.txt
 ```
 
-Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [AGENTS.md](./AGENTS.md).
+Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [project-rules.md](./.agents/rules/project-rules.md).
