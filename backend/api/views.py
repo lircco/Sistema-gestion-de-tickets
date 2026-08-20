@@ -14,6 +14,7 @@ from django.conf import settings
 
 from .models import Ticket, Usuario, Area, Categoria, Respuesta
 from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer
+from .permissions import PuedeGestionarTicket
 
 class RegistroUsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -30,7 +31,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 class TicketViewSet(viewsets.ModelViewSet):
     serializer_class = TicketSerializer
     pagination_class = StandardResultsSetPagination
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, PuedeGestionarTicket]
     filter_backends = [filters.SearchFilter]
     search_fields = ['titulo', 'descripcion', 'estado']
 
@@ -88,7 +89,8 @@ class UsuarioActualView(APIView):
             'email': usuario.email,
             'first_name': usuario.first_name,
             'rol': usuario.rol if hasattr(usuario, 'rol') else 'ESTUDIANTE',
-            'is_staff': usuario.is_staff
+            'is_staff': usuario.is_staff,
+            'area': usuario.area_id if hasattr(usuario, 'area_id') else None
         }
         return Response(data)
 
