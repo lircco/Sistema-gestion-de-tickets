@@ -82,9 +82,7 @@ export const api = {
   createTicket: async (ticketData) => {
     const token = localStorage.getItem("access_token");
 
-    // Imprimimos en la consola del navegador (F12) para chusmear qué llega
-    console.log("Datos que recibe api.js:", ticketData);
-
+    // Para inspeccionar ticketData durante desarrollo, usar breakpoints/DevTools.
     // Preparamos las cabeceras base (Solo el token)
     const headers = {
       Authorization: `Bearer ${token}`,
