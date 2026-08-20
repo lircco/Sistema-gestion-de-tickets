@@ -28,7 +28,7 @@ test.describe('Flujo de Administrador', () => {
     await ticketRow.getByRole('button').click();
 
     // 5. Verificar que estamos en la vista de detalle
-    await expect(page.locator('text=Línea de Tiempo')).toBeVisible();
+    await expect(page.locator('text=Historial de Mensajes')).toBeVisible();
 
     // 6. Enviar una respuesta
     await page.getByPlaceholder('Escribí tu respuesta o seguimiento aquí...').fill('Estamos trabajando en tu solicitud. Saludos.');

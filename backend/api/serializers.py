@@ -76,12 +76,14 @@ class TicketSerializer(serializers.ModelSerializer):
         # Obtenemos el 'request' para saber quién está logueado
         request = self.context.get('request')
         
-        # Si el usuario está logueado y su rol es ESTUDIANTE
-        if request and hasattr(request.user, 'rol') and request.user.rol == 'ESTUDIANTE':
+        # Si el usuario está logueado y su rol es ESTUDIANTE, y estamos
+        # editando un ticket existente (self.instance) y no creando uno nuevo
+        if request and hasattr(request.user, 'rol') and request.user.rol == 'ESTUDIANTE' and self.instance is not None:
             # Bloqueamos los campos que solo el staff puede modificar desde
             # las Acciones Rápidas del detalle de ticket (Derivar, Cambiar
             # Estado): un estudiante no debería poder reasignar el área ni
-            # el estado/prioridad de su propio ticket.
+            # el estado/prioridad de su propio ticket. Al crear un ticket
+            # nuevo sí debe poder elegir el área responsable.
             for campo in ('estado', 'area_responsable', 'prioridad'):
                 if campo in fields:
                     fields[campo].read_only = True
