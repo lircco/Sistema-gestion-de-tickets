@@ -34,7 +34,7 @@ function SideAction({ icon, label, danger, onClick }) {
   );
 }
 
-export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, children }) {
+export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, searchValue = "", onSearchChange, children }) {
   const isMobile = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifAnchor, setNotifAnchor] = useState(null);
@@ -66,7 +66,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
   const [supportOpen, setSupportOpen] = useState(false);
 
   const sidebar = (
-    <Box sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
+    <Box className="app-shell-sidebar" sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
       <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", mb: 3, px: 1 }}>
         <Box sx={{ width: 36, height: 36, borderRadius: 1.2, bgcolor: "primary.main", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <SchoolOutlined sx={{ color: "#fff", fontSize: 22 }} />
@@ -128,6 +128,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
 
       <Box sx={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <Box
+          className="app-shell-header"
           sx={{
             height: 64,
             bgcolor: "background.paper",
@@ -147,18 +148,22 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
           <TextField
             placeholder="Buscar ticket por ID o asunto..."
             size="small"
+            value={searchValue}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             sx={{
               flex: 1,
               maxWidth: 420,
               display: { xs: "none", sm: "flex" },
               "& .MuiOutlinedInput-root": { bgcolor: "action.hover" },
             }}
-            inputprops={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchOutlined sx={{ color: "#9aa4b2" }} />
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchOutlined sx={{ color: "#9aa4b2" }} />
+                  </InputAdornment>
+                ),
+              },
             }}
           />
           <Box sx={{ flex: 1 }} />
@@ -229,11 +234,15 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
-            <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36 }}>{user?.name?.charAt(0) || "U"}</Avatar>
+            <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
+              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+                {user?.name?.charAt(0) || "U"}
+              </Avatar>
+            </Tooltip>
           </Stack>
         </Box>
 
-        <Box sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
+        <Box className="app-shell-content" sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
       </Box>
 
       <Dialog open={supportOpen} onClose={() => setSupportOpen(false)}>

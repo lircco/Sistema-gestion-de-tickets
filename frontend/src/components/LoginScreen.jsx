@@ -41,6 +41,7 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [confirm, setConfirm] = useState("");
   const [name, setName] = useState("");
   const [show, setShow] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -295,12 +296,23 @@ export default function LoginScreen({ onLoginSuccess }) {
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Confirmar contraseña</Typography>
                 <TextField
                   fullWidth
-                  type={show ? "text" : "password"}
+                  type={showConfirm ? "text" : "password"}
                   placeholder="••••••••"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   size="small"
                   sx={{ mb: 3, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton size="small" onClick={() => setShowConfirm((s) => !s)}>
+                            {showConfirm ? <VisibilityOff fontSize="small" /> : <VisibilityOutlined fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
                 />
               </>
             )}

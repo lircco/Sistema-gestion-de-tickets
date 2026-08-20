@@ -137,6 +137,44 @@ export const api = {
     return await response.json();
   },
 
+  // 6b. ACTUALIZAR UN TICKET (Derivar / Cambiar Estado / Cerrar)
+  updateTicket: async (id, data) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}tickets/${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || JSON.stringify(errData) || "No se pudo actualizar el ticket");
+    }
+    return await response.json();
+  },
+
+  // 6c. ENVIAR UNA RESPUESTA REAL A UN TICKET
+  enviarRespuesta: async (id, mensaje) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}tickets/${id}/responder/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ mensaje }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "No se pudo enviar la respuesta");
+    }
+    return await response.json();
+  },
+
   // 7. USUARIO ACTUAL
   getMe: async () => {
     const token = localStorage.getItem('access_token');
@@ -207,6 +245,25 @@ export const api = {
     if (!response.ok) {
       const errData = await response.json();
       throw new Error(errData.error || errData.detail || "Error al procesar la solicitud.");
+    }
+    return await response.json();
+  },
+
+  // --- CAMBIAR CONTRASEÑA (usuario ya logueado, desde su perfil) ---
+  changePassword: async (passwordActual, passwordNueva) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}auth/cambiar-password/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ password_actual: passwordActual, password_nueva: passwordNueva }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
   }

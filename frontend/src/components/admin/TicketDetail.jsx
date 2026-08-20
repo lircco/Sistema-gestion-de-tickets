@@ -1,24 +1,82 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button } from "@mui/material";
+import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button, Menu, MenuItem, Snackbar, Alert } from "@mui/material";
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import { api } from "../../lib/api";
 
-export default function TicketDetail({ tickets, onBack, admin }) {
+const ESTADO_COLOR = {
+  ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
+  EN_PROGRESO: { bg: "#fef3c7", fg: "#92400e" },
+  CERRADO: { bg: "#d1fae5", fg: "#065f46" },
+};
+
+const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
+
+const PRIORIDAD_COLOR = {
+  ALTA: { bg: "#fee2e2", fg: "#991b1b" },
+  MEDIA: { bg: "#fef3c7", fg: "#92400e" },
+  BAJA: { bg: "#f3f4f6", fg: "#374151" },
+};
+
+const ROL_LABELS = { ESTUDIANTE: "Estudiante", STAFF: "Staff de Área", SUPERVISOR: "Supervisor" };
+
+export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }) {
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
-  const [reply, setReply] = useState("");
-  const [messages, setMessages] = useState([
-    { who: "Julián Martinez", role: "user", time: "Hoy, 10:45 AM", text: "Buenos días, no estoy pudiendo ingresar al campus. Me dice que mi usuario está bloqueado o que la contraseña es incorrecta, pero ayer funcionaba bien. Necesito subir un trabajo práctico antes del mediodía. ¡Gracias!" },
-    { who: "Nota Interna - Agente García", role: "note", time: "Hoy, 09:17 AM", text: "Verificando logs en el servidor SIU. Parece haber desincronización en el LDAP de alumnos de tercer año." },
-    { who: "Agente Soporte UNRaf", role: "agent", time: "Hoy, 09:25 AM", text: "Hola Julián, estamos revisando el sistema. Hubo un mantenimiento anoche y es posible que algunos perfiles necesiten re-sincronizarse. ¿Podrías intentar ingresar nuevamente en 10 minutos? Ya reiniciamos tu token de sesión." },
-    { who: "Julián Martinez", role: "user", time: "Hoy, 09:30 AM", text: "Sigo con el mismo problema. Les adjunto la captura de pantalla de lo que me aparece." },
-  ]);
 
-  const handleSend = () => {
-    if (!reply.trim()) return;
-    setMessages((prev) => [...prev, { who: admin.name, role: "agent", time: "Ahora", text: reply.trim() }]);
-    setReply("");
+  const [areas, setAreas] = useState([]);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
+
+  const handleOpenMenu = (menu) => (e) => {
+    setMenuAnchor(e.currentTarget);
+    setOpenMenu(menu);
+  };
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setOpenMenu(null);
+  };
+
+  const runAction = async (data, successMessage) => {
+    if (!ticket) return;
+    setActionLoading(true);
+    handleCloseMenu();
+    try {
+      await api.updateTicket(ticket.id, data);
+      await onTicketUpdated?.();
+      setSnackbar({ open: true, message: successMessage, severity: "success" });
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || "No se pudo actualizar el ticket.", severity: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDerivar = (area) => runAction({ area_responsable: area.id }, `Ticket derivado a ${area.nombre}.`);
+  const handleCambiarEstado = (estado) => runAction({ estado }, `Estado actualizado a "${ESTADO_LABELS[estado]}".`);
+  const handleCerrar = () => runAction({ estado: "CERRADO" }, "Ticket cerrado.");
+
+  const handleSend = async () => {
+    if (!reply.trim() || !ticket) return;
+    setSending(true);
+    try {
+      await api.enviarRespuesta(ticket.id, reply.trim());
+      await onTicketUpdated?.();
+      setReply("");
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message || "No se pudo enviar la respuesta.", severity: "error" });
+    } finally {
+      setSending(false);
+    }
   };
 
   if (!ticket) {
@@ -32,93 +90,122 @@ export default function TicketDetail({ tickets, onBack, admin }) {
     );
   }
 
+  const solicitanteNombre = [ticket.creado_por_first_name, ticket.creado_por_last_name].filter(Boolean).join(" ") || ticket.creado_por_nombre;
+  const estadoColor = ESTADO_COLOR[ticket.estado] || { bg: "#f3f4f6", fg: "#374151" };
+  const prioridadColor = PRIORIDAD_COLOR[ticket.prioridad] || { bg: "#f3f4f6", fg: "#374151" };
+
   return (
     <Stack spacing={2.5}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
         <IconButton onClick={onBack}><ArrowBack /></IconButton>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600 }}>
-            {ticket.id} · Creado el 14 Oct, 2023 - 10:45 AM
+            #{ticket.id} · Creado el {new Date(ticket.creado_el).toLocaleString()}
           </Typography>
-          <Typography variant="h5" sx={{ wordBreak: "break-word" }}>{ticket.title}</Typography>
+          <Typography variant="h5" sx={{ wordBreak: "break-word" }}>{ticket.titulo}</Typography>
         </Box>
-        <Chip label="EN PROCESO" sx={{ bgcolor: "#fef3c7", color: "#92400e", fontWeight: 700 }} />
-        <Chip label="ALTA" sx={{ bgcolor: "#fee2e2", color: "#991b1b", fontWeight: 700, display: { xs: "none", sm: "inline-flex" } }} />
+        <Chip label={ticket.estado} sx={{ bgcolor: estadoColor.bg, color: estadoColor.fg, fontWeight: 700 }} />
+        <Chip label={ticket.prioridad} sx={{ bgcolor: prioridadColor.bg, color: prioridadColor.fg, fontWeight: 700, display: { xs: "none", sm: "inline-flex" } }} />
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>
-        <Stack spacing={2.5} sx={{ width: { lg: 280 }, flexShrink: 0 }}>
+        <Stack spacing={2.5} sx={{ width: { lg: 280 }, flexShrink: 0, order: { xs: 2, lg: 0 } }}>
           <Paper sx={{ p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Solicitante</Typography>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 2 }}>
               <Box sx={{ width: 40, height: 40, borderRadius: 1.5, bgcolor: "primary.main", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                J
+                {solicitanteNombre.charAt(0).toUpperCase() || "?"}
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Julián Martinez</Typography>
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>Estudiante - Ing. en Computación</Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{solicitanteNombre}</Typography>
+                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>{ROL_LABELS[ticket.creado_por_rol] || ticket.creado_por_rol}</Typography>
               </Box>
             </Stack>
             <Divider sx={{ mb: 1.5 }} />
-            <DetailRow label="DNI" value="42.891.002" />
-            <DetailRow label="Email" value="j.martinez@unraf.edu.ar" />
-            <DetailRow label="Legajo" value="UNR-4922" />
-          </Paper>
-
-          <Paper sx={{ p: 2.5 }}>
-            <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Línea de Tiempo</Typography>
-            <Stack spacing={1.5}>
-              {[
-                { t: "Hoy, 09:15 AM", title: "Cambio de Estado", d: 'De "Pendiente" a "En Proceso" por Agente García.' },
-                { t: "Ayer, 04:30 PM", title: "Ticket Derivado", d: "Mesa de Entradas derivó a Soporte Técnico." },
-                { t: "14 Oct, 10:45 AM", title: "Ticket Creado", d: "El sistema registró la solicitud vía Web." },
-              ].map((e, i) => (
-                <Box key={i} sx={{ pl: 1.5, borderLeft: "2px solid", borderColor: i === 0 ? "primary.main" : "divider" }}>
-                  <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{e.t}</Typography>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{e.title}</Typography>
-                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>{e.d}</Typography>
-                </Box>
-              ))}
-            </Stack>
+            <DetailRow label="Usuario" value={ticket.creado_por_nombre} />
+            <DetailRow label="Email" value={ticket.creado_por_email || "—"} />
           </Paper>
 
           <Paper sx={{ p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Acciones Rápidas</Typography>
             <Stack spacing={1}>
-              <Button variant="outlined" startIcon={<CallSplitOutlined />} fullWidth>Derivar Ticket</Button>
-              <Button variant="outlined" startIcon={<SwapHorizOutlined />} fullWidth>Cambiar Estado</Button>
-              <Button variant="outlined" color="error" startIcon={<HighlightOffOutlined />} fullWidth>Cerrar Ticket</Button>
+              <Button variant="outlined" startIcon={<CallSplitOutlined />} fullWidth onClick={handleOpenMenu("derivar")} disabled={actionLoading}>
+                Derivar Ticket
+              </Button>
+              <Button variant="outlined" startIcon={<SwapHorizOutlined />} fullWidth onClick={handleOpenMenu("estado")} disabled={actionLoading}>
+                Cambiar Estado
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<HighlightOffOutlined />}
+                fullWidth
+                onClick={handleCerrar}
+                disabled={actionLoading || ticket.estado === "CERRADO"}
+              >
+                Cerrar Ticket
+              </Button>
             </Stack>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "derivar"} onClose={handleCloseMenu}>
+              {areas.length === 0 && <MenuItem disabled>Cargando áreas...</MenuItem>}
+              {areas.map((a) => (
+                <MenuItem key={a.id} selected={ticket.area_responsable === a.id} onClick={() => handleDerivar(a)}>
+                  {a.nombre}
+                </MenuItem>
+              ))}
+            </Menu>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "estado"} onClose={handleCloseMenu}>
+              {Object.entries(ESTADO_LABELS).map(([value, label]) => (
+                <MenuItem key={value} selected={ticket.estado === value} onClick={() => handleCambiarEstado(value)}>
+                  {label}
+                </MenuItem>
+              ))}
+            </Menu>
           </Paper>
         </Stack>
 
-        <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0 }}>
+        <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0, order: { xs: 1, lg: 0 } }}>
           <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
             <Typography sx={{ fontWeight: 700 }}>● Historial de Mensajes</Typography>
             <Stack direction="row">
-              <IconButton size="small"><PrintOutlined fontSize="small" /></IconButton>
+              <IconButton size="small" onClick={() => window.print()}><PrintOutlined fontSize="small" /></IconButton>
               <IconButton size="small"><MoreVertOutlined fontSize="small" /></IconButton>
             </Stack>
           </Stack>
           <Stack spacing={2}>
-            {messages.map((m, i) => (
-              <Box key={i} sx={{
-                p: 1.8,
-                borderRadius: 2,
-                bgcolor: m.role === "agent" ? "primary.main" : m.role === "note" ? "#fef9c3" : "action.hover",
-                color: m.role === "agent" ? "#fff" : "text.primary",
-                alignSelf: m.role === "agent" ? "flex-end" : "flex-start",
-                maxWidth: { xs: "100%", md: "85%" },
-                ml: m.role === "agent" ? "auto" : 0,
-                border: m.role === "note" ? "1px dashed #ca8a04" : "none",
-              }}>
-                <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{m.who}</Typography>
-                  <Typography sx={{ fontSize: 11, opacity: 0.8 }}>{m.time}</Typography>
-                </Stack>
-                <Typography sx={{ fontSize: 13 }}>{m.text}</Typography>
-              </Box>
-            ))}
+            <Box sx={{ p: 1.8, borderRadius: 2, bgcolor: "action.hover", maxWidth: { xs: "100%", md: "85%" } }}>
+              <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{solicitanteNombre}</Typography>
+                <Typography sx={{ fontSize: 11, opacity: 0.8 }}>{new Date(ticket.creado_el).toLocaleString()}</Typography>
+              </Stack>
+              <Typography sx={{ fontSize: 13 }}>{ticket.descripcion}</Typography>
+            </Box>
+
+            {(ticket.respuestas || []).map((r) => {
+              const isAgent = r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR";
+              return (
+                <Box
+                  key={r.id}
+                  sx={{
+                    p: 1.8,
+                    borderRadius: 2,
+                    bgcolor: isAgent ? "primary.main" : "action.hover",
+                    color: isAgent ? "#fff" : "text.primary",
+                    alignSelf: isAgent ? "flex-end" : "flex-start",
+                    maxWidth: { xs: "100%", md: "85%" },
+                    ml: isAgent ? "auto" : 0,
+                  }}
+                >
+                  <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
+                    <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{r.autor_nombre}</Typography>
+                    <Typography sx={{ fontSize: 11, opacity: 0.8 }}>{new Date(r.creado_el).toLocaleString()}</Typography>
+                  </Stack>
+                  <Typography sx={{ fontSize: 13 }}>{r.mensaje}</Typography>
+                </Box>
+              );
+            })}
           </Stack>
 
           <Divider sx={{ my: 2 }} />
@@ -130,14 +217,21 @@ export default function TicketDetail({ tickets, onBack, admin }) {
             multiline
             minRows={3}
             fullWidth
+            disabled={sending}
           />
           <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
-            <Button variant="contained" endIcon={<SendOutlined />} onClick={handleSend}>
-              Enviar Respuesta
+            <Button variant="contained" endIcon={<SendOutlined />} onClick={handleSend} disabled={sending || !reply.trim()}>
+              {sending ? "Enviando..." : "Enviar Respuesta"}
             </Button>
           </Stack>
         </Paper>
       </Stack>
+
+      <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

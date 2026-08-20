@@ -7,6 +7,7 @@ on:
 jobs:
   e2e-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       DATABASE_URL: sqlite:///db.sqlite3
       DJANGO_SECRET_KEY: test-secret-key-for-ci
@@ -32,6 +33,7 @@ jobs:
         run: |
           cd frontend
           npm ci
+          sudo sh -c 'echo "Acquire::ForceIPv4 \"true\";" > /etc/apt/apt.conf.d/99force-ipv4'
           npx playwright install --with-deps chromium
       
       - name: Run Playwright tests
