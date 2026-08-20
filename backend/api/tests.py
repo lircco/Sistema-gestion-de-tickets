@@ -275,3 +275,32 @@ class TicketAccionesRapidasTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.ticket.refresh_from_db()
         self.assertEqual(self.ticket.area_responsable, self.area1)
+
+
+class RecuperarPasswordTests(APITestCase):
+    def setUp(self):
+        self.user = Usuario.objects.create_user(
+            username="alumno_recuperar",
+            password="PasswordOriginal123",
+            rol=Usuario.Roles.ESTUDIANTE,
+            email="alumno_recuperar@example.com"
+        )
+        self.url = reverse('recuperar_password')
+
+    def test_recuperar_password_usuario_existente(self):
+        response = self.client.post(self.url, {"email": "alumno_recuperar@example.com"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        # La contraseña cambió y no es la contraseña fija insegura
+        self.assertFalse(self.user.check_password("PasswordOriginal123"))
+        self.assertFalse(self.user.check_password("Unraf2026"))
+
+    def test_recuperar_password_usuario_inexistente_retorna_200(self):
+        # Evitar enumeración de usuarios
+        response = self.client.post(self.url, {"email": "inexistente@example.com"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_recuperar_password_sin_email(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+

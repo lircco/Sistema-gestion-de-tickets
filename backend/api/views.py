@@ -12,6 +12,8 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 
+from django.utils.crypto import get_random_string
+
 from .models import Ticket, Usuario, Area, Categoria, Respuesta
 from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer
 from .permissions import PuedeGestionarTicket
@@ -127,27 +129,34 @@ class RecuperarPasswordView(APIView):
             return Response({'error': 'Por favor, ingrese un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Corrección: Buscamos si el usuario existe por su email
             usuario = Usuario.objects.get(email=email)
             
-            nueva_clave = "Unraf2026"
+            nueva_clave = get_random_string(length=12)
             usuario.set_password(nueva_clave)
             usuario.save()
 
             # Configuramos el mensaje para Gmail
-            asunto = 'Contraseña cambiada con éxito - UnrafTickets'
-            mensaje = f'Hola {usuario.first_name or usuario.username},\n\nTu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\nTu nueva contraseña temporal para ingresar es: {nueva_clave}\n\nPor favor, iniciá sesión y cambiala desde tu perfil.\n\nSaludos,\nSoporte Técnico Institucional.'
+            asunto = 'Contraseña restablecida con éxito - UnrafTickets'
+            mensaje = (
+                f'Hola {usuario.first_name or usuario.username},\n\n'
+                f'Tu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\n'
+                f'Tu nueva contraseña temporal para ingresar es: {nueva_clave}\n\n'
+                f'Por favor, iniciá sesión y cambiala desde tu perfil.\n\n'
+                f'Saludos,\nSoporte Técnico Institucional.'
+            )
             email_desde = settings.EMAIL_HOST_USER
             emails_destino = [email]
 
-            # Enviamos el correo real
-            send_mail(asunto, mensaje, email_desde, emails_destino, fail_silently=False)
-
-            return Response({'message': 'Correo enviado correctamente.'}, status=status.HTTP_200_OK)
+            try:
+                send_mail(asunto, mensaje, email_desde, emails_destino, fail_silently=False)
+            except Exception:
+                pass
 
         except Usuario.DoesNotExist:
-            # Corrección de Sintaxis: Captura correcta si el usuario no existe
-            return Response({'error': 'No se encontró ningún usuario registrado con ese correo electrónico.'}, status=status.HTTP_404_NOT_FOUND)
+            # Para evitar enumeración de usuarios, devolvemos 200 con mensaje genérico
+            pass
+
+        return Response({'message': 'Si el correo electrónico está registrado, recibirás las instrucciones para restablecer tu contraseña.'}, status=status.HTTP_200_OK)
 
 
 # --- VISTA DE CAMBIO DE CONTRASEÑA (desde el perfil, usuario ya logueado) ---
