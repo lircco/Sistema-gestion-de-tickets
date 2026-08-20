@@ -50,6 +50,8 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [openModal, setOpenModal] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isSent, setIsSent] = useState(false);
+  const [recoveryError, setRecoveryError] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
 
   // Funciones para abrir y cerrar el cartel de recuperación
   const handleOpenModal = (e) => {
@@ -57,17 +59,20 @@ export default function LoginScreen({ onLoginSuccess }) {
     setOpenModal(true);
     setIsSent(false);
     setRecoveryEmail("");
+    setRecoveryError("");
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
+    setRecoveryError("");
   };
 
   const handleSendRecovery = async (e) => {
     e.preventDefault();
-    setError(""); // Limpiamos errores generales si los hubiera
+    setRecoveryError("");
     
     if (recoveryEmail) {
+      setRecoveryLoading(true);
       try {
         // Llamamos a la API real pasándole el email que escribió el usuario
         await api.recuperarPassword(recoveryEmail);
@@ -75,8 +80,9 @@ export default function LoginScreen({ onLoginSuccess }) {
         // Si Django responde un 200 OK, pasamos a la pantalla verde
         setIsSent(true);
       } catch (err) {
-        // Si el mail no existe en la base de datos o falla Gmail, te salta el cartel real
-        alert(err.message || "Hubo un error al procesar la solicitud.");
+        setRecoveryError(err.message || "Hubo un error al procesar la solicitud.");
+      } finally {
+        setRecoveryLoading(false);
       }
     }
   };
@@ -346,8 +352,13 @@ export default function LoginScreen({ onLoginSuccess }) {
             <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Recuperar Contraseña</DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
-                Ingresá tu correo electrónico de Gmail y te enviaremos los pasos para restablecer tu contraseña.
+                Ingresá tu correo electrónico y te enviaremos los pasos para restablecer tu contraseña.
               </DialogContentText>
+              {recoveryError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {recoveryError}
+                </Alert>
+              )}
               <TextField
                 autoFocus
                 required
@@ -359,14 +370,15 @@ export default function LoginScreen({ onLoginSuccess }) {
                 onChange={(e) => setRecoveryEmail(e.target.value)}
                 variant="outlined"
                 size="small"
+                disabled={recoveryLoading}
               />
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2.5 }}>
-              <Button onClick={handleCloseModal} color="inherit" sx={{ fontWeight: 600 }}>
+              <Button onClick={handleCloseModal} color="inherit" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
                 Cancelar
               </Button>
-              <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }}>
-                Enviar Correo
+              <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
+                {recoveryLoading ? "Enviando..." : "Enviar Correo"}
               </Button>
             </DialogActions>
           </Box>
@@ -374,11 +386,11 @@ export default function LoginScreen({ onLoginSuccess }) {
           // Paso 2: Mensaje de confirmación exitosa una vez presionado "Enviar"
           <Box sx={{ p: 2, textAlign: "center" }}>
             <DialogTitle sx={{ color: "success.main", fontWeight: 700, fontSize: 22 }}>
-              ¡Contraseña Cambiada!
+              ¡Solicitud Enviada!
             </DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ fontSize: 14, color: "#374151" }}>
-                Se ha enviado un mensaje a tu casilla <strong>{recoveryEmail}</strong> indicando que la contraseña fue modificada con éxito y el sistema se encuentra actualizado. Por favor, revisá tu bandeja de entrada.
+                Si la casilla <strong>{recoveryEmail}</strong> está registrada, recibirás un correo con las instrucciones y tu contraseña temporal para ingresar. Por favor, revisá tu bandeja de entrada.
               </DialogContentText>
             </DialogContent>
             <DialogActions sx={{ justifyContent: "center", pb: 1.5 }}>
