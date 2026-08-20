@@ -1,9 +1,44 @@
 import React, { useState } from "react";
-import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button } from "@mui/material";
+import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert } from "@mui/material";
+import { api } from "../../lib/api";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleUpdatePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError("Completá los tres campos para actualizar la contraseña.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("La nueva contraseña y su confirmación no coinciden.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.changePassword(currentPassword, newPassword);
+      setPasswordSuccess("Contraseña actualizada correctamente.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPasswordError(err.message || "No se pudo actualizar la contraseña.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Stack spacing={3}>
@@ -63,13 +98,38 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
         <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
           <Typography sx={{ fontWeight: 700, mb: 2 }}>Seguridad</Typography>
           <Stack spacing={2}>
-            <TextField label="Contraseña Actual" type="password" size="small" fullWidth />
+            <TextField
+              label="Contraseña Actual"
+              type="password"
+              size="small"
+              fullWidth
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField label="Nueva Contraseña" type="password" size="small" fullWidth />
-              <TextField label="Confirmar Nueva Contraseña" type="password" size="small" fullWidth />
+              <TextField
+                label="Nueva Contraseña"
+                type="password"
+                size="small"
+                fullWidth
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <TextField
+                label="Confirmar Nueva Contraseña"
+                type="password"
+                size="small"
+                fullWidth
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
             </Stack>
+            {passwordError && <Alert severity="error">{passwordError}</Alert>}
+            {passwordSuccess && <Alert severity="success">{passwordSuccess}</Alert>}
             <Box>
-              <Button variant="contained">Actualizar Contraseña</Button>
+              <Button variant="contained" onClick={handleUpdatePassword} disabled={submitting}>
+                {submitting ? "Actualizando..." : "Actualizar Contraseña"}
+              </Button>
             </Box>
           </Stack>
         </Paper>

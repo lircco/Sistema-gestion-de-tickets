@@ -6,8 +6,11 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. Obligamos a Django a leer el .env del proyecto raíz antes de resolver settings
-load_dotenv(BASE_DIR.parent / ".env", override=True)
+# 2. Cargamos el .env del proyecto raíz (si existe) antes de resolver settings.
+# No usamos override para evitar pisar variables del entorno (Docker/CI/prod).
+env_path = BASE_DIR.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path, override=False)
 
 from config.database import DATABASE_URL
 

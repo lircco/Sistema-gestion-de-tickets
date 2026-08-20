@@ -2,7 +2,7 @@ import React from "react";
 import { Stack, Box, Typography, Paper, Avatar, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Link } from "@mui/material";
 import { AddCircleOutlined, AssignmentOutlined, ArrowForward } from "@mui/icons-material";
 
-export default function UserHome({ user, tickets, onOpenNew, onGoTickets }) {
+export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpenTicket }) {
   const firstName = user.name.split(" ")[0];
 
   return (
@@ -55,7 +55,7 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets }) {
             </TableHead>
             <TableBody>
               {tickets.slice(0, 5).map((r) => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: "pointer" }}>
                   <TableCell>
                     <Typography sx={{ fontSize: 14, fontWeight: 700 }}>#{r.id} - {r.titulo}</Typography>
                     <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>

@@ -3,11 +3,11 @@ import { Box, Stack, Typography, Button, Link, Table, TableBody, TableCell, Tabl
 import { MailOutlined, AssignmentOutlined, ArrowForward, VisibilityOutlined, CheckCircleOutlined, HighlightOffOutlined } from "@mui/icons-material";
 import StatCard from "../shared/StatCard";
 
-export default function AdminHome({ stats, tickets, onOpenTicket }) {
+export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, adminName }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">¡Bienvenido, Administrador!</Typography>
+        <Typography variant="h4">¡Bienvenido, {adminName || "Administrador"}!</Typography>
         <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>
@@ -23,7 +23,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket }) {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ p: 3, width: { md: 280 }, display: "flex", flexDirection: "column" }}>
           <Typography sx={{ fontWeight: 700, mb: 3 }}>Accesos Rápidos</Typography>
-          <Button variant="outlined" endIcon={<ArrowForward />} startIcon={<AssignmentOutlined />} sx={{ justifyContent: "space-between", py: 1.5 }}>
+          <Button variant="outlined" endIcon={<ArrowForward />} startIcon={<AssignmentOutlined />} sx={{ justifyContent: "space-between", py: 1.5 }} onClick={onGoTickets}>
             Mis Tickets
           </Button>
         </Paper>
@@ -31,7 +31,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket }) {
         <Paper sx={{ p: { xs: 2, md: 3 }, flex: 1, overflowX: "auto" }}>
           <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
             <Typography sx={{ fontWeight: 700 }}>Tickets Recientes</Typography>
-            <Link href="#" sx={{ fontSize: 13 }}>Ver todos</Link>
+            <Link component="button" onClick={onGoTickets} sx={{ fontSize: 13 }}>Ver todos</Link>
           </Stack>
           <Table size="small">
             <TableHead>
