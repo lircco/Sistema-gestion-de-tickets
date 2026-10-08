@@ -336,18 +336,9 @@ class TicketViewSet(viewsets.ModelViewSet):
 
 
 class AreaViewSet(viewsets.ReadOnlyModelViewSet):
-
-
-
     queryset = Area.objects.all()
-
-
-
     serializer_class = AreaSerializer
-
-
-
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 
 
