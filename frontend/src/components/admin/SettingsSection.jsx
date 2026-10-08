@@ -79,6 +79,18 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                 <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} />
                 <TextField label="Legajo" defaultValue={legajo} size="small" sx={{ width: { xs: "100%", sm: 200 } }} />
               </Stack>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Área Asignada</InputLabel>
+                  <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)}>
+                    <MenuItem value=""><em>Ninguna</em></MenuItem>
+                    {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                  </Select>
+                </FormControl>
+                <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
+              </Stack>
+              {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
+
             </Stack>
           </Stack>
         </Paper>
