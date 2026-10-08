@@ -58,7 +58,7 @@ export default function UserTicketDetail({ tickets, user, onBack }) {
               <Chip
                 size="small"
                 component="a"
-                href={ticket.archivo_adjunto}
+                href={ticket.archivo_adjunto.startsWith('http') ? ticket.archivo_adjunto : import.meta.env.VITE_API_URL + ticket.archivo_adjunto}
                 target="_blank"
                 rel="noopener noreferrer"
                 clickable

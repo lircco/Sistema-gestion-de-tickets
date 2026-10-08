@@ -127,9 +127,10 @@ export default function LoginScreen({ onLoginSuccess }) {
     const [firstName = "", lastName = ""] = name.split(" ", 2);
     setLoading(true);
     try {
-      const user = await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
+      await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
       setSuccess("¡Registro exitoso! Iniciando sesión...");
-      setTimeout(() => onLoginSuccess(user), 1000);
+      const loggedUser = await api.login(email.split('@')[0], password);
+      setTimeout(() => onLoginSuccess(loggedUser), 1000);
     } catch (err) {
       setError(err.message || "Error al registrarse");
     } finally {
@@ -408,3 +409,4 @@ export default function LoginScreen({ onLoginSuccess }) {
 function SchoolIcon() {
   return <SchoolOutlined sx={{ color: "#fff", fontSize: 34 }} />;
 }
+

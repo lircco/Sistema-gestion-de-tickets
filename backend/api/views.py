@@ -1,9 +1,9 @@
-# --- REEMPLAZÁ TUS IMPORTS DE ARRIBA POR ESTOS ---
+﻿# --- REEMPLAZÃ TUS IMPORTS DE ARRIBA POR ESTOS ---
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.views import APIView  # <-- SÚPER IMPORTANTE PARA TU NUEVA CLASE
+from rest_framework.views import APIView  # <-- SÃšPER IMPORTANTE PARA TU NUEVA CLASE
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -22,6 +22,20 @@ class RegistroUsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = RegistroSerializer
     permission_classes = [permissions.AllowAny]
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        if user.email:
+            try:
+                send_mail(
+                    subject='¡Bienvenido al Sistema de Tickets de la UnRaf!',
+                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. ¡Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -107,7 +121,7 @@ class LoginView(APIView):
         if user:
             login(request, user)
             return Response(UsuarioSerializer(user).data)
-        return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Credenciales invÃ¡lidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
@@ -115,10 +129,10 @@ class LogoutView(APIView):
 
     def post(self, request):
         logout(request)
-        return Response({'message': 'Sesión cerrada correctamente'})
+        return Response({'message': 'SesiÃ³n cerrada correctamente'})
 
 
-# --- VISTA DE RECUPERACIÓN DE CONTRASEÑA ---
+# --- VISTA DE RECUPERACION DE CONTRASEÑA ---
 class RecuperarPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -126,7 +140,7 @@ class RecuperarPasswordView(APIView):
         email = request.data.get('email')
         
         if not email:
-            return Response({'error': 'Por favor, ingrese un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Por favor, ingrese un correo electronico.'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             usuario = Usuario.objects.get(email=email)
@@ -136,12 +150,12 @@ class RecuperarPasswordView(APIView):
             usuario.save()
 
             # Configuramos el mensaje para Gmail
-            asunto = 'Contraseña restablecida con éxito - UnrafTickets'
+            asunto = 'Contraseña restablecida con éxito - UnRafTickets'
             mensaje = (
                 f'Hola {usuario.first_name or usuario.username},\n\n'
                 f'Tu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\n'
                 f'Tu nueva contraseña temporal para ingresar es: {nueva_clave}\n\n'
-                f'Por favor, iniciá sesión y cambiala desde tu perfil.\n\n'
+                f'Por favor, inicia sesión y cámbiala desde tu perfil.\n\n'
                 f'Saludos,\nSoporte Técnico Institucional.'
             )
             email_desde = settings.EMAIL_HOST_USER
@@ -181,4 +195,18 @@ class CambiarPasswordView(APIView):
 
         usuario.set_password(password_nueva)
         usuario.save()
+
+        if usuario.email:
+            try:
+                send_mail(
+                    subject='Actualización de contraseña',
+                    message=f'Hola {usuario.first_name},\n\nTe informamos que tu contraseña ha sido actualizada correctamente.\n\nSaludos,\nEl soporte técnico de UnRaf.',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[usuario.email],
+                    fail_silently=True,
+                )
+            except Exception:
+                pass
+
         return Response({'message': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
+
