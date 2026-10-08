@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button, Menu, MenuItem, Snackbar, Alert } from "@mui/material";
-import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined } from "@mui/icons-material";
+import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined, PriorityHighOutlined, AttachFileOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
 import { api } from "../../lib/api";
 
@@ -64,6 +64,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
   const handleDerivar = (area) => runAction({ area_responsable: area.id }, `Ticket derivado a ${area.nombre}.`);
   const handleCambiarEstado = (estado) => runAction({ estado }, `Estado actualizado a "${ESTADO_LABELS[estado]}".`);
   const handleCerrar = () => runAction({ estado: "CERRADO" }, "Ticket cerrado.");
+  const handleCambiarPrioridad = (prioridad) => runAction({ prioridad }, `Prioridad actualizada a "${prioridad}".`);
 
   const handleSend = async () => {
     if (!reply.trim() || !ticket) return;
@@ -135,6 +136,9 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
               <Button variant="outlined" startIcon={<SwapHorizOutlined />} fullWidth onClick={handleOpenMenu("estado")} disabled={actionLoading}>
                 Cambiar Estado
               </Button>
+              <Button variant="outlined" startIcon={<PriorityHighOutlined />} fullWidth onClick={handleOpenMenu("prioridad")} disabled={actionLoading}>
+                Cambiar Nivel
+              </Button>
               <Button
                 variant="outlined"
                 color="error"
@@ -160,6 +164,14 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
               {Object.entries(ESTADO_LABELS).map(([value, label]) => (
                 <MenuItem key={value} selected={ticket.estado === value} onClick={() => handleCambiarEstado(value)}>
                   {label}
+                </MenuItem>
+              ))}
+            </Menu>
+
+            <Menu anchorEl={menuAnchor} open={openMenu === "prioridad"} onClose={handleCloseMenu}>
+              {["BAJA", "MEDIA", "ALTA"].map((nivel) => (
+                <MenuItem key={nivel} selected={ticket.prioridad === nivel} onClick={() => handleCambiarPrioridad(nivel)}>
+                  {nivel}
                 </MenuItem>
               ))}
             </Menu>
@@ -235,3 +247,9 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
     </Stack>
   );
 }
+
+
+
+
+
+

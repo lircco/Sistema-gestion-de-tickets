@@ -191,6 +191,20 @@ export const api = {
     return await response.json();
   },
 
+  updateMe: async (data) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}me/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("No se pudo actualizar el perfil");
+    return await response.json();
+  },
+
   // 8. CERRAR SESIÓN
   logout: async () => {
     const token = localStorage.getItem('access_token');
@@ -266,3 +280,4 @@ export const api = {
     return await response.json();
   }
 };
+

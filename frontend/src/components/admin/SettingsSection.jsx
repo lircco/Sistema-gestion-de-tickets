@@ -1,10 +1,35 @@
-import React, { useState } from "react";
-import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { api } from "../../lib/api";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
+
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(person.area || "");
+  const [areaSuccess, setAreaSuccess] = useState("");
+  useEffect(() => {
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
+  const handleUpdateArea = async () => {
+    try {
+      await api.updateMe({ area: selectedArea });
+      setAreaSuccess("Área actualizada correctamente.");
+      setTimeout(() => setAreaSuccess(""), 3000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const [emailAlerts, setEmailAlerts] = useState(true);
-  const [pushAlerts, setPushAlerts] = useState(false);
+  const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
+  const handlePushAlertsChange = (e) => {
+    const val = e.target.checked;
+    setPushAlerts(val);
+    localStorage.setItem("pushAlerts", val);
+    if (val && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  };
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -90,7 +115,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   Alertas inmediatas en navegador y dispositivo móvil.
                 </Typography>
               </Box>
-              <Switch checked={pushAlerts} onChange={(e) => setPushAlerts(e.target.checked)} />
+              <Switch checked={pushAlerts} onChange={handlePushAlertsChange} />
             </Box>
           </Stack>
         </Paper>
@@ -137,3 +162,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
     </Stack>
   );
 }
+
+
+
+
