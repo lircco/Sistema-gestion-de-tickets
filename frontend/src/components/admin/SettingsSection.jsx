@@ -10,13 +10,20 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
   useEffect(() => {
     api.getAreas().then(setAreas).catch(() => {});
   }, []);
+    const [areaError, setAreaError] = useState("");
   const handleUpdateArea = async () => {
+    if (!selectedArea) {
+      setAreaError("Seleccione un área para guardar");
+      setAreaSuccess("");
+      return;
+    }
+    setAreaError("");
     try {
       await api.updateMe({ area: selectedArea });
       setAreaSuccess("Área actualizada correctamente.");
       setTimeout(() => setAreaSuccess(""), 3000);
     } catch (e) {
-      console.error(e);
+      setAreaError("Error al actualizar el área");
     }
   };
 
@@ -90,6 +97,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                 <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
               </Stack>
               {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
+                {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
 
             </Stack>
           </Stack>
