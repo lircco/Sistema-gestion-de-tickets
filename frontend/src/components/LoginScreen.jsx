@@ -39,7 +39,8 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [show, setShow] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
@@ -54,6 +55,28 @@ export default function LoginScreen({ onLoginSuccess }) {
 
   const [loading, setLoading] = useState(false);
 
+  const resetFormFields = () => {
+    setError("");
+    setSuccess("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setConfirm("");
+    setFirstName("");
+    setLastName("");
+    setAuthCode("");
+    setSelectedArea("");
+  };
+
+  const handleTabChange = (newTab) => {
+    setTab(newTab);
+    resetFormFields();
+  };
+
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+    resetFormFields();
+  };
   // NUEVOS ESTADOS: Para controlar el flujo del cartel flotante de recuperación
   const [openModal, setOpenModal] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -103,12 +126,12 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
-        const usernameToLogin = (role === "admin" || role === "staff") 
+        const usernameToLogin = role === "admin" 
           ? username.trim() 
           : (email.includes("@") ? email.split("@")[0] : email.trim());
         
         if (!usernameToLogin) {
-          setError((role === "admin" || role === "staff") ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
           setLoading(false);
           return;
         }
@@ -123,7 +146,7 @@ export default function LoginScreen({ onLoginSuccess }) {
       return;
     }
 
-    if (!name || !email || !password || !confirm) {
+    if (!firstName || !lastName || !email || !password || !confirm) {
       setError("Por favor complete todos los campos");
       return;
     }
@@ -132,7 +155,6 @@ export default function LoginScreen({ onLoginSuccess }) {
       return;
     }
 
-    const [firstName = "", lastName = ""] = name.split(" ", 2);
     setLoading(true);
     try {
       // Map frontend role to backend role
@@ -190,10 +212,10 @@ export default function LoginScreen({ onLoginSuccess }) {
 
         <Card sx={{ width: "100%", p: 3, boxShadow: "0 10px 40px rgba(0,0,0,0.06)" }}>
           <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-            <Button fullWidth variant={tab === 0 ? "contained" : "outlined"} onClick={() => { setTab(0); setError(""); setSuccess(""); }}>
+            <Button fullWidth variant={tab === 0 ? "contained" : "outlined"} onClick={() => handleTabChange(0)}>
               INICIAR SESIÓN
             </Button>
-            <Button fullWidth variant={tab === 1 ? "contained" : "outlined"} onClick={() => { setTab(1); setError(""); setSuccess(""); }}>
+            <Button fullWidth variant={tab === 1 ? "contained" : "outlined"} onClick={() => handleTabChange(1)}>
               REGISTRARSE
             </Button>
           </Stack>
@@ -201,24 +223,37 @@ export default function LoginScreen({ onLoginSuccess }) {
           <Box component="form" onSubmit={handleSubmit}>
             
               <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-                <RoleCard active={role === "alumno"} onClick={() => { setRole("alumno"); setError(""); }} icon={<Person />} label="Alumno" />
-                <RoleCard active={role === "staff"} onClick={() => { setRole("staff"); setError(""); }} icon={<SupportAgentOutlined />} label="Staff" />
-                <RoleCard active={role === "admin"} onClick={() => { setRole("admin"); setError(""); }} icon={<AdminPanelSettings />} label="Admin" />
+                <RoleCard active={role === "alumno"} onClick={() => handleRoleChange("alumno")} icon={<Person />} label="Alumno" />
+                <RoleCard active={role === "staff"} onClick={() => handleRoleChange("staff")} icon={<SupportAgentOutlined />} label="Staff" />
+                <RoleCard active={role === "admin"} onClick={() => handleRoleChange("admin")} icon={<AdminPanelSettings />} label="Admin" />
               </Stack>
 
 
             {tab === 1 && (
-              <>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre completo</Typography>
-                <TextField
-                  fullWidth
-                  placeholder="Ej. Mateo Rossi"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-                />
-              </>
+              <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre</Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="Ej. Mateo"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    size="small"
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Apellido</Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="Ej. Rossi"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    size="small"
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </Box>
+              </Stack>
             )}
 
               {tab === 1 && role === "staff" && (
@@ -249,7 +284,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                 </>
               )}
 
-            {tab === 0 && (role === "admin" || role === "staff") ? (
+            {tab === 0 && role === "admin" ? (
               <>
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
                 <TextField

@@ -81,23 +81,27 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "flex-start" } }}>
             <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main", fontSize: 32 }}>{person.name.charAt(0)}</Avatar>
             <Stack spacing={2} sx={{ flex: 1, width: "100%" }}>
-              <TextField label="Nombre Completo" defaultValue={person.name} size="small" fullWidth key={person.email + "n"} />
+              <TextField label="Nombre Completo" defaultValue={person.name} size="small" fullWidth key={person.email + "n"} slotProps={{ input: { readOnly: true } }} disabled />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} />
+                <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} slotProps={{ input: { readOnly: true } }} disabled />
                 <TextField label="Legajo" defaultValue={legajo} size="small" sx={{ width: { xs: "100%", sm: 200 } }} />
               </Stack>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Área Asignada</InputLabel>
-                  <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)}>
-                    <MenuItem value=""><em>Ninguna</em></MenuItem>
-                    {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
-                  </Select>
-                </FormControl>
-                <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
-              </Stack>
-              {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
-                {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
+              {person.role?.toUpperCase() === "STAFF" && (
+                <>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Área Asignada</InputLabel>
+                      <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)}>
+                        <MenuItem value=""><em>Ninguna</em></MenuItem>
+                        {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
+                  </Stack>
+                  {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
+                  {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
+                </>
+              )}
 
             </Stack>
           </Stack>
