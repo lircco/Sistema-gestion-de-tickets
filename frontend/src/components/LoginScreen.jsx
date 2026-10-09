@@ -126,12 +126,12 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
-        const usernameToLogin = role === "admin" 
+        const usernameToLogin = (role === "admin" || role === "staff") 
           ? username.trim() 
           : (email.includes("@") ? email.split("@")[0] : email.trim());
         
         if (!usernameToLogin) {
-          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+          setError((role === "admin" || role === "staff") ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
           setLoading(false);
           return;
         }
