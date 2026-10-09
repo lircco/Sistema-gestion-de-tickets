@@ -6,16 +6,24 @@ import DetailRow from "../shared/DetailRow";
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
-export default function UserTicketDetail({ tickets, user, onBack }) {
+import { api } from '../../lib/api';
+export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
   const [reply, setReply] = useState("");
   const [followUps, setFollowUps] = useState([]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!reply.trim()) return;
-    setFollowUps((prev) => [...prev, { text: reply.trim(), time: "Ahora" }]);
-    setReply("");
+    try {
+      await api.enviarRespuesta(ticket.id, reply.trim());
+      setReply("");
+      if (onTicketUpdated) {
+        onTicketUpdated();
+      }
+    } catch (error) {
+      console.error("Error al enviar la respuesta:", error);
+    }
   };
 
   if (!ticket) {
@@ -58,7 +66,7 @@ export default function UserTicketDetail({ tickets, user, onBack }) {
               <Chip
                 size="small"
                 component="a"
-                href={ticket.archivo_adjunto}
+                href={ticket.archivo_adjunto.startsWith('http') ? ticket.archivo_adjunto : import.meta.env.VITE_API_URL + ticket.archivo_adjunto}
                 target="_blank"
                 rel="noopener noreferrer"
                 clickable
@@ -80,20 +88,10 @@ export default function UserTicketDetail({ tickets, user, onBack }) {
               </Stack>
               <Typography sx={{ fontSize: 13 }}>{ticket.descripcion}</Typography>
             </Box>
-            {followUps.map((m, i) => (
-              <Box key={i} sx={{ p: 1.8, borderRadius: 2, bgcolor: "primary.main", color: "#fff", alignSelf: "flex-end", maxWidth: { xs: "100%", md: "85%" }, ml: "auto" }}>
-                <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                  <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{user?.name || "Vos"}</Typography>
-                  <Typography sx={{ fontSize: 11, opacity: 0.8 }}>{m.time}</Typography>
-                </Stack>
-                <Typography sx={{ fontSize: 13 }}>{m.text}</Typography>
-              </Box>
-            ))}
+            {(ticket.respuestas || []).map((r, i) => { const isMine = r.autor_rol === "ESTUDIANTE"; return (<Box key={i} sx={{ p: 1.8, borderRadius: 2, bgcolor: isMine ? "primary.main" : "#f1f5f9", color: isMine ? "#fff" : "text.primary", alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: { xs: "100%", md: "85%" }, ml: isMine ? "auto" : 0 }}><Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}><Typography sx={{ fontSize: 12, fontWeight: 700 }}>{isMine ? "Vos" : `Staff de ${ticket.area_nombre}`}</Typography><Typography sx={{ fontSize: 11, opacity: isMine ? 0.8 : 0.6 }}>{new Date(r.creado_el).toLocaleString()}</Typography></Stack><Typography sx={{ fontSize: 13 }}>{r.mensaje}</Typography></Box>); })}
           </Stack>
 
-          <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}>
-            El staff del área todavía no respondió este ticket.
-          </Typography>
+          {!(ticket.respuestas && ticket.respuestas.length > 0) && <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}>El staff del area todavia no respondio este ticket.</Typography>}
 
           <Divider sx={{ my: 2 }} />
 
@@ -115,3 +113,10 @@ export default function UserTicketDetail({ tickets, user, onBack }) {
     </Stack>
   );
 }
+
+
+
+
+
+
+

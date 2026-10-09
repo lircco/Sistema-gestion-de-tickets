@@ -33,11 +33,11 @@ export const api = {
   },
 
     // 2. FUNCIÓN DE REGISTRO
-    register: async (username, password, email, first_name, last_name, password_confirm) => {
+    register: async (username, password, email, first_name, last_name, password_confirm, rol = "ESTUDIANTE", area = null, auth_code = "") => {
         const response = await fetch(`${BASE_URL}registro/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm })
+            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm, rol, area, auth_code })
         });
 
     if (!response.ok) {
@@ -51,12 +51,13 @@ export const api = {
   // 3. BUSCAR ÁREAS
   getAreas: async () => {
     const token = localStorage.getItem("access_token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
     const response = await fetch(`${BASE_URL}areas/`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: headers,
     });
 
     if (!response.ok) throw new Error("No se pudieron cargar las áreas");
@@ -191,6 +192,20 @@ export const api = {
     return await response.json();
   },
 
+  updateMe: async (data) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}me/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("No se pudo actualizar el perfil");
+    return await response.json();
+  },
+
   // 8. CERRAR SESIÓN
   logout: async () => {
     const token = localStorage.getItem('access_token');
@@ -266,3 +281,4 @@ export const api = {
     return await response.json();
   }
 };
+

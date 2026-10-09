@@ -31,11 +31,11 @@ services:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DJANGO_DEBUG: "False"
+      DJANGO_DEBUG: "True"
       DJANGO_ALLOWED_HOSTS: api.app2.academia.ar,localhost,127.0.0.1
-      CORS_ALLOWED_ORIGINS: http://localhost:5173,https://app2.academia.ar
-      CSRF_TRUSTED_ORIGINS: http://localhost:5173,https://app2.academia.ar,https://api.app2.academia.ar
-      VIRTUAL_HOST: api.app2.academia.ar
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,https://app2.academia.ar,http://localhost
+      CSRF_TRUSTED_ORIGINS: http://localhost:5173,https://app2.academia.ar,https://api.app2.academia.ar,http://localhost,http://localhost:8000
+      VIRTUAL_HOST: api.app2.academia.ar,localhost
       VIRTUAL_PORT: 8000
       LETSENCRYPT_HOST: api.app2.academia.ar
       LETSENCRYPT_EMAIL: admin@academia.ar

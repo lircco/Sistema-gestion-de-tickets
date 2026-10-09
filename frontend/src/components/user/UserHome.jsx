@@ -5,6 +5,29 @@ import { AddCircleOutlined, AssignmentOutlined, ArrowForward } from "@mui/icons-
 export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpenTicket }) {
   const firstName = user.name.split(" ")[0];
 
+  let totalTime = 0;
+  let count = 0;
+  (tickets || []).forEach(t => {
+    if (t.respuestas && t.respuestas.length > 0) {
+      const firstReply = t.respuestas.find(r => r.autor_rol !== "ESTUDIANTE");
+      if (firstReply) {
+        const diff = new Date(firstReply.creado_el) - new Date(t.creado_el);
+        if (diff > 0) {
+          totalTime += diff;
+          count++;
+        }
+      }
+    }
+  });
+  
+  let avgString = "N/A";
+  if (count > 0) {
+    const avgMs = totalTime / count;
+    const avgHours = Math.floor(avgMs / (1000 * 60 * 60));
+    const avgMins = Math.floor((avgMs % (1000 * 60 * 60)) / (1000 * 60));
+    avgString = avgHours > 0 ? `${avgHours}h ${avgMins}m` : `${avgMins}m`;
+  }
+
   return (
     <Stack spacing={3}>
       <Box>
@@ -77,12 +100,12 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
         <Stack spacing={2.5} sx={{ flex: 1 }}>
           <Paper sx={{ p: 3 }}>
             <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>MIS TRÁMITES ACTIVOS</Typography>
-            <Typography sx={{ fontSize: 36, fontWeight: 800, mt: 1 }}>{String(tickets.length).padStart(2, "0")}</Typography>
+            <Typography sx={{ fontSize: 36, fontWeight: 800, mt: 1 }}>{String(tickets.filter(t => t.estado !== 'CERRADO').length).padStart(2, "0")}</Typography>
             <Typography sx={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>↗ {tickets.filter((t) => t.estado === 'CERRADO').length} resuelto(s)</Typography>
           </Paper>
           <Paper sx={{ p: 3 }}>
             <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>TIEMPO PROMEDIO DE RESPUESTA</Typography>
-            <Typography sx={{ fontSize: 28, fontWeight: 800, mt: 1 }}>6h 15m</Typography>
+            <Typography sx={{ fontSize: 28, fontWeight: 800, mt: 1 }}>{avgString}</Typography>
             <Typography sx={{ fontSize: 11, color: "#6b7280" }}>Basado en el equipo de Atención al Alumno</Typography>
           </Paper>
         </Stack>
@@ -90,3 +113,4 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
     </Stack>
   );
 }
+

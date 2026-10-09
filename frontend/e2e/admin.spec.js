@@ -7,7 +7,7 @@ test.describe('Flujo de Administrador', () => {
     await page.goto('/');
     
     // Cambiar al tab de admin
-    await page.locator('text=Soy Administrador').click();
+    await page.locator('text=Admin').click();
     
     // El frontend para admin pide "Nombre de Usuario" sin @
     await page.getByPlaceholder('Ej. Pedro Gonzalez').fill('admin_e2e');

@@ -19,23 +19,30 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class RegistroSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     password_confirm = serializers.CharField(write_only=True, required=True)
+    auth_code = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name', 'rol']
-        extra_kwargs = {
-            'rol': {'read_only': True}
-        }
+        fields = ['id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name', 'rol', 'area', 'auth_code']
 
     def validate(self, data):
-        if data['password'] != data['password_confirm']:
+        if data['password'] != data.get('password_confirm'):
             raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
+            
+        rol = data.get('rol', 'ESTUDIANTE')
+        if rol in ['STAFF', 'SUPERVISOR']:
+            auth_code = data.get('auth_code', '')
+            if auth_code != 'UNRAF2026':
+                raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff o Supervisor.'})
+                
         return data
 
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
+        validated_data.pop('password_confirm', None)
+        validated_data.pop('auth_code', None)
         password = validated_data.pop('password')
-        validated_data['rol'] = 'ESTUDIANTE'
+        if 'rol' not in validated_data:
+            validated_data['rol'] = 'ESTUDIANTE'
         user = Usuario.objects.create_user(password=password, **validated_data)
         return user
 

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Card, Stack, Typography, TextField, Button, Link, IconButton,
   InputAdornment, Avatar, Alert, Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions
+  DialogContentText, DialogActions, FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
-import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
+import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined, SupportAgentOutlined } from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -44,6 +44,14 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  useEffect(() => {
+    // Only fetch if tab === 1 and role === "staff" to avoid unnecessary calls? Actually, just fetch them.
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
+
   const [loading, setLoading] = useState(false);
 
   // NUEVOS ESTADOS: Para controlar el flujo del cartel flotante de recuperación
@@ -95,12 +103,12 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
-        const usernameToLogin = role === "admin" 
+        const usernameToLogin = (role === "admin" || role === "staff") 
           ? username.trim() 
           : (email.includes("@") ? email.split("@")[0] : email.trim());
         
         if (!usernameToLogin) {
-          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+          setError((role === "admin" || role === "staff") ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
           setLoading(false);
           return;
         }
@@ -127,9 +135,14 @@ export default function LoginScreen({ onLoginSuccess }) {
     const [firstName = "", lastName = ""] = name.split(" ", 2);
     setLoading(true);
     try {
-      const user = await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
+      // Map frontend role to backend role
+      const rolBackend = role === "admin" ? "SUPERVISOR" : role === "staff" ? "STAFF" : "ESTUDIANTE";
+      const areaToRegister = role === "staff" ? selectedArea : null;
+
+      await api.register(email.split("@")[0], password, email, firstName, lastName, confirm, rolBackend, areaToRegister, authCode);
       setSuccess("¡Registro exitoso! Iniciando sesión...");
-      setTimeout(() => onLoginSuccess(user), 1000);
+      const loggedUser = await api.login(email.split('@')[0], password);
+      setTimeout(() => onLoginSuccess(loggedUser), 1000);
     } catch (err) {
       setError(err.message || "Error al registrarse");
     } finally {
@@ -186,12 +199,13 @@ export default function LoginScreen({ onLoginSuccess }) {
           </Stack>
 
           <Box component="form" onSubmit={handleSubmit}>
-            {tab === 0 && (
+            
               <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-                <RoleCard active={role === "alumno"} onClick={() => { setRole("alumno"); setError(""); }} icon={<Person />} label="Soy Alumno" />
-                <RoleCard active={role === "admin"} onClick={() => { setRole("admin"); setError(""); }} icon={<AdminPanelSettings />} label="Soy Administrador" />
+                <RoleCard active={role === "alumno"} onClick={() => { setRole("alumno"); setError(""); }} icon={<Person />} label="Alumno" />
+                <RoleCard active={role === "staff"} onClick={() => { setRole("staff"); setError(""); }} icon={<SupportAgentOutlined />} label="Staff" />
+                <RoleCard active={role === "admin"} onClick={() => { setRole("admin"); setError(""); }} icon={<AdminPanelSettings />} label="Admin" />
               </Stack>
-            )}
+
 
             {tab === 1 && (
               <>
@@ -207,7 +221,35 @@ export default function LoginScreen({ onLoginSuccess }) {
               </>
             )}
 
-            {tab === 0 && role === "admin" ? (
+              {tab === 1 && role === "staff" && (
+                <>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Área</Typography>
+                  <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                    <Select value={selectedArea} onChange={(e) => setSelectedArea(e.target.value)} sx={{ bgcolor: "#f4f6f9" }}>
+                      <MenuItem value="" disabled>Seleccione un área</MenuItem>
+                      {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
+
+
+              {tab === 1 && (role === "staff" || role === "admin") && (
+                <>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Código de Autorización</Typography>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    placeholder="Ingrese el código secreto"
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value)}
+                    size="small"
+                    sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </>
+              )}
+
+            {tab === 0 && (role === "admin" || role === "staff") ? (
               <>
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
                 <TextField
@@ -331,7 +373,9 @@ export default function LoginScreen({ onLoginSuccess }) {
                 ? "CREAR CUENTA"
                 : role === "admin"
                   ? "INGRESAR COMO ADMINISTRADOR"
-                  : "INGRESAR COMO ALUMNO"}
+                  : role === "staff"
+                    ? "INGRESAR COMO STAFF"
+                    : "INGRESAR COMO ALUMNO"}
             </Button>
           </Box>
         </Card>
@@ -408,3 +452,4 @@ export default function LoginScreen({ onLoginSuccess }) {
 function SchoolIcon() {
   return <SchoolOutlined sx={{ color: "#fff", fontSize: 34 }} />;
 }
+

@@ -78,8 +78,8 @@ describe('computeLeadTimeByArea', () => {
       { estado: 'ABIERTO', area_nombre: 'Mesa de Entradas', creado_el: '2026-01-01T00:00:00Z', actualizado_el: '2026-01-02T00:00:00Z' },
     ];
     expect(computeLeadTimeByArea(tickets)).toEqual([
-      { area: 'Soporte Técnico', hours: 12 },
-      { area: 'Mesa de Entradas', hours: 4 },
+      { area: 'Mesa de Entradas', count: 1, hours: 4 },
+      { area: 'Soporte Técnico', count: 2, hours: 12 },
     ]);
   });
 });

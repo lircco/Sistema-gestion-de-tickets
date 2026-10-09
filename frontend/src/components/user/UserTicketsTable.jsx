@@ -32,7 +32,7 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                       <Chip
                         size="small"
                         component="a"
-                        href={r.archivo_adjunto}
+                        href={r.archivo_adjunto.startsWith('http') ? r.archivo_adjunto : import.meta.env.VITE_API_URL + r.archivo_adjunto}
                         target="_blank"
                         rel="noopener noreferrer"
                         clickable

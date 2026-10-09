@@ -40,7 +40,9 @@ export function computeLeadTimeByArea(tickets) {
     entry.count += 1;
     byArea.set(t.area_nombre, entry);
   }
-  return [...byArea.entries()].map(([area, { sum, count }]) => ({ area, hours: sum / count }));
+  return [...byArea.entries()]
+    .map(([area, { sum, count }]) => ({ area, count, hours: sum / count }))
+    .sort((a, b) => a.area.localeCompare(b.area));
 }
 
 // Distribución porcentual real de tickets por categoria_nombre.
