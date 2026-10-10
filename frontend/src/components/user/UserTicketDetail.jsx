@@ -7,6 +7,7 @@ import DetailRow from "../shared/DetailRow";
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
 import { api, getFileUrl } from '../../lib/api';
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
@@ -47,10 +48,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
           </Typography>
           <Typography variant="h5" sx={{ wordBreak: "break-word" }}>{ticket.titulo}</Typography>
         </Box>
-        <Chip
-          label={ticket.estado}
-          sx={{ bgcolor: `${ESTADO_COLOR[ticket.estado] || "#9ca3af"}22`, color: ESTADO_COLOR[ticket.estado] || "#374151", fontWeight: 700 }}
-        />
+        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}><StatusBadge status={ticket.estado} /></Box>
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>

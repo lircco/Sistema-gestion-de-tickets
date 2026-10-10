@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
 import { ReportKpi } from "../shared/ReportKpi";
 import {
-  computeAvgLeadTimeHours,
-  computeLeadTimeByArea,
-  computeCategoriaDistribution,
-  computeSlaEnRiesgo,
-  computeResolvedRate,
-} from "../../lib/utils";
+      computeAvgLeadTimeHours,
+      computeLeadTimeByArea,
+      computeCategoriaDistribution,
+      computeSlaEnRiesgo,
+      computeResolvedRate,
+    } from "../../lib/utils";
+
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const CATEGORIA_COLORS = ["#0a3d62", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
 

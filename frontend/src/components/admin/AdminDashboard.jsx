@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { filterTickets } from "../../lib/utils";
@@ -53,9 +53,9 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     { key: "dashboard", label: "Inicio", icon: <DashboardOutlined fontSize="small" /> },
     { key: "tickets", label: "Lista de Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
     { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
-    { key: "areas", label: "GestiÃ³n de Ãreas", icon: <ApartmentOutlined fontSize="small" /> },
+    { key: "areas", label: "Gestión de Áreas", icon: <ApartmentOutlined fontSize="small" /> },
     { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
-    { key: "settings", label: "ConfiguraciÃ³n", icon: <SettingsOutlined fontSize="small" /> },
+    { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
   if (isLoading) return <LinearProgress />;

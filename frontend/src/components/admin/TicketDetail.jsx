@@ -4,6 +4,7 @@ import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Bu
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined, PriorityHighOutlined, AttachFileOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
 import { api, getFileUrl } from "../../lib/api";
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const ESTADO_COLOR = {
   ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
@@ -105,8 +106,8 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
           </Typography>
           <Typography variant="h5" sx={{ wordBreak: "break-word" }}>{ticket.titulo}</Typography>
         </Box>
-        <Chip label={ticket.estado} sx={{ bgcolor: estadoColor.bg, color: estadoColor.fg, fontWeight: 700 }} />
-        <Chip label={ticket.prioridad} sx={{ bgcolor: prioridadColor.bg, color: prioridadColor.fg, fontWeight: 700, display: { xs: "none", sm: "inline-flex" } }} />
+        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}><StatusBadge status={ticket.estado} /></Box>
+        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2, display: { xs: "none", sm: "block" } }}><PriorityBadge priority={ticket.prioridad} /></Box>
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>
