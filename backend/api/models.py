@@ -36,7 +36,7 @@ class Usuario(AbstractUser):
         if self.rol == self.Roles.SUPERVISOR:
             self.is_staff = True
             self.is_superuser = True
-        elif self.rol == self.Roles.STAFF:
+        elif self.rol == self.Roles.STAFF and not self.is_superuser:
             self.is_staff = False
             self.is_superuser = False
         elif self.rol == self.Roles.ESTUDIANTE and not self.is_superuser:
