@@ -4,7 +4,7 @@ import {
   InputAdornment, Avatar, Alert, Dialog, DialogTitle, DialogContent,
   DialogContentText, DialogActions, FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
-import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined, SupportAgentOutlined } from "@mui/icons-material";
+import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined, SupportAgentOutlined, Close } from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -84,6 +84,9 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [recoveryError, setRecoveryError] = useState("");
   const [recoveryLoading, setRecoveryLoading] = useState(false);
 
+  // ESTADO: Para el modal de contacto
+  const [contactOpen, setContactOpen] = useState(false);
+
   // Funciones para abrir y cerrar el cartel de recuperación
   const handleOpenModal = (e) => {
     e.preventDefault(); // Evita que recargue la página al clickear el Link
@@ -96,6 +99,15 @@ export default function LoginScreen({ onLoginSuccess }) {
   const handleCloseModal = () => {
     setOpenModal(false);
     setRecoveryError("");
+  };
+
+  const handleOpenContact = (e) => {
+    e.preventDefault();
+    setContactOpen(true);
+  };
+
+  const handleCloseContact = () => {
+    setContactOpen(false);
   };
 
   const handleSendRecovery = async (e) => {
@@ -417,7 +429,7 @@ export default function LoginScreen({ onLoginSuccess }) {
 
         <Typography sx={{ fontSize: 13, color: "#6b7280" }}>
           ¿Necesita ayuda inmediata?{' '}
-          <Link href="#" sx={{ fontWeight: 700, color: "primary.main" }}>
+          <Link href="#" onClick={handleOpenContact} sx={{ fontWeight: 700, color: "primary.main" }}>
             Contactar Soporte
           </Link>
         </Typography>
@@ -479,6 +491,21 @@ export default function LoginScreen({ onLoginSuccess }) {
             </DialogActions>
           </Box>
         )}
+      </Dialog>
+
+      {/* NUEVO COMPONENTE: Cartel flotante (Dialog) para Contactar Soporte */}
+      <Dialog open={contactOpen} onClose={handleCloseContact} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700, color: "primary.main", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Contacto de Soporte
+          <IconButton onClick={handleCloseContact} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ fontSize: 15, color: "#374151" }}>
+            soporte@unraf.edu.ar y Personalmente: Campus UNRaf en Av Angela de la Casa 2500 - Rafaela   Horarios de atención:15  a 21hs
+          </Typography>
+        </DialogContent>
       </Dialog>
     </Box>
   );
