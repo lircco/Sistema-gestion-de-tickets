@@ -9,9 +9,9 @@ const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO:
 
 const FECHA_OPTIONS = [
   { key: "", label: "Todas" },
-  { key: "7", label: "Ãšltimos 7 dÃ­as" },
-  { key: "30", label: "Ãšltimos 30 dÃ­as" },
-  { key: "90", label: "Ãšltimos 90 dÃ­as" },
+  { key: "7", label: "Últimos 7 días" },
+  { key: "30", label: "Últimos 30 días" },
+  { key: "90", label: "Últimos 90 días" },
 ];
 
 export default function TicketsTable({ tickets, onOpenTicket, admin }) {
@@ -52,7 +52,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
       <Paper sx={{ p: 2, overflowX: "auto" }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ mb: 2 }}>
           <TextField
-            placeholder="Buscar por ID, tÃ­tulo o descripciÃ³n..."
+            placeholder="Buscar por ID, título o descripción..."
             size="small"
             fullWidth
             value={search}
@@ -72,7 +72,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
               endIcon={<KeyboardArrowDownOutlined />}
               onClick={handleOpenMenu("categoria")}
             >
-              {categoriaFilter || "CategorÃ­a"}
+              {categoriaFilter || "Categoría"}
             </Button>
             <Button
               variant={estadoFilter ? "contained" : "outlined"}
@@ -115,7 +115,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
         <Table size="small" sx={{ minWidth: 720 }}>
           <TableHead>
             <TableRow>
-              {['ID', 'TÃTULO', 'CATEGORÃA', 'ESTADO', 'PRIORIDAD', 'FECHA', 'ACCIÃ“N'].map((h) => (
+              {['ID', 'TÍTULO', 'CATEGORÍA', 'ESTADO', 'PRIORIDAD', 'FECHA', 'ACCIÓN'].map((h) => (
                 <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 12 }}>{h}</TableCell>
               ))}
             </TableRow>
@@ -147,7 +147,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
                   {r.categoria_nombre}
                   {admin?.rol === 'SUPERVISOR' && r.area_nombre && (
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: 11, mt: 0.5 }}>
-                      ÁÁÁArea: {r.area_nombre}
+                      Área: {r.area_nombre}
                     </Typography>
                   )}
                 </TableCell>
