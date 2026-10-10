@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment, Menu, MenuItem } from "@mui/material";
-import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined } from "@mui/icons-material";
+import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
+import { getFileUrl } from "../../lib/api";
 
 const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
@@ -123,7 +124,25 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             {visibleTickets.map((r) => (
               <TableRow key={r.id} hover>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>{r.titulo}</TableCell>
+                <TableCell>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
+                  {r.archivo_adjunto && r.archivo_adjunto !== "null" && r.archivo_adjunto !== "" && (
+                    <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
+                      <Chip
+                        size="small"
+                        component="a"
+                        href={getFileUrl(r.archivo_adjunto)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        clickable
+                        onClick={(e) => e.stopPropagation()}
+                        icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
+                        label="Ver adjunto"
+                        sx={{ fontSize: 11, maxWidth: 200 }}
+                      />
+                    </Stack>
+                  )}
+                </TableCell>
                 <TableCell>{r.categoria_nombre}</TableCell>
                 <TableCell><Chip size="small" label={r.estado} sx={{ fontWeight: 700, fontSize: 11 }} /></TableCell>
                 <TableCell>

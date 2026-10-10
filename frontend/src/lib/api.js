@@ -282,3 +282,25 @@ export const api = {
   }
 };
 
+
+export const getFileUrl = (path) => {
+  if (!path || path === "null") return "";
+  
+  let cleanPath = path;
+  if (cleanPath.startsWith("http")) {
+    try {
+      const urlObj = new URL(cleanPath);
+      cleanPath = urlObj.pathname;
+    } catch (e) {}
+  }
+
+  let baseUrl = import.meta.env.VITE_API_URL || "";
+  if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+  
+  if (!cleanPath.startsWith("/media/") && !cleanPath.startsWith("media/")) {
+    cleanPath = `/media/${cleanPath.startsWith("/") ? cleanPath.slice(1) : cleanPath}`;
+  } else if (!cleanPath.startsWith("/")) {
+    cleanPath = `/${cleanPath}`;
+  }
+  return `${baseUrl}${cleanPath}`;
+};

@@ -6,7 +6,7 @@ import DetailRow from "../shared/DetailRow";
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
-import { api } from '../../lib/api';
+import { api, getFileUrl } from '../../lib/api';
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
@@ -60,13 +60,13 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
           <DetailRow label="Área" value={ticket.area_nombre} />
           <DetailRow label="Prioridad" value={ticket.prioridad} />
           <DetailRow label="Estado" value={ticket.estado} />
-          {ticket.archivo_adjunto && (
+          {ticket.archivo_adjunto && ticket.archivo_adjunto !== "null" && ticket.archivo_adjunto !== "" && (
             <>
               <Divider sx={{ my: 1.5 }} />
               <Chip
                 size="small"
                 component="a"
-                href={ticket.archivo_adjunto.startsWith('http') ? ticket.archivo_adjunto : import.meta.env.VITE_API_URL + ticket.archivo_adjunto}
+                href={getFileUrl(ticket.archivo_adjunto)}
                 target="_blank"
                 rel="noopener noreferrer"
                 clickable
