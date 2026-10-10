@@ -139,11 +139,11 @@ export default function LoginScreen({ onLoginSuccess }) {
       setLoading(true);
       try {
         const usernameToLogin = role === "admin" 
-          ? username.trim() 
+          ? `${firstName.trim()} ${lastName.trim()}`.trim()
           : (email.includes("@") ? email.split("@")[0] : email.trim());
         
-        if (!usernameToLogin) {
-          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+        if (!usernameToLogin || (role === "admin" && (!firstName.trim() || !lastName.trim()))) {
+          setError(role === "admin" ? "Por favor ingrese su nombre y apellido" : "Por favor ingrese su email");
           setLoading(false);
           return;
         }
@@ -298,26 +298,30 @@ export default function LoginScreen({ onLoginSuccess }) {
 
             {tab === 0 && role === "admin" ? (
               <>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre y Apellido</Typography>
-                <TextField
-                  key="admin-username-input"
-                  fullWidth
-                  type="text"
-                  placeholder="Ej. Pedro Gonzalez"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-                  slotProps={{
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Person sx={{ color: "#9aa4b2" }} />
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                />
+                <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre</Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="Ej. Pedro"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      size="small"
+                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Apellido</Typography>
+                    <TextField
+                      fullWidth
+                      placeholder="Ej. Gonzalez"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      size="small"
+                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                    />
+                  </Box>
+                </Stack>
               </>
             ) : (
               <>
