@@ -32,6 +32,18 @@ class Usuario(AbstractUser):
     # Solo los usuarios 'STAFF' pertenecerán obligatoriamente a un área
     area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True, related_name='personal')
 
+    def save(self, *args, **kwargs):
+        if self.rol == self.Roles.SUPERVISOR:
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.rol == self.Roles.STAFF:
+            self.is_staff = False
+            self.is_superuser = False
+        elif self.rol == self.Roles.ESTUDIANTE and not self.is_superuser:
+            self.is_staff = False
+            self.is_superuser = False
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} - {self.get_rol_display()}"
 
