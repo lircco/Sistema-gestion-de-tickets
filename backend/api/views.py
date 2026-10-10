@@ -122,7 +122,7 @@ class RegistroUsuarioViewSet(viewsets.ModelViewSet):
 
 
 
-                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte tcnico de UnRaf.',
+                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
 
 
 
@@ -504,7 +504,7 @@ class LoginView(APIView):
 
 
 
-        return Response({'error': 'Credenciales invlidas'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 
@@ -536,7 +536,7 @@ class LogoutView(APIView):
 
 
 
-        return Response({'message': 'Sesin cerrada correctamente'})
+        return Response({'message': 'Sesión cerrada correctamente'})
 
 
 
@@ -580,7 +580,7 @@ class RecuperarPasswordView(APIView):
 
 
 
-            return Response({'error': 'Por favor, ingrese un correo electronico.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Por favor, ingrese un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -620,7 +620,7 @@ class RecuperarPasswordView(APIView):
 
 
 
-            asunto = 'Contrasea restablecida con xito - UnRafTickets'
+            asunto = 'Contraseña restablecida con éxito - UnRafTickets'
 
 
 
@@ -632,19 +632,19 @@ class RecuperarPasswordView(APIView):
 
 
 
-                f'Tu contrasea ha sido restablecida con xito para el sistema UnrafTickets.\n\n'
+                f'Tu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\n'
 
 
 
-                f'Tu nueva contrasea temporal para ingresar es: {nueva_clave}\n\n'
+                f'Tu nueva contraseña temporal para ingresar es: {nueva_clave}\n\n'
 
 
 
-                f'Por favor, inicia sesin y cmbiala desde tu perfil.\n\n'
+                f'Por favor, inicia sesión y cámbiala desde tu perfil.\n\n'
 
 
 
-                f'Saludos,\nSoporte Tcnico Institucional.'
+                f'Saludos,\nSoporte Técnico Institucional.'
 
 
 
@@ -652,7 +652,7 @@ class RecuperarPasswordView(APIView):
 
 
 
-            email_desde = settings.EMAIL_HOST_USER
+            email_desde = f'Sistema de Tickets Universidad <{settings.EMAIL_HOST_USER}>'
 
 
 
@@ -864,3 +864,26 @@ class CambiarPasswordView(APIView):
 
 
 
+
+
+class RestablecerPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        codigo = request.data.get('codigo')
+        nueva_password = request.data.get('nueva_password')
+
+        if not all([email, codigo, nueva_password]):
+            return Response({'error': 'Faltan datos obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            usuario = Usuario.objects.get(email=email)
+            if not usuario.check_password(codigo):
+                return Response({'error': 'El codigo ingresado es incorrecto.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            usuario.set_password(nueva_password)
+            usuario.save()
+            return Response({'mensaje': 'Contrasena actualizada correctamente.'}, status=status.HTTP_200_OK)
+        except Usuario.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado o codigo invalido.'}, status=status.HTTP_404_NOT_FOUND)

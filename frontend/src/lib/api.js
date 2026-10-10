@@ -246,6 +246,18 @@ export const api = {
   },
 
   // --- SUMAMOS TU NUEVA FUNCIÓN DE RECUPERACIÓN AQUÍ ---
+  restablecerPassword: async (email, codigo, nueva_password) => {
+    const response = await fetch(`${BASE_URL}auth/restablecer-password/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, codigo, nueva_password }),
+    });
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || errData.detail || "Error al restablecer la contrasena.");
+    }
+    return await response.json();
+  },
   recuperarPassword: async (email) => {
     const response = await fetch(`${BASE_URL}auth/recuperar-password/`, {
       method: "POST",
