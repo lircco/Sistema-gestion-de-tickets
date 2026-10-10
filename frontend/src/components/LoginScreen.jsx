@@ -298,7 +298,7 @@ export default function LoginScreen({ onLoginSuccess }) {
 
             {tab === 0 && role === "admin" ? (
               <>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre y Apellido</Typography>
                 <TextField
                   key="admin-username-input"
                   fullWidth
@@ -503,7 +503,8 @@ export default function LoginScreen({ onLoginSuccess }) {
         </DialogTitle>
         <DialogContent dividers>
           <Typography sx={{ fontSize: 15, color: "#374151" }}>
-            soporte@unraf.edu.ar y Personalmente: Campus UNRaf en Av Angela de la Casa 2500 - Rafaela   Horarios de atención:15  a 21hs
+            Correo: soporte@unraf.edu.ar  
+            Personalmente: Campus UNRaf en Av Angela de la Casa 2500 - Rafaela   Horarios de atención: 15 a 21hs
           </Typography>
         </DialogContent>
       </Dialog>

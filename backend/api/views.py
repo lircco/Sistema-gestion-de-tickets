@@ -471,20 +471,26 @@ class LoginView(APIView):
 
 
     def post(self, request):
-
-
-
         username = request.data.get('username')
-
-
-
         password = request.data.get('password')
-
-
-
+        
         user = authenticate(username=username, password=password)
-
-
+        
+        if not user and username and ' ' in username:
+            # Intentar login con nombre y apellido
+            parts = username.split(' ', 1)
+            first_name = parts[0]
+            last_name = parts[1] if len(parts) > 1 else ''
+            
+            try:
+                # Filtrar usuarios que coincidan y chequear password manualmente
+                users = Usuario.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name)
+                for u in users:
+                    if u.check_password(password):
+                        user = u
+                        break
+            except Exception:
+                pass
 
         if user:
 

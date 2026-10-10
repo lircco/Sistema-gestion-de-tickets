@@ -7,7 +7,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">¡Bienvenido, {adminName || "Administrador"}!</Typography>
+        <Typography variant="h4">¡Hola, {adminName ? adminName.split(" ")[0] : "Administrador"}!</Typography>
         <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>
