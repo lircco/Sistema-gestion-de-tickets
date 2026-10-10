@@ -144,44 +144,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Seguridad</Typography>
-          <Stack spacing={2}>
-            <TextField
-              label="Contraseña Actual"
-              type="password"
-              size="small"
-              fullWidth
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label="Nueva Contraseña"
-                type="password"
-                size="small"
-                fullWidth
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <TextField
-                label="Confirmar Nueva Contraseña"
-                type="password"
-                size="small"
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </Stack>
-            {passwordError && <Alert severity="error">{passwordError}</Alert>}
-            {passwordSuccess && <Alert severity="success">{passwordSuccess}</Alert>}
-            <Box>
-              <Button variant="contained" onClick={handleUpdatePassword} disabled={submitting}>
-                {submitting ? "Actualizando..." : "Actualizar Contraseña"}
-              </Button>
-            </Box>
-          </Stack>
-        </Paper>
+        
       </Stack>
     </Stack>
   );

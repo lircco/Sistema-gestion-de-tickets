@@ -83,6 +83,10 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [isSent, setIsSent] = useState(false);
   const [recoveryError, setRecoveryError] = useState("");
   const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // ESTADO: Para el modal de contacto
   const [contactOpen, setContactOpen] = useState(false);
@@ -94,11 +98,19 @@ export default function LoginScreen({ onLoginSuccess }) {
     setIsSent(false);
     setRecoveryEmail("");
     setRecoveryError("");
+    setRecoveryCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setIsSuccess(false);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
     setRecoveryError("");
+    setRecoveryCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setIsSuccess(false);
   };
 
   const handleOpenContact = (e) => {
@@ -108,6 +120,28 @@ export default function LoginScreen({ onLoginSuccess }) {
 
   const handleCloseContact = () => {
     setContactOpen(false);
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setRecoveryError("");
+
+    if (newPassword !== confirmNewPassword) {
+      setRecoveryError("Las contraseñas no coinciden.");
+      return;
+    }
+    
+    if (recoveryCode && newPassword) {
+      setRecoveryLoading(true);
+      try {
+        await api.restablecerPassword(recoveryEmail, recoveryCode, newPassword);
+        setIsSuccess(true);
+      } catch (err) {
+        setRecoveryError(err.message || "Hubo un error al restablecer la contraseña.");
+      } finally {
+        setRecoveryLoading(false);
+      }
+    }
   };
 
   const handleSendRecovery = async (e) => {
@@ -440,12 +474,11 @@ export default function LoginScreen({ onLoginSuccess }) {
       {/* NUEVO COMPONENTE: Cartel flotante (Dialog) para el flujo de Olvidó su Contraseña */}
       <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="xs">
         {!isSent ? (
-          // Paso 1: Formulario para ingresar el Gmail
           <Box component="form" onSubmit={handleSendRecovery}>
             <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Recuperar Contraseña</DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
-                Ingresá tu correo electrónico y te enviaremos los pasos para restablecer tu contraseña.
+                Ingresá tu correo electrónico y te enviaremos un código de seguridad para restablecer tu contraseña.
               </DialogContentText>
               {recoveryError && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -471,19 +504,74 @@ export default function LoginScreen({ onLoginSuccess }) {
                 Cancelar
               </Button>
               <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
-                {recoveryLoading ? "Enviando..." : "Enviar Correo"}
+                {recoveryLoading ? "Enviando..." : "Enviar Código"}
+              </Button>
+            </DialogActions>
+          </Box>
+        ) : !isSuccess ? (
+          <Box component="form" onSubmit={handleVerifyCode}>
+            <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Restablecer Contraseña</DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
+                Hemos enviado un código (contraseña temporal) a <strong>{recoveryEmail}</strong>. Ingresalo abajo junto con tu nueva contraseña deseada.
+              </DialogContentText>
+              {recoveryError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {recoveryError}
+                </Alert>
+              )}
+              <Stack spacing={2}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Código recibido en el mail"
+                  value={recoveryCode}
+                  onChange={(e) => setRecoveryCode(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+                <TextField
+                  required
+                  fullWidth
+                  type="password"
+                  label="Nueva Contraseña"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+                <TextField
+                  required
+                  fullWidth
+                  type="password"
+                  label="Confirmar Nueva Contraseña"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2.5 }}>
+              <Button onClick={handleCloseModal} color="inherit" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
+                {recoveryLoading ? "Verificando..." : "Cambiar Contraseña"}
               </Button>
             </DialogActions>
           </Box>
         ) : (
-          // Paso 2: Mensaje de confirmación exitosa una vez presionado "Enviar"
           <Box sx={{ p: 2, textAlign: "center" }}>
             <DialogTitle sx={{ color: "success.main", fontWeight: 700, fontSize: 22 }}>
-              ¡Solicitud Enviada!
+              ¡Contraseña Actualizada!
             </DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ fontSize: 14, color: "#374151" }}>
-                Si la casilla <strong>{recoveryEmail}</strong> está registrada, recibirás un correo con las instrucciones y tu contraseña temporal para ingresar. Por favor, revisá tu bandeja de entrada.
+                Tu contraseña fue cambiada exitosamente. Ya podés iniciar sesión con tu nueva contraseña.
               </DialogContentText>
             </DialogContent>
             <DialogActions sx={{ justifyContent: "center", pb: 1.5 }}>
