@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button, Menu, MenuItem, Snackbar, Alert } from "@mui/material";
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined, PriorityHighOutlined, AttachFileOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
-import { api } from "../../lib/api";
+import { api, getFileUrl } from "../../lib/api";
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const ESTADO_COLOR = {
   ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
@@ -105,8 +106,8 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
           </Typography>
           <Typography variant="h5" sx={{ wordBreak: "break-word" }}>{ticket.titulo}</Typography>
         </Box>
-        <Chip label={ticket.estado} sx={{ bgcolor: estadoColor.bg, color: estadoColor.fg, fontWeight: 700 }} />
-        <Chip label={ticket.prioridad} sx={{ bgcolor: prioridadColor.bg, color: prioridadColor.fg, fontWeight: 700, display: { xs: "none", sm: "inline-flex" } }} />
+        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}><StatusBadge status={ticket.estado} /></Box>
+        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2, display: { xs: "none", sm: "block" } }}><PriorityBadge priority={ticket.prioridad} /></Box>
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>
@@ -125,6 +126,22 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             <Divider sx={{ mb: 1.5 }} />
             <DetailRow label="Usuario" value={ticket.creado_por_nombre} />
             <DetailRow label="Email" value={ticket.creado_por_email || "—"} />
+            {ticket.archivo_adjunto && ticket.archivo_adjunto !== "null" && ticket.archivo_adjunto !== "" && (
+              <>
+                <Divider sx={{ my: 1.5 }} />
+                <Chip
+                  size="small"
+                  component="a"
+                  href={getFileUrl(ticket.archivo_adjunto)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  clickable
+                  icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
+                  label="Ver adjunto"
+                  sx={{ fontSize: 11 }}
+                />
+              </>
+            )}
           </Paper>
 
           <Paper sx={{ p: 2.5 }}>

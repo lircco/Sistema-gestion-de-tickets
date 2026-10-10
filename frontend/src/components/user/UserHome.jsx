@@ -1,6 +1,7 @@
 import React from "react";
 import { Stack, Box, Typography, Paper, Avatar, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Link } from "@mui/material";
 import { AddCircleOutlined, AssignmentOutlined, ArrowForward } from "@mui/icons-material";
+import { StatusBadge } from "../shared/Badges";
 
 export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpenTicket }) {
   const firstName = user.name.split(" ")[0];
@@ -85,10 +86,7 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
                   </TableCell>
                   <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }} /></TableCell>
                   <TableCell>
-                    <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.estado === 'ABIERTO' ? '#3b82f6' : '#f59e0b' }} />
-                      <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
-                    </Stack>
+                    <StatusBadge status={r.estado} />
                   </TableCell>
                   <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
                 </TableRow>

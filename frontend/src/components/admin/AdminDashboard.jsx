@@ -17,7 +17,7 @@ function PlaceholderSection({ title }) {
   return (
     <Paper sx={{ p: 6, textAlign: "center" }}>
       <Typography variant="h5" sx={{ mb: 1 }}>{title}</Typography>
-      <Typography sx={{ color: "#6b7280" }}>Sección en construcción.</Typography>
+      <Typography sx={{ color: "#6b7280" }}>SecciÃ³n en construcciÃ³n.</Typography>
     </Paper>
   );
 }
@@ -76,17 +76,18 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     >
       <Routes>
         <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} adminName={displayName} />} />
-        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} admin={admin} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} onTicketUpdated={loadData} />} />
         <Route path="reports" element={<ReportsSection tickets={tickets} stats={stats} />} />
         <Route path="areas" element={<AreaManagementSection tickets={tickets} admin={admin} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="kb" element={<KnowledgeBaseSection />} />
         <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email, role: admin.rol, area: admin.area }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
-        <Route path="*" element={<PlaceholderSection title="Página no encontrada" />} />
+        <Route path="*" element={<PlaceholderSection title="PÃ¡gina no encontrada" />} />
       </Routes>
     </AppShell>
   );
 }
+
 
 
 

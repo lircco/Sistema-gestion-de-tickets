@@ -4,14 +4,7 @@ from django.core.mail import send_mail
 from .models import Ticket, RegistroEmail, Usuario
 
 
-@receiver(post_save, sender=Usuario)
-def asignar_rol_supervisor_a_superusuario(sender, instance, **kwargs):
-    # createsuperuser no pasa por la serialización/validación de la API, así que
-    # el rol queda en el default (ESTUDIANTE). Si el usuario es superusuario,
-    # forzamos el rol a SUPERVISOR. Usamos .update() (no .save()) para no
-    # volver a disparar esta misma señal.
-    if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
-        Usuario.objects.filter(pk=instance.pk).update(rol=Usuario.Roles.SUPERVISOR)
+
 
 @receiver(post_save, sender=Ticket)
 def notificar_cambio_ticket(sender, instance, created, **kwargs):

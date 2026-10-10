@@ -1,6 +1,7 @@
 import React from "react";
 import { Stack, Box, Typography, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider, LinearProgress } from "@mui/material";
 import { VisibilityOutlined } from "@mui/icons-material";
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const PRIORIDAD_COLORS = {
   BAJA: { bg: "#e5e7eb", text: "#374151" },
@@ -70,10 +71,13 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                 const colorConfig = PRIORIDAD_COLORS[r.prioridad] || PRIORIDAD_COLORS.MEDIA;
                 return (
                   <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: 'pointer' }}>
-                    <TableCell><Chip size="small" label={r.prioridad} sx={{ bgcolor: colorConfig.bg, color: colorConfig.text, fontWeight: 700 }} /></TableCell>
+                    <TableCell><PriorityBadge priority={r.prioridad} /></TableCell>
                     <TableCell>
                       <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{r.titulo}</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#6b7280' }}>ID: #{r.id}</Typography>
+                      <Typography sx={{ fontSize: 11, color: '#6b7280' }}>
+                          ID: #{r.id} | Cat: {r.categoria_nombre}
+                          {admin?.rol === 'SUPERVISOR' && r.area_nombre ? ` | Area: ${r.area_nombre}` : ''}
+                        </Typography>
                     </TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{r.creado_por_nombre || r.creado_por_email}</TableCell>
                     <TableCell sx={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
@@ -99,3 +103,4 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
     </Stack>
   );
 }
+

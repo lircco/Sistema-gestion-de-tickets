@@ -32,6 +32,18 @@ class Usuario(AbstractUser):
     # Solo los usuarios 'STAFF' pertenecerán obligatoriamente a un área
     area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True, related_name='personal')
 
+    def save(self, *args, **kwargs):
+        if self.rol == self.Roles.SUPERVISOR:
+            self.is_staff = True
+            self.is_superuser = True
+        elif self.rol == self.Roles.STAFF and not self.is_superuser:
+            self.is_staff = False
+            self.is_superuser = False
+        elif self.rol == self.Roles.ESTUDIANTE and not self.is_superuser:
+            self.is_staff = False
+            self.is_superuser = False
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} - {self.get_rol_display()}"
 
@@ -86,3 +98,16 @@ class RegistroEmail(models.Model):
 
     def __str__(self):
         return f"Email a {self.destinatario} - {self.asunto}"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Usuario)
+def actualizar_rol_superusuario(sender, instance, created, **kwargs):
+    """
+    Cuando un usuario es promovido a superusuario,
+    automáticamente se actualiza su rol a SUPERVISOR
+    """
+    if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
+        instance.rol = Usuario.Roles.SUPERVISOR
+        instance.save(update_fields=['rol'])

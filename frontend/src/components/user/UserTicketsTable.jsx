@@ -1,6 +1,8 @@
 import React from "react";
 import { Stack, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, Button, Box } from "@mui/material";
 import { AddCircleOutlined, AttachFileOutlined } from "@mui/icons-material";
+import { getFileUrl } from "../../lib/api";
+import { StatusBadge } from "../shared/Badges";
 
 export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
   return (
@@ -27,12 +29,12 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
                   <Typography sx={{ fontSize: 12, color: '#6b7280' }}>{r.descripcion}</Typography>
-                  {r.archivo_adjunto && (
+                  {r.archivo_adjunto && r.archivo_adjunto !== "null" && r.archivo_adjunto !== "" && (
                     <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
                       <Chip
                         size="small"
                         component="a"
-                        href={r.archivo_adjunto.startsWith('http') ? r.archivo_adjunto : import.meta.env.VITE_API_URL + r.archivo_adjunto}
+                        href={getFileUrl(r.archivo_adjunto)}
                         target="_blank"
                         rel="noopener noreferrer"
                         clickable
@@ -46,10 +48,7 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                 </TableCell>
                 <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: '#f3f4f6' }} /></TableCell>
                 <TableCell>
-                  <Stack direction="row" spacing={0.8} sx={{ alignItems: 'center' }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: r.estado === 'ABIERTO' ? '#3b82f6' : '#f59e0b' }} />
-                    <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
-                  </Stack>
+                  <StatusBadge status={r.estado} />
                 </TableCell>
                 <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
               </TableRow>
