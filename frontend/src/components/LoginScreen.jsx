@@ -300,32 +300,26 @@ export default function LoginScreen({ onLoginSuccess }) {
                 </>
               )}
 
-            {tab === 0 && role === "admin" ? (
+            {tab === 0 && (role === "admin" || role === "staff") ? (
               <>
-                <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre</Typography>
-                    <TextField
-                      fullWidth
-                      placeholder="Ej. Pedro"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      size="small"
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Apellido</Typography>
-                    <TextField
-                      fullWidth
-                      placeholder="Ej. Gonzalez"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      size="small"
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-                    />
-                  </Box>
-                </Stack>
+                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Ej. Pedro Gonzalez"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  size="small"
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Person sx={{ color: "#9aa4b2" }} />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
               </>
             ) : (
               <>
