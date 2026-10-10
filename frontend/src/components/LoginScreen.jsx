@@ -138,12 +138,29 @@ export default function LoginScreen({ onLoginSuccess }) {
     if (tab === 0) {
       setLoading(true);
       try {
+const usernameToLogin = role === "admin"
+  ? `${firstName.trim()} ${lastName.trim()}`.trim()
+  : (email.includes("@") ? email.split("@")[0] : email.trim());
+
+if (!usernameToLogin || (role === "admin" && (!firstName.trim() || !lastName.trim()))) {
+  setError(role === "admin" ? "Por favor ingrese su nombre y apellido" : "Por favor ingrese su email");
+  setLoading(false);
+  return;
+}
         const usernameToLogin = role === "admin" 
           ? `${firstName.trim()} ${lastName.trim()}`.trim()
           : (email.includes("@") ? email.split("@")[0] : email.trim());
         
         if (!usernameToLogin || (role === "admin" && (!firstName.trim() || !lastName.trim()))) {
           setError(role === "admin" ? "Por favor ingrese su nombre y apellido" : "Por favor ingrese su email");
+=======
+        const usernameToLogin = (role === "admin" || role === "staff") 
+          ? username.trim() 
+          : (email.includes("@") ? email.split("@")[0] : email.trim());
+        
+        if (!usernameToLogin) {
+          setError((role === "admin" || role === "staff") ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
+>>>>>>> 059cbad3cefe7ab2865f65a5ea4ca5cb7a4c490d
           setLoading(false);
           return;
         }
