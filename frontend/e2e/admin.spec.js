@@ -8,6 +8,7 @@ test.describe('Flujo de Administrador', () => {
     
     // Cambiar al tab de admin
     await page.locator('text=Admin').click();
+    await page.waitForLoadState('networkidle');
     
     // El frontend para admin pide "Nombre de Usuario" sin @
     await page.getByPlaceholder('Ej. Pedro Gonzalez').fill('admin_e2e');

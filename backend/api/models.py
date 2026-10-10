@@ -103,9 +103,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 @receiver(post_save, sender=Usuario)
-def actualizar_rol_superuser(sender, instance, **kwargs):
+def actualizar_rol_superusuario(sender, instance, created, **kwargs):
     """
-    Signal que actualiza el rol a SUPERVISOR cuando is_superuser es True
+    Cuando un usuario es promovido a superusuario,
+    automáticamente se actualiza su rol a SUPERVISOR
     """
     if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
         instance.rol = Usuario.Roles.SUPERVISOR
