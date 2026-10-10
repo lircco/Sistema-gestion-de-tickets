@@ -98,3 +98,15 @@ class RegistroEmail(models.Model):
 
     def __str__(self):
         return f"Email a {self.destinatario} - {self.asunto}"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Usuario)
+def actualizar_rol_superuser(sender, instance, **kwargs):
+    """
+    Signal que actualiza el rol a SUPERVISOR cuando is_superuser es True
+    """
+    if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
+        instance.rol = Usuario.Roles.SUPERVISOR
+        instance.save(update_fields=['rol'])

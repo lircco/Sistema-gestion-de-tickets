@@ -131,75 +131,62 @@ export default function LoginScreen({ onLoginSuccess }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  e.preventDefault();
+  setError("");
+  setSuccess("");
 
-    if (tab === 0) {
-      setLoading(true);
-      try {
-const usernameToLogin = role === "admin"
-  ? `${firstName.trim()} ${lastName.trim()}`.trim()
-  : (email.includes("@") ? email.split("@")[0] : email.trim());
-
-if (!usernameToLogin || (role === "admin" && (!firstName.trim() || !lastName.trim()))) {
-  setError(role === "admin" ? "Por favor ingrese su nombre y apellido" : "Por favor ingrese su email");
-  setLoading(false);
-  return;
-}
-        const usernameToLogin = role === "admin" 
-          ? `${firstName.trim()} ${lastName.trim()}`.trim()
-          : (email.includes("@") ? email.split("@")[0] : email.trim());
-        
-        if (!usernameToLogin || (role === "admin" && (!firstName.trim() || !lastName.trim()))) {
-          setError(role === "admin" ? "Por favor ingrese su nombre y apellido" : "Por favor ingrese su email");
-=======
-        const usernameToLogin = (role === "admin" || role === "staff") 
-          ? username.trim() 
-          : (email.includes("@") ? email.split("@")[0] : email.trim());
-        
-        if (!usernameToLogin) {
-          setError((role === "admin" || role === "staff") ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
->>>>>>> 059cbad3cefe7ab2865f65a5ea4ca5cb7a4c490d
-          setLoading(false);
-          return;
-        }
-
-        const user = await api.login(usernameToLogin, password);
-        onLoginSuccess(user);
-      } catch (err) {
-        setError(err.message || "Error al iniciar sesión");
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (!firstName || !lastName || !email || !password || !confirm) {
-      setError("Por favor complete todos los campos");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-
+  if (tab === 0) {
+    // Login flow
     setLoading(true);
     try {
-      // Map frontend role to backend role
-      const rolBackend = role === "admin" ? "SUPERVISOR" : role === "staff" ? "STAFF" : "ESTUDIANTE";
-      const areaToRegister = role === "staff" ? selectedArea : null;
+      const usernameToLogin = (role === "admin" || role === "staff") 
+        ? username.trim() 
+        : (email.includes("@") ? email.split("@")[0] : email.trim());
 
-      await api.register(email.split("@")[0], password, email, firstName, lastName, confirm, rolBackend, areaToRegister, authCode);
-      setSuccess("¡Registro exitoso! Iniciando sesión...");
-      const loggedUser = await api.login(email.split('@')[0], password);
-      setTimeout(() => onLoginSuccess(loggedUser), 1000);
+      if (!usernameToLogin) {
+        setError((role === "admin" || role === "staff") 
+          ? "Por favor ingrese su nombre de usuario" 
+          : "Por favor ingrese su email");
+        setLoading(false);
+        return;
+      }
+
+      const user = await api.login(usernameToLogin, password);
+      onLoginSuccess(user);
     } catch (err) {
-      setError(err.message || "Error al registrarse");
+      setError(err.message || "Error al iniciar sesión");
     } finally {
       setLoading(false);
     }
-  };
+    return;
+  }
+
+  // Registration flow (unchanged)
+  if (!firstName || !lastName || !email || !password || !confirm) {
+    setError("Por favor complete todos los campos");
+    return;
+  }
+  if (password !== confirm) {
+    setError("Las contraseñas no coinciden");
+    return;
+  }
+  setLoading(true);
+  try {
+    const rolBackend = role === "admin" ? "SUPERVISOR" : role === "staff" ? "STAFF" : "ESTUDIANTE";
+    const areaToRegister = role === "staff" ? selectedArea : null;
+    await api.register(email.split('@')[0], password, email, firstName, lastName, confirm, rolBackend, areaToRegister, authCode);
+    setSuccess("¡Registro exitoso! Iniciando sesión...");
+    const loggedUser = await api.login(email.split('@')[0], password);
+    setTimeout(() => onLoginSuccess(loggedUser), 1000);
+  } catch (err) {
+    setError(err.message || "Error al registrarse");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   return (
     <Box
