@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Stack, Box, Typography, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider, LinearProgress } from "@mui/material";
 import { VisibilityOutlined } from "@mui/icons-material";
 
@@ -18,11 +18,11 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
     <Stack spacing={3}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <Box>
-          <Typography variant="h4">Gestión de Áreas</Typography>
+          <Typography variant="h4">GestiÃ³n de Ãreas</Typography>
           <Typography sx={{ color: "#6b7280" }}>
             Cola de trabajo del departamento:{' '}
             <Box component="span" sx={{ color: "primary.main", fontWeight: 700 }}>
-              {admin?.area_nombre || "Mi Área"}
+              {admin?.area_nombre || "Mi Ãrea"}
             </Box>
           </Typography>
         </Box>
@@ -43,24 +43,24 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
               </Box>
             </Stack>
             <Divider sx={{ my: 2 }} />
-            <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>ESTADO DEL ÁREA</Typography>
+            <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>ESTADO DEL ÃREA</Typography>
             <Chip size="small" label="CAPACIDAD: 85%" sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
             <LinearProgress variant="determinate" value={85} sx={{ height: 6, borderRadius: 3 }} />
           </Paper>
           <Paper sx={{ p: 3, bgcolor: 'primary.main', color: '#fff' }}>
-            <Typography sx={{ fontWeight: 700, mb: 1 }}>💡 Protocolo de Área</Typography>
+            <Typography sx={{ fontWeight: 700, mb: 1 }}>ðŸ’¡ Protocolo de Ãrea</Typography>
             <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Recuerda actualizar el estado de los tickets cuando empieces a trabajar en ellos.</Typography>
           </Paper>
         </Stack>
 
         <Paper sx={{ flex: 1, p: 2.5 }}>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography sx={{ fontWeight: 700 }}>Tickets Pendientes de Atención</Typography>
+            <Typography sx={{ fontWeight: 700 }}>Tickets Pendientes de AtenciÃ³n</Typography>
           </Stack>
           <Table size="small">
             <TableHead>
               <TableRow>
-                {['PRIORIDAD', 'TICKET', 'REMITENTE', 'FECHA', 'ACCIÓN'].map((h) => (
+                {['PRIORIDAD', 'TICKET', 'REMITENTE', 'FECHA', 'ACCIÃ“N'].map((h) => (
                   <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 11 }}>{h}</TableCell>
                 ))}
               </TableRow>
@@ -73,7 +73,10 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                     <TableCell><Chip size="small" label={r.prioridad} sx={{ bgcolor: colorConfig.bg, color: colorConfig.text, fontWeight: 700 }} /></TableCell>
                     <TableCell>
                       <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{r.titulo}</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#6b7280' }}>ID: #{r.id}</Typography>
+                      <Typography sx={{ fontSize: 11, color: '#6b7280' }}>
+                          ID: #{r.id} | Cat: {r.categoria_nombre}
+                          {admin?.rol === 'SUPERVISOR' && r.area_nombre ? ` | Area: ${r.area_nombre}` : ''}
+                        </Typography>
                     </TableCell>
                     <TableCell sx={{ fontSize: 13 }}>{r.creado_por_nombre || r.creado_por_email}</TableCell>
                     <TableCell sx={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
@@ -88,7 +91,7 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
               {activeTickets.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
-                    No hay tickets pendientes en tu área.
+                    No hay tickets pendientes en tu Ã¡rea.
                   </TableCell>
                 </TableRow>
               )}
@@ -99,3 +102,4 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
     </Stack>
   );
 }
+

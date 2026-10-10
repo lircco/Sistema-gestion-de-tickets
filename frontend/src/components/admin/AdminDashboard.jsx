@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+锘縤mport React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { filterTickets } from "../../lib/utils";
@@ -17,7 +17,7 @@ function PlaceholderSection({ title }) {
   return (
     <Paper sx={{ p: 6, textAlign: "center" }}>
       <Typography variant="h5" sx={{ mb: 1 }}>{title}</Typography>
-      <Typography sx={{ color: "#6b7280" }}>Secci髇 en construcci髇.</Typography>
+      <Typography sx={{ color: "#6b7280" }}>Secci贸n en construcci贸n.</Typography>
     </Paper>
   );
 }
@@ -53,9 +53,9 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     { key: "dashboard", label: "Inicio", icon: <DashboardOutlined fontSize="small" /> },
     { key: "tickets", label: "Lista de Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
     { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
-    { key: "areas", label: "Gesti贸n de 脕reas", icon: <ApartmentOutlined fontSize="small" /> },
+    { key: "areas", label: "Gesti脙鲁n de 脙聛reas", icon: <ApartmentOutlined fontSize="small" /> },
     { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
-    { key: "settings", label: "Configuraci贸n", icon: <SettingsOutlined fontSize="small" /> },
+    { key: "settings", label: "Configuraci脙鲁n", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
   if (isLoading) return <LinearProgress />;
@@ -76,17 +76,18 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     >
       <Routes>
         <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} adminName={displayName} />} />
-        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} admin={admin} />} />
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} onTicketUpdated={loadData} />} />
         <Route path="reports" element={<ReportsSection tickets={tickets} stats={stats} />} />
         <Route path="areas" element={<AreaManagementSection tickets={tickets} admin={admin} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
         <Route path="kb" element={<KnowledgeBaseSection />} />
         <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email, role: admin.rol, area: admin.area }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
-        <Route path="*" element={<PlaceholderSection title="P醙ina no encontrada" />} />
+        <Route path="*" element={<PlaceholderSection title="P谩gina no encontrada" />} />
       </Routes>
     </AppShell>
   );
 }
+
 
 
 

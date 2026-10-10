@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment, Menu, MenuItem } from "@mui/material";
 import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
@@ -9,12 +9,12 @@ const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO:
 
 const FECHA_OPTIONS = [
   { key: "", label: "Todas" },
-  { key: "7", label: "Últimos 7 días" },
-  { key: "30", label: "Últimos 30 días" },
-  { key: "90", label: "Últimos 90 días" },
+  { key: "7", label: "Ãšltimos 7 dÃ­as" },
+  { key: "30", label: "Ãšltimos 30 dÃ­as" },
+  { key: "90", label: "Ãšltimos 90 dÃ­as" },
 ];
 
-export default function TicketsTable({ tickets, onOpenTicket }) {
+export default function TicketsTable({ tickets, onOpenTicket, admin }) {
   const [search, setSearch] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("");
@@ -52,7 +52,7 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
       <Paper sx={{ p: 2, overflowX: "auto" }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} sx={{ mb: 2 }}>
           <TextField
-            placeholder="Buscar por ID, título o descripción..."
+            placeholder="Buscar por ID, tÃ­tulo o descripciÃ³n..."
             size="small"
             fullWidth
             value={search}
@@ -72,7 +72,7 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
               endIcon={<KeyboardArrowDownOutlined />}
               onClick={handleOpenMenu("categoria")}
             >
-              {categoriaFilter || "Categoría"}
+              {categoriaFilter || "CategorÃ­a"}
             </Button>
             <Button
               variant={estadoFilter ? "contained" : "outlined"}
@@ -115,7 +115,7 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
         <Table size="small" sx={{ minWidth: 720 }}>
           <TableHead>
             <TableRow>
-              {['ID', 'TÍTULO', 'CATEGORÍA', 'ESTADO', 'PRIORIDAD', 'FECHA', 'ACCIÓN'].map((h) => (
+              {['ID', 'TÃTULO', 'CATEGORÃA', 'ESTADO', 'PRIORIDAD', 'FECHA', 'ACCIÃ“N'].map((h) => (
                 <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 12 }}>{h}</TableCell>
               ))}
             </TableRow>
@@ -143,7 +143,14 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
                     </Stack>
                   )}
                 </TableCell>
-                <TableCell>{r.categoria_nombre}</TableCell>
+                <TableCell>
+                  {r.categoria_nombre}
+                  {admin?.rol === 'SUPERVISOR' && r.area_nombre && (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 11, mt: 0.5 }}>
+                      ÁÁÁArea: {r.area_nombre}
+                    </Typography>
+                  )}
+                </TableCell>
                 <TableCell><Chip size="small" label={r.estado} sx={{ fontWeight: 700, fontSize: 11 }} /></TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
@@ -166,3 +173,6 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
     </Stack>
   );
 }
+
+
+
