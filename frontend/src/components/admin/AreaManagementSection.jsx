@@ -43,10 +43,14 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                 <Chip size="small" label={activeTickets.length} sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 700, height: 22 }} />
               </Box>
             </Stack>
-            <Divider sx={{ my: 2 }} />
-            <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>ESTADO DEL ÁREA</Typography>
-            <Chip size="small" label="CAPACIDAD: 85%" sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
-            <LinearProgress variant="determinate" value={85} sx={{ height: 6, borderRadius: 3 }} />
+            {admin?.rol === 'SUPERVISOR' && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>ESTADO DEL ÁREA</Typography>
+                <Chip size="small" label={`CAPACIDAD: ${Math.round((tickets.length / 100) * 100)}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
+                <LinearProgress variant="determinate" value={Math.min(Math.round((tickets.length / 100) * 100), 100)} sx={{ height: 6, borderRadius: 3 }} />
+              </>
+            )}
           </Paper>
           <Paper sx={{ p: 3, bgcolor: 'primary.main', color: '#fff' }}>
             <Typography sx={{ fontWeight: 700, mb: 1 }}>💡 Protocolo de Área</Typography>
