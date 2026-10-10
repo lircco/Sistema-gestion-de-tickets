@@ -5,6 +5,7 @@ Usuario = get_user_model()
 
 class CustomAuthBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
+        print(f"TRYING AUTH WITH username: '{username}' password: '{password}'", flush=True)
         user = super().authenticate(request, username=username, password=password, **kwargs)
         if user:
             return user
