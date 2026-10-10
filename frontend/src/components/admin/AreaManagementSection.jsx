@@ -43,14 +43,40 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                 <Chip size="small" label={activeTickets.length} sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 700, height: 22 }} />
               </Box>
             </Stack>
-            {admin?.rol === 'SUPERVISOR' && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>ESTADO DEL ÁREA</Typography>
-                <Chip size="small" label={`CAPACIDAD: ${Math.round((tickets.length / 100) * 100)}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
-                <LinearProgress variant="determinate" value={Math.min(Math.round((tickets.length / 100) * 100), 100)} sx={{ height: 6, borderRadius: 3 }} />
-              </>
-            )}
+            <Divider sx={{ my: 2 }} />
+            <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>
+              {admin?.rol === 'SUPERVISOR' ? 'ESTADO DE LAS ÁREAS' : 'ESTADO DEL ÁREA'}
+            </Typography>
+            <Stack spacing={1.5}>
+              {(() => {
+                if (admin?.rol !== 'SUPERVISOR') {
+                  const cap = Math.round((tickets.length / 100) * 100);
+                  return (
+                    <Box>
+                      <Chip size="small" label={`CAPACIDAD: ${cap}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
+                      <LinearProgress variant="determinate" value={Math.min(cap, 100)} sx={{ height: 6, borderRadius: 3 }} />
+                    </Box>
+                  );
+                }
+
+                const areas = {};
+                tickets.forEach(t => {
+                  const areaName = t.area_nombre || 'Sin Área';
+                  areas[areaName] = (areas[areaName] || 0) + 1;
+                });
+
+                return Object.entries(areas).map(([name, count]) => {
+                  const cap = Math.round((count / 100) * 100);
+                  return (
+                    <Box key={name}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, mb: 0.5, color: '#374151' }}>{name}</Typography>
+                      <Chip size="small" label={`CAPACIDAD: ${cap}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
+                      <LinearProgress variant="determinate" value={Math.min(cap, 100)} sx={{ height: 6, borderRadius: 3 }} />
+                    </Box>
+                  );
+                });
+              })()}
+            </Stack>
           </Paper>
           <Paper sx={{ p: 3, bgcolor: 'primary.main', color: '#fff' }}>
             <Typography sx={{ fontWeight: 700, mb: 1 }}>💡 Protocolo de Área</Typography>
