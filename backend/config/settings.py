@@ -157,11 +157,23 @@ LOGIN_REDIRECT_URL = "/api/tickets/"
 
 # 4. Configuración de Django REST Framework y JWT
 
+# Límite de intentos en login, registro y recuperación de contraseña (por IP).
+# Al correr los tests se relaja para no interferir con la suite.
+import sys
+
+_TESTING = sys.argv[1:2] == ["test"]
+AUTH_THROTTLE_RATE = "10000/minute" if _TESTING else os.environ.get("AUTH_THROTTLE_RATE", "10/minute")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    "DEFAULT_THROTTLE_CLASSES": ("api.throttling.AutenticacionRateThrottle",),
+    "DEFAULT_THROTTLE_RATES": {"auth": AUTH_THROTTLE_RATE},
+    # Cantidad de proxies delante de Django (nginx, balanceador de Cloud Run...), para
+    # tomar la IP real del cliente de X-Forwarded-For. Sin definir, se usa el header completo.
+    "NUM_PROXIES": int(os.environ["THROTTLE_NUM_PROXIES"]) if os.environ.get("THROTTLE_NUM_PROXIES") else None,
 }
 
 # Configuración opcional para que los tokens duren más tiempo (por defecto duran 5 minutos)
