@@ -119,21 +119,29 @@ export const api = {
   },
 
   // 6. BUSCAR MIS TICKETS (Pasando el token para que Django me reconozca)
+  // El backend pagina el listado: se recorren todas las páginas y se devuelve
+  // la lista completa (máx. 100 tickets por pedido).
   getTickets: async () => {
     const token = localStorage.getItem("access_token");
+    const tickets = [];
 
-    const response = await fetch(`${BASE_URL}tickets/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    for (let page = 1; ; page++) {
+      const response = await fetch(`${BASE_URL}tickets/?page=${page}&page_size=100`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error("Error al cargar los tickets");
+      if (!response.ok) {
+        throw new Error("Error al cargar los tickets");
+      }
+      const data = await response.json();
+      if (Array.isArray(data)) return data;
+      tickets.push(...data.results);
+      if (!data.next) return tickets;
     }
-    return await response.json();
   },
 
   // 6b. ACTUALIZAR UN TICKET (Derivar / Cambiar Estado / Cerrar)
