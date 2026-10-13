@@ -50,10 +50,10 @@ En Git Bash sobre Windows, activalo con:
 source .venv/Scripts/activate
 ```
 
-Luego instalá las dependencias del backend con:
+Luego instalá las dependencias del backend (incluye las de desarrollo, como `coverage`) con:
 
 ```bash
-.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
+.venv/Scripts/python.exe -m pip install -r backend/requirements-dev.txt
 ```
 
 Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [project-rules.md](./.agents/rules/project-rules.md).

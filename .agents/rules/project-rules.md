@@ -60,7 +60,7 @@ El stack completo puede ser levantado utilizando contenedores Docker.
 - **Backend (Pruebas Unitarias y de Integración DRF):**
   - Entra a `backend/` y asegúrate de tener el entorno virtual activado.
   - Para correr los tests normales: `python manage.py test api`.
-  - Para correr los tests con reporte de **cobertura** (requiere `coverage` instalado según `requirements.txt`): 
+  - Para correr los tests con reporte de **cobertura** (requiere las dependencias de desarrollo: `pip install -r requirements-dev.txt`): 
     ```bash
     # Para usar SQLite en la prueba, asegurate de setear la variable de entorno:
     # (En PowerShell): $env:DATABASE_URL="sqlite:///db.sqlite3"
