@@ -111,6 +111,26 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Logging a consola (Docker / Cloud Logging lo recolectan desde stdout/stderr).
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{levelname} {asctime} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+        "api": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+    },
+}
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -138,6 +158,10 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+# Máximo de segundos esperando al servidor SMTP antes de dar el envío por fallido.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 10))
+# Enviar las notificaciones de tickets en segundo plano (ver api/emails.py).
+EMAIL_ASYNC = os.environ.get("EMAIL_ASYNC", "True").lower() == "true"
 
 # ACÁ VAN TUS DATOS REALES:
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "lirccoweb@gmail.com")
