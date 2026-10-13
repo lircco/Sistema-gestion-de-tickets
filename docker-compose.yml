@@ -24,8 +24,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # .env (raíz) con las variables de .env.example; backend/.env es opcional
     env_file:
-        - ./backend/.env
+      - path: ./.env
+        required: false
+      - path: ./backend/.env
+        required: false
     environment:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}

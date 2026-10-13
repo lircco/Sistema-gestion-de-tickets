@@ -42,11 +42,12 @@ El stack completo puede ser levantado utilizando contenedores Docker.
 
 #### Backend
 
-1.  **Activar entorno:** `.venv` en la raíz del proyecto.
+1.  **Variables de entorno:** copiá `.env.example` como `.env` y poné `DJANGO_DEBUG=True` para desarrollo.
+2.  **Activar entorno:** `.venv` en la raíz del proyecto.
     - Git Bash: `source .venv/Scripts/activate`.
     - PowerShell: `.\.venv\Scripts\Activate.ps1`.
-2.  **Migraciones:** `python manage.py migrate`.
-3.  **Servidor:** `python manage.py runserver`.
+3.  **Migraciones:** `python manage.py migrate`.
+4.  **Servidor:** `python manage.py runserver`.
 
 #### Frontend
 
@@ -108,6 +109,8 @@ Ejemplo: `feat: implementar filtrado de tickets por área`
 Para desplegar en un entorno de producción con Nginx, sigue estos pasos:
 
 ### 1. Variables de Entorno
+
+Copiá `.env.example` como `.env` en la raíz y completalo. Sin `DJANGO_DEBUG=True`, la app no arranca si falta `DJANGO_SECRET_KEY`.
 
 Configura las siguientes variables de entorno en el servidor:
 
