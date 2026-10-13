@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Stack, Box, IconButton, Typography, Chip, Paper, Divider, TextField, Button, Menu, MenuItem, Snackbar, Alert } from "@mui/material";
 import { ArrowBack, CallSplitOutlined, SwapHorizOutlined, HighlightOffOutlined, PrintOutlined, MoreVertOutlined, SendOutlined, PriorityHighOutlined, AttachFileOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
-import { api, getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const ESTADO_COLOR = {
@@ -131,11 +131,10 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
                 <Divider sx={{ my: 1.5 }} />
                 <Chip
                   size="small"
-                  component="a"
-                  href={getFileUrl(ticket.archivo_adjunto)}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   clickable
+                  onClick={() => {
+                    api.abrirAdjunto(ticket.id).catch(() => alert("No se pudo abrir el adjunto."));
+                  }}
                   icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                   label="Ver adjunto"
                   sx={{ fontSize: 11 }}

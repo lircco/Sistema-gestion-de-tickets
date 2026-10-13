@@ -48,6 +48,10 @@ from django.core.mail import send_mail
 
 from django.conf import settings
 
+import os
+
+from django.http import FileResponse, Http404
+
 
 
 
@@ -324,6 +328,15 @@ class TicketViewSet(viewsets.ModelViewSet):
 
 
         return Response(RespuestaSerializer(respuesta).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def adjunto(self, request, pk=None):
+        # Sirve el adjunto solo a quien puede ver el ticket (get_object aplica get_queryset).
+        ticket = self.get_object()
+        if not ticket.archivo_adjunto:
+            raise Http404('El ticket no tiene adjunto.')
+        nombre = os.path.basename(ticket.archivo_adjunto.name)
+        return FileResponse(ticket.archivo_adjunto.open('rb'), filename=nombre)
 
 
 

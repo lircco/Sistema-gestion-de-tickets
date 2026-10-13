@@ -174,6 +174,26 @@ export const api = {
     return await response.json();
   },
 
+  // 6d. ABRIR EL ADJUNTO DE UN TICKET (se descarga con el token y se abre en otra pestaña)
+  abrirAdjunto: async (ticketId) => {
+    const token = localStorage.getItem("access_token");
+    // La pestaña se abre antes del await para que el navegador no la bloquee como popup.
+    const ventana = window.open("", "_blank");
+    try {
+      const response = await fetch(`${BASE_URL}tickets/${ticketId}/adjunto/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("No se pudo abrir el adjunto");
+      const url = URL.createObjectURL(await response.blob());
+      if (ventana) ventana.location.href = url;
+      else window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      ventana?.close();
+      throw e;
+    }
+  },
+
   // 7. USUARIO ACTUAL
   getMe: async () => {
     const token = localStorage.getItem('access_token');
@@ -292,27 +312,4 @@ export const api = {
     }
     return await response.json();
   }
-};
-
-
-export const getFileUrl = (path) => {
-  if (!path || path === "null") return "";
-  
-  let cleanPath = path;
-  if (cleanPath.startsWith("http")) {
-    try {
-      const urlObj = new URL(cleanPath);
-      cleanPath = urlObj.pathname;
-    } catch (e) {}
-  }
-
-  let baseUrl = import.meta.env.VITE_API_URL || "";
-  if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-  
-  if (!cleanPath.startsWith("/media/") && !cleanPath.startsWith("media/")) {
-    cleanPath = `/media/${cleanPath.startsWith("/") ? cleanPath.slice(1) : cleanPath}`;
-  } else if (!cleanPath.startsWith("/")) {
-    cleanPath = `/${cleanPath}`;
-  }
-  return `${baseUrl}${cleanPath}`;
 };

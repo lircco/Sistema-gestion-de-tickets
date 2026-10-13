@@ -3,7 +3,7 @@ import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCel
 import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
-import { getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
@@ -131,12 +131,11 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
                     <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
                       <Chip
                         size="small"
-                        component="a"
-                        href={getFileUrl(r.archivo_adjunto)}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         clickable
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          api.abrirAdjunto(r.id).catch(() => alert("No se pudo abrir el adjunto."));
+                        }}
                         icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                         label="Ver adjunto"
                         sx={{ fontSize: 11, maxWidth: 200 }}

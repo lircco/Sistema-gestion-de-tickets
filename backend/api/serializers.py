@@ -74,6 +74,20 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = '__all__'
         read_only_fields = ['creado_por', 'creado_el', 'actualizado_el']
+
+    # Mismas reglas que el frontend (imágenes o PDF, hasta 5 MB), aplicadas en el servidor.
+    # SVG queda afuera a propósito: puede contener scripts.
+    EXTENSIONES_ADJUNTO = {'.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp'}
+    MAX_ADJUNTO_BYTES = 5 * 1024 * 1024
+
+    def validate_archivo_adjunto(self, archivo):
+        if not archivo:
+            return archivo
+        if not archivo.name.lower().endswith(tuple(self.EXTENSIONES_ADJUNTO)):
+            raise serializers.ValidationError('Solo se permiten imágenes (PNG, JPG, GIF, WEBP) o PDF.')
+        if archivo.size > self.MAX_ADJUNTO_BYTES:
+            raise serializers.ValidationError('El archivo supera el límite de 5 MB.')
+        return archivo
     
     # Agregamos este método para modificar los campos al vuelo
     def get_fields(self):
