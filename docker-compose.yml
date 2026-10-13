@@ -33,7 +33,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DJANGO_DEBUG: "True"
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
       DJANGO_ALLOWED_HOSTS: api.app2.academia.ar,localhost,127.0.0.1
       CORS_ALLOWED_ORIGINS: http://localhost:5173,https://app2.academia.ar,http://localhost
       CSRF_TRUSTED_ORIGINS: http://localhost:5173,https://app2.academia.ar,https://api.app2.academia.ar,http://localhost,http://localhost:8000
@@ -63,20 +63,22 @@ services:
     networks:
       - nginx-proxy
 
+  # Herramienta opcional: solo se levanta con `docker compose --profile tools up -d adminer`
+  # y escucha únicamente en el propio servidor. Desde otra máquina, usar un túnel SSH:
+  #   ssh -L 8080:127.0.0.1:8080 usuario@servidor
   adminer:
     image: adminer:4
     container_name: app2-adminer
-    restart: always
+    profiles: ["tools"]
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       ADMINER_DEFAULT_SERVER: db
     networks:
       - internal
-      - nginx-proxy
 
 volumes:
   app2-postgres-data:
