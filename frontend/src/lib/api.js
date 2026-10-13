@@ -1,4 +1,5 @@
-const API = import.meta.env.VITE_API_URL;
+// Vacío = rutas relativas (mismo dominio que el frontend).
+const API = import.meta.env.VITE_API_URL ?? "";
 const BASE_URL = `${API}/api/`;
 
 export const api = {
