@@ -41,8 +41,10 @@ export const api = {
         });
 
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.detail || "Error al crear la cuenta. Intente con otro correo.");
+      const errData = await response.json().catch(() => ({}));
+      // DRF devuelve los errores de validación por campo: {"rol": ["..."], ...}
+      const primerError = Object.values(errData).flat().find((m) => typeof m === "string");
+      throw new Error(errData.detail || primerError || "Error al crear la cuenta. Intente con otro correo.");
     }
 
     return await response.json();
