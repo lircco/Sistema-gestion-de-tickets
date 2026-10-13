@@ -28,6 +28,7 @@ jobs:
       - name: Run Backend Tests & Coverage
         run: |
           cd backend
+          python manage.py makemigrations --check --dry-run
           coverage run manage.py test api
           coverage report
           coverage xml
