@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,14 +15,19 @@ if env_path.exists():
 
 from config.database import DATABASE_URL
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-c9sgq$13)93=+vux=lazxrk()2u4fns2dzyb!-%kjnt!cf)@0w",
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# Sin DEBUG la clave es obligatoria: no hay valor por defecto que pueda filtrarse.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Falta la variable de entorno DJANGO_SECRET_KEY. "
+            "Para desarrollo local podés usar DJANGO_DEBUG=True (ver .env.example)."
+        )
+    SECRET_KEY = "django-insecure-solo-para-desarrollo-local"
 
 ALLOWED_HOSTS = os.environ.get(
     "DJANGO_ALLOWED_HOSTS", "api.app2.academia.ar,127.0.0.1,localhost"

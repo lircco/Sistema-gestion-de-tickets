@@ -19,13 +19,23 @@ El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para
 docker network create nginx-proxy
 ```
 
-### 2. Levantar el entorno completo
+### 2. Configurar las variables de entorno
 
-Para construir y levantar todos los servicios (Base de datos, Backend, Frontend y Adminer) en segundo plano:
+Copiá `.env.example` como `.env` en la raíz del repo y completá los valores (como mínimo `DJANGO_SECRET_KEY` y `DB_PASSWORD`).
+
+### 3. Levantar el entorno completo
+
+Para construir y levantar los servicios (Base de datos, Backend y Frontend) en segundo plano:
 
 ```bash
 docker compose build
 docker compose up -d
+```
+
+Adminer es opcional y solo escucha en el propio servidor (`127.0.0.1:8080`):
+
+```bash
+docker compose --profile tools up -d adminer
 ```
 
 ---
