@@ -1,5 +1,3 @@
-import os
-
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria, Respuesta
 
@@ -85,8 +83,7 @@ class TicketSerializer(serializers.ModelSerializer):
     def validate_archivo_adjunto(self, archivo):
         if not archivo:
             return archivo
-        extension = os.path.splitext(archivo.name)[1].lower()
-        if extension not in self.EXTENSIONES_ADJUNTO:
+        if not archivo.name.lower().endswith(tuple(self.EXTENSIONES_ADJUNTO)):
             raise serializers.ValidationError('Solo se permiten imágenes (PNG, JPG, GIF, WEBP) o PDF.')
         if archivo.size > self.MAX_ADJUNTO_BYTES:
             raise serializers.ValidationError('El archivo supera el límite de 5 MB.')
