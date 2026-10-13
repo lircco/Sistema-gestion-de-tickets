@@ -54,3 +54,48 @@ class AdjuntosTests(APITestCase):
         response = self._crear(grande)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("archivo_adjunto", response.data)
+
+
+@override_settings(MEDIA_ROOT=MEDIA_TEMPORAL)
+class DescargaAdjuntoTests(APITestCase):
+    def setUp(self):
+        area = Area.objects.create(nombre="Soporte")
+        otra_area = Area.objects.create(nombre="Alumnado")
+        categoria = Categoria.objects.create(nombre="General")
+        self.alumno = Usuario.objects.create_user(username="alumno", password="x")
+        self.otro_alumno = Usuario.objects.create_user(username="otro", password="x")
+        self.staff_area = Usuario.objects.create_user(username="s1", password="x", rol=Usuario.Roles.STAFF, area=area)
+        self.staff_otra = Usuario.objects.create_user(username="s2", password="x", rol=Usuario.Roles.STAFF, area=otra_area)
+        self.ticket = Ticket.objects.create(
+            titulo="t", descripcion="d", creado_por=self.alumno, area_responsable=area, categoria=categoria,
+            archivo_adjunto=SimpleUploadedFile("captura.png", PNG_1x1, content_type="image/png"),
+        )
+        self.sin_adjunto = Ticket.objects.create(
+            titulo="t2", descripcion="d", creado_por=self.alumno, area_responsable=area, categoria=categoria,
+        )
+        self.url = reverse("ticket-adjunto", args=[self.ticket.id])
+
+    def _get(self, usuario, url=None):
+        self.client.force_authenticate(usuario)
+        return self.client.get(url or self.url)
+
+    def test_el_creador_descarga_su_adjunto(self):
+        response = self._get(self.alumno)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(b"".join(response.streaming_content), PNG_1x1)
+
+    def test_staff_del_area_puede_verlo(self):
+        self.assertEqual(self._get(self.staff_area).status_code, status.HTTP_200_OK)
+
+    def test_otro_alumno_o_staff_de_otra_area_no_pueden(self):
+        self.assertEqual(self._get(self.otro_alumno).status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(self._get(self.staff_otra).status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_anonimo_no_puede(self):
+        self.client.force_authenticate(None)
+        self.assertEqual(self.client.get(self.url).status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_ticket_sin_adjunto_devuelve_404(self):
+        url = reverse("ticket-adjunto", args=[self.sin_adjunto.id])
+        self.assertEqual(self._get(self.alumno, url).status_code, status.HTTP_404_NOT_FOUND)
