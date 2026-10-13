@@ -6,7 +6,17 @@ import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
   // src/components/ui: componentes generados por shadcn/ui, se mantienen como vienen.
-  { ignores: ["dist", ".output", ".vinxi", "coverage", "playwright-report", "test-results", "src/components/ui"] },
+  {
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "coverage",
+      "playwright-report",
+      "test-results",
+      "src/components/ui",
+    ],
+  },
   {
     ...js.configs.recommended,
     files: ["**/*.{js,jsx}"],

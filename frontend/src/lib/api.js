@@ -32,13 +32,33 @@ export const api = {
     return await profileResponse.json();
   },
 
-    // 2. FUNCIÓN DE REGISTRO
-    register: async (username, password, email, first_name, last_name, password_confirm, rol = "ESTUDIANTE", area = null, auth_code = "") => {
-        const response = await fetch(`${BASE_URL}registro/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm, rol, area, auth_code })
-        });
+  // 2. FUNCIÓN DE REGISTRO
+  register: async (
+    username,
+    password,
+    email,
+    first_name,
+    last_name,
+    password_confirm,
+    rol = "ESTUDIANTE",
+    area = null,
+    auth_code = "",
+  ) => {
+    const response = await fetch(`${BASE_URL}registro/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        email,
+        first_name,
+        last_name,
+        password_confirm,
+        rol,
+        area,
+        auth_code,
+      }),
+    });
 
     if (!response.ok) {
       const errData = await response.json();
@@ -53,7 +73,7 @@ export const api = {
     const token = localStorage.getItem("access_token");
     const headers = { "Content-Type": "application/json" };
     if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
     }
     const response = await fetch(`${BASE_URL}areas/`, {
       method: "GET",
@@ -150,7 +170,9 @@ export const api = {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.detail || JSON.stringify(errData) || "No se pudo actualizar el ticket");
+      throw new Error(
+        errData.detail || JSON.stringify(errData) || "No se pudo actualizar el ticket",
+      );
     }
     return await response.json();
   },
@@ -176,18 +198,18 @@ export const api = {
 
   // 7. USUARIO ACTUAL
   getMe: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${BASE_URL}me/`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-        throw new Error("No se pudo cargar el usuario actual");
+      throw new Error("No se pudo cargar el usuario actual");
     }
     return await response.json();
   },
@@ -198,7 +220,7 @@ export const api = {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -208,39 +230,39 @@ export const api = {
 
   // 8. CERRAR SESIÓN
   logout: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
 
     try {
-        await fetch(`${BASE_URL}logout/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+      await fetch(`${BASE_URL}logout/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
     } catch (e) {
-        console.error("Error al cerrar sesión en el servidor", e);
+      console.error("Error al cerrar sesión en el servidor", e);
     } finally {
-        // Siempre limpiamos los tokens locales, incluso si el servidor falla.
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+      // Siempre limpiamos los tokens locales, incluso si el servidor falla.
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
     }
   },
 
   // 9. ESTADÍSTICAS DE TICKETS
   getStats: async () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${BASE_URL}tickets/estadisticas/`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-        throw new Error("No se pudieron cargar las estadísticas");
+      throw new Error("No se pudieron cargar las estadísticas");
     }
     return await response.json();
   },
@@ -291,13 +313,12 @@ export const api = {
       throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
-  }
+  },
 };
-
 
 export const getFileUrl = (path) => {
   if (!path || path === "null") return "";
-  
+
   let cleanPath = path;
   if (cleanPath.startsWith("http")) {
     try {
@@ -308,7 +329,7 @@ export const getFileUrl = (path) => {
 
   let baseUrl = import.meta.env.VITE_API_URL || "";
   if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-  
+
   if (!cleanPath.startsWith("/media/") && !cleanPath.startsWith("media/")) {
     cleanPath = `/media/${cleanPath.startsWith("/") ? cleanPath.slice(1) : cleanPath}`;
   } else if (!cleanPath.startsWith("/")) {

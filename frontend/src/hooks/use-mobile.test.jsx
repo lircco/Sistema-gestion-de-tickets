@@ -1,8 +1,8 @@
-import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useIsMobile } from './use-mobile';
+import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { useIsMobile } from "./use-mobile";
 
-describe('useIsMobile', () => {
+describe("useIsMobile", () => {
   let addEventListenerMock;
   let removeEventListenerMock;
 
@@ -11,9 +11,9 @@ describe('useIsMobile', () => {
     removeEventListenerMock = vi.fn();
 
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,
@@ -28,19 +28,19 @@ describe('useIsMobile', () => {
     vi.restoreAllMocks();
   });
 
-  it('should return false initially if window width is >= 768', () => {
+  it("should return false initially if window width is >= 768", () => {
     window.innerWidth = 1024;
     const { result } = renderHook(() => useIsMobile());
     expect(result.current).toBe(false);
   });
 
-  it('should return true initially if window width is < 768', () => {
+  it("should return true initially if window width is < 768", () => {
     window.innerWidth = 500;
     const { result } = renderHook(() => useIsMobile());
     expect(result.current).toBe(true);
   });
 
-  it('should update value on resize event', () => {
+  it("should update value on resize event", () => {
     window.innerWidth = 1024;
     const { result } = renderHook(() => useIsMobile());
     expect(result.current).toBe(false);
