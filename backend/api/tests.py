@@ -288,12 +288,14 @@ class RecuperarPasswordTests(APITestCase):
         self.url = reverse('recuperar_password')
 
     def test_recuperar_password_usuario_existente(self):
+        from django.core import mail
         response = self.client.post(self.url, {"email": "alumno_recuperar@example.com"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
-        # La contraseña cambió y no es la contraseña fija insegura
-        self.assertFalse(self.user.check_password("PasswordOriginal123"))
-        self.assertFalse(self.user.check_password("Unraf2026"))
+        # Pedir la recuperación no cambia la contraseña: llega un código por mail
+        self.assertTrue(self.user.check_password("PasswordOriginal123"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["alumno_recuperar@example.com"])
 
     def test_recuperar_password_usuario_inexistente_retorna_200(self):
         # Evitar enumeración de usuarios

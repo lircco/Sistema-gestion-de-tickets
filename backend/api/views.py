@@ -54,7 +54,7 @@ from django.conf import settings
 
 
 
-from django.utils.crypto import get_random_string
+from django.contrib.auth.tokens import default_token_generator
 
 
 
@@ -553,163 +553,39 @@ class LogoutView(APIView):
 
 
 class RecuperarPasswordView(APIView):
-
-
-
+    """
+    Envía por mail un código de un solo uso para restablecer la contraseña.
+    No modifica la contraseña actual: eso recién pasa en RestablecerPasswordView,
+    con el código. El código vence a los PASSWORD_RESET_TIMEOUT segundos y deja de
+    servir apenas la contraseña cambia.
+    """
     permission_classes = [permissions.AllowAny]
 
-
-
-
-
-
-
     def post(self, request):
-
-
-
         email = request.data.get('email')
-
-
-
-        
-
-
-
         if not email:
-
-
-
             return Response({'error': 'Por favor, ingrese un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-        
-
-
-
-        try:
-
-
-
-            usuario = Usuario.objects.get(email=email)
-
-
-
-            
-
-
-
-            nueva_clave = get_random_string(length=12)
-
-
-
-            usuario.set_password(nueva_clave)
-
-
-
-            usuario.save()
-
-
-
-
-
-
-
-            # Configuramos el mensaje para Gmail
-
-
-
-            asunto = 'Contraseña restablecida con éxito - UnRafTickets'
-
-
-
+        minutos_validez = settings.PASSWORD_RESET_TIMEOUT // 60
+        email_desde = f'Sistema de Tickets Universidad <{settings.EMAIL_HOST_USER}>'
+        for usuario in Usuario.objects.filter(email=email, is_active=True):
+            codigo = default_token_generator.make_token(usuario)
             mensaje = (
-
-
-
                 f'Hola {usuario.first_name or usuario.username},\n\n'
-
-
-
-                f'Tu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\n'
-
-
-
-                f'Tu nueva contraseña temporal para ingresar es: {nueva_clave}\n\n'
-
-
-
-                f'Por favor, inicia sesión y cámbiala desde tu perfil.\n\n'
-
-
-
+                f'Recibimos un pedido para restablecer tu contraseña en UnrafTickets.\n\n'
+                f'Tu código de recuperación es:\n\n{codigo}\n\n'
+                f'Copialo en la pantalla de recuperación junto con tu nueva contraseña. '
+                f'El código vence en {minutos_validez} minutos y sirve una sola vez.\n\n'
+                f'Si no pediste este cambio, ignorá este mensaje: tu contraseña actual sigue funcionando.\n\n'
                 f'Saludos,\nSoporte Técnico Institucional.'
-
-
-
             )
-
-
-
-            email_desde = f'Sistema de Tickets Universidad <{settings.EMAIL_HOST_USER}>'
-
-
-
-            emails_destino = [email]
-
-
-
-
-
-
-
             try:
-
-
-
-                send_mail(asunto, mensaje, email_desde, emails_destino, fail_silently=False)
-
-
-
+                send_mail('Código para restablecer tu contraseña - UnRafTickets', mensaje, email_desde, [email], fail_silently=False)
             except Exception:
-
-
-
                 pass
 
-
-
-
-
-
-
-        except Usuario.DoesNotExist:
-
-
-
-            # Para evitar enumeracin de usuarios, devolvemos 200 con mensaje genrico
-
-
-
-            pass
-
-
-
-
-
-
-
-        return Response({'message': 'Si el correo electrnico est registrado, recibirs las instrucciones para restablecer tu contrasea.'}, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-
+        # Para evitar enumeración de usuarios, la respuesta es la misma exista o no el email.
+        return Response({'message': 'Si el correo electrónico está registrado, recibirás las instrucciones para restablecer tu contraseña.'}, status=status.HTTP_200_OK)
 
 
 # --- VISTA DE CAMBIO DE CONTRASEA (desde el perfil, usuario ya logueado) ---
@@ -880,11 +756,11 @@ class RestablecerPasswordView(APIView):
         # Misma respuesta si el email no existe o si el código no coincide, para no
         # revelar qué emails están registrados. El email no es único: se prueban todas.
         usuario = next(
-            (u for u in Usuario.objects.filter(email=email) if u.check_password(codigo)),
+            (u for u in Usuario.objects.filter(email=email, is_active=True) if default_token_generator.check_token(u, codigo)),
             None,
         )
         if usuario is None:
-            return Response({'error': 'El email o el código ingresado no son válidos.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'El email o el código ingresado no son válidos, o el código venció.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             validate_password(nueva_password, user=usuario)
