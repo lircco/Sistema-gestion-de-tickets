@@ -877,13 +877,20 @@ class RestablecerPasswordView(APIView):
         if not all([email, codigo, nueva_password]):
             return Response({'error': 'Faltan datos obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Misma respuesta si el email no existe o si el código no coincide, para no
+        # revelar qué emails están registrados. El email no es único: se prueban todas.
+        usuario = next(
+            (u for u in Usuario.objects.filter(email=email) if u.check_password(codigo)),
+            None,
+        )
+        if usuario is None:
+            return Response({'error': 'El email o el código ingresado no son válidos.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            usuario = Usuario.objects.get(email=email)
-            if not usuario.check_password(codigo):
-                return Response({'error': 'El codigo ingresado es incorrecto.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            usuario.set_password(nueva_password)
-            usuario.save()
-            return Response({'mensaje': 'Contrasena actualizada correctamente.'}, status=status.HTTP_200_OK)
-        except Usuario.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado o codigo invalido.'}, status=status.HTTP_404_NOT_FOUND)
+            validate_password(nueva_password, user=usuario)
+        except DjangoValidationError as e:
+            return Response({'error': ' '.join(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.set_password(nueva_password)
+        usuario.save()
+        return Response({'mensaje': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
