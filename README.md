@@ -57,3 +57,5 @@ Luego instalá las dependencias del backend con:
 ```
 
 Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [project-rules.md](./.agents/rules/project-rules.md).
+
+La documentación de los modelos del backend está en [docs/modelos-backend.md](./docs/modelos-backend.md).
