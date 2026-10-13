@@ -6,7 +6,7 @@ import DetailRow from "../shared/DetailRow";
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
-import { api, getFileUrl } from '../../lib/api';
+import { api } from '../../lib/api';
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
@@ -63,11 +63,10 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
               <Divider sx={{ my: 1.5 }} />
               <Chip
                 size="small"
-                component="a"
-                href={getFileUrl(ticket.archivo_adjunto)}
-                target="_blank"
-                rel="noopener noreferrer"
                 clickable
+                onClick={() => {
+                  api.abrirAdjunto(ticket.id).catch(() => alert("No se pudo abrir el adjunto."));
+                }}
                 icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                 label="Ver adjunto"
                 sx={{ fontSize: 11 }}
