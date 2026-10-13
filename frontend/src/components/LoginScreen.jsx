@@ -70,6 +70,8 @@ export default function LoginScreen({ onLoginSuccess }) {
 
   const handleTabChange = (newTab) => {
     setTab(newTab);
+    // Las cuentas de Admin (supervisor) las crea un administrador: no se registran desde acá.
+    if (newTab === 1 && role === "admin") setRole("alumno");
     resetFormFields();
   };
 
@@ -275,7 +277,9 @@ export default function LoginScreen({ onLoginSuccess }) {
               <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
                 <RoleCard active={role === "alumno"} onClick={() => handleRoleChange("alumno")} icon={<Person />} label="Alumno" />
                 <RoleCard active={role === "staff"} onClick={() => handleRoleChange("staff")} icon={<SupportAgentOutlined />} label="Staff" />
-                <RoleCard active={role === "admin"} onClick={() => handleRoleChange("admin")} icon={<AdminPanelSettings />} label="Admin" />
+                {tab === 0 && (
+                  <RoleCard active={role === "admin"} onClick={() => handleRoleChange("admin")} icon={<AdminPanelSettings />} label="Admin" />
+                )}
               </Stack>
 
 
@@ -319,7 +323,7 @@ export default function LoginScreen({ onLoginSuccess }) {
               )}
 
 
-              {tab === 1 && (role === "staff" || role === "admin") && (
+              {tab === 1 && role === "staff" && (
                 <>
                   <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Código de Autorización</Typography>
                   <TextField

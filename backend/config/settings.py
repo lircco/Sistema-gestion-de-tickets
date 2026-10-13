@@ -152,6 +152,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # 3. Modelo de Usuario Personalizado
 AUTH_USER_MODEL = "api.Usuario"
 
+# Código que habilita el auto-registro como STAFF. Vacío = registro de Staff deshabilitado.
+STAFF_REGISTRATION_CODE = os.environ.get("STAFF_REGISTRATION_CODE", "")
+
 # Redirigir a los tickets después de iniciar sesión en DRF
 LOGIN_REDIRECT_URL = "/api/tickets/"
 

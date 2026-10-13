@@ -1,3 +1,6 @@
+import hmac
+
+from django.conf import settings
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria, Respuesta
 
@@ -30,11 +33,17 @@ class RegistroSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
             
         rol = data.get('rol', 'ESTUDIANTE')
-        if rol in ['STAFF', 'SUPERVISOR']:
-            auth_code = data.get('auth_code', '')
-            if auth_code != 'UNRAF2026':
-                raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff o Supervisor.'})
-                
+        if rol == 'SUPERVISOR':
+            # Un supervisor es superusuario: lo crea un administrador, no el registro público.
+            raise serializers.ValidationError({'rol': 'Las cuentas de supervisor las crea un administrador.'})
+        if rol == 'STAFF':
+            codigo_esperado = settings.STAFF_REGISTRATION_CODE
+            if not codigo_esperado:
+                raise serializers.ValidationError({'rol': 'El registro como Staff no está habilitado.'})
+            auth_code = data.get('auth_code') or ''
+            if not hmac.compare_digest(auth_code.encode(), codigo_esperado.encode()):
+                raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff.'})
+
         return data
 
     def create(self, validated_data):
