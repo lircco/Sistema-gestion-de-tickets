@@ -1,6 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Box, Stack, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Typography, Alert, LinearProgress } from "@mui/material";
-import { AttachFileOutlined, PictureAsPdfOutlined, ImageOutlined, InsertDriveFileOutlined, CloseOutlined } from "@mui/icons-material";
+import {
+  Box,
+  Stack,
+  Button,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  Typography,
+  Alert,
+  LinearProgress,
+} from "@mui/material";
+import {
+  AttachFileOutlined,
+  PictureAsPdfOutlined,
+  ImageOutlined,
+  InsertDriveFileOutlined,
+  CloseOutlined,
+} from "@mui/icons-material";
 import { api } from "../../lib/api";
 
 export default function NewTicketDialog({ open, onClose, onCreated }) {
@@ -16,10 +36,12 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
   const [areas, setAreas] = useState([]);
 
   useEffect(() => {
-    api.getCategorias()
+    api
+      .getCategorias()
       .then((d) => setCategories(d.results || d))
       .catch(() => setError("No se pudieron cargar las categorías."));
-    api.getAreas()
+    api
+      .getAreas()
       .then((d) => setAreas(d.results || d))
       .catch(() => setError("No se pudieron cargar las áreas responsables."));
   }, []);
@@ -90,24 +112,66 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
       <DialogTitle sx={{ fontWeight: 700 }}>Crear Nuevo Ticket</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth size="small" />
+          <TextField
+            label="Título"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            fullWidth
+            size="small"
+          />
           <Stack direction="row" spacing={2}>
-            <TextField select label="Categoría" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} fullWidth size="small">
+            <TextField
+              select
+              label="Categoría"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              fullWidth
+              size="small"
+            >
               {categories.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>
+                <MenuItem key={c.id} value={c.id}>
+                  {c.nombre}
+                </MenuItem>
               ))}
             </TextField>
-            <TextField select label="Área Responsable" value={areaId} onChange={(e) => setAreaId(e.target.value)} fullWidth size="small">
+            <TextField
+              select
+              label="Área Responsable"
+              value={areaId}
+              onChange={(e) => setAreaId(e.target.value)}
+              fullWidth
+              size="small"
+            >
               {areas.map((a) => (
-                <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>
+                <MenuItem key={a.id} value={a.id}>
+                  {a.nombre}
+                </MenuItem>
               ))}
             </TextField>
           </Stack>
-          <TextField label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} fullWidth multiline minRows={4} />
+          <TextField
+            label="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            fullWidth
+            multiline
+            minRows={4}
+          />
           <Box>
-            <Button component="label" variant="outlined" startIcon={<AttachFileOutlined />} size="small">
+            <Button
+              component="label"
+              variant="outlined"
+              startIcon={<AttachFileOutlined />}
+              size="small"
+            >
               Adjuntar archivos
-              <input type="file" hidden multiple accept={ACCEPT} onChange={(e) => handleFiles(e.target.files)} />
+              <input
+                type="file"
+                hidden
+                multiple
+                accept={ACCEPT}
+                onChange={(e) => handleFiles(e.target.files)}
+              />
             </Button>
             <Typography sx={{ fontSize: 11, color: "#6b7280", mt: 0.5 }}>
               Imágenes o PDF · máx. 5 MB c/u · hasta 5 archivos
@@ -115,13 +179,45 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
             {files.length > 0 && (
               <Stack spacing={1} sx={{ mt: 1.5 }}>
                 {files.map((f, i) => (
-                  <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, p: 1, border: "1px solid #e5e7eb", borderRadius: 1.5, bgcolor: "#f9fafb" }}>
-                    {f.type === "application/pdf" ? <PictureAsPdfOutlined sx={{ color: "#dc2626" }} /> : f.type.startsWith("image/") ? <ImageOutlined sx={{ color: "primary.main" }} /> : <InsertDriveFileOutlined />}
+                  <Box
+                    key={i}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      p: 1,
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 1.5,
+                      bgcolor: "#f9fafb",
+                    }}
+                  >
+                    {f.type === "application/pdf" ? (
+                      <PictureAsPdfOutlined sx={{ color: "#dc2626" }} />
+                    ) : f.type.startsWith("image/") ? (
+                      <ImageOutlined sx={{ color: "primary.main" }} />
+                    ) : (
+                      <InsertDriveFileOutlined />
+                    )}
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</Typography>
-                      <Typography sx={{ fontSize: 11, color: "#6b7280" }}>{(f.size / 1024).toFixed(1)} KB</Typography>
+                      <Typography
+                        sx={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {f.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                        {(f.size / 1024).toFixed(1)} KB
+                      </Typography>
                     </Box>
-                    <IconButton size="small" onClick={() => setFiles(files.filter((_, j) => j !== i))}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setFiles(files.filter((_, j) => j !== i))}
+                    >
                       <CloseOutlined fontSize="small" />
                     </IconButton>
                   </Box>
@@ -135,7 +231,9 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={submitting}>Enviar Ticket</Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
+          Enviar Ticket
+        </Button>
       </DialogActions>
     </Dialog>
   );

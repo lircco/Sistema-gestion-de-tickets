@@ -1,13 +1,22 @@
 import React, { useState } from "react";
-import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Paper,
+  LinearProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import { ReportKpi } from "../shared/ReportKpi";
 import {
-      computeAvgLeadTimeHours,
-      computeLeadTimeByArea,
-      computeCategoriaDistribution,
-      computeSlaEnRiesgo,
-      computeResolvedRate,
-    } from "../../lib/utils";
+  computeAvgLeadTimeHours,
+  computeLeadTimeByArea,
+  computeCategoriaDistribution,
+  computeSlaEnRiesgo,
+  computeResolvedRate,
+} from "../../lib/utils";
 
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
@@ -30,7 +39,6 @@ export default function ReportsSection({ tickets = [], stats }) {
   const categoriaDistribution = computeCategoriaDistribution(tickets);
   const maxAreaHours = Math.max(...leadTimeByArea.map((a) => a.hours), 1);
 
-
   let mejorArea = null;
   if (leadTimeByArea.length > 0) {
     mejorArea = [...leadTimeByArea].sort((a, b) => {
@@ -49,19 +57,30 @@ export default function ReportsSection({ tickets = [], stats }) {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Button variant={last30Active ? "contained" : "outlined"} onClick={handleLast30Click}>Últimos 30 días</Button>
-          <Button variant="outlined" onClick={() => window.print()}>Exportar PDF</Button>
+          <Button variant={last30Active ? "contained" : "outlined"} onClick={handleLast30Click}>
+            Últimos 30 días
+          </Button>
+          <Button variant="outlined" onClick={() => window.print()}>
+            Exportar PDF
+          </Button>
         </Stack>
       </Box>
 
       <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)}>
         <Alert severity="info" onClose={() => setSnackbarOpen(false)} sx={{ width: "100%" }}>
-          Las estadísticas en tiempo real por rango de fechas requieren endpoints adicionales en el backend (ver issue #40).
+          Las estadísticas en tiempo real por rango de fechas requieren endpoints adicionales en el
+          backend (ver issue #40).
         </Alert>
       </Snackbar>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
-        <ReportKpi color="#0a3d62" label="TICKETS TOTALES" value={totalTickets} delta={`${cerrados} cerrados`} deltaColor="#6b7280" />
+        <ReportKpi
+          color="#0a3d62"
+          label="TICKETS TOTALES"
+          value={totalTickets}
+          delta={`${cerrados} cerrados`}
+          deltaColor="#6b7280"
+        />
         <ReportKpi
           color="#0a3d62"
           label="LEAD TIME PROMEDIO"
@@ -69,7 +88,13 @@ export default function ReportsSection({ tickets = [], stats }) {
           delta={avgLeadTime === null ? "sin tickets cerrados" : "sobre tickets cerrados"}
           deltaColor="#6b7280"
         />
-        <ReportKpi color="#10b981" label="% RESUELTOS" value={`${resolvedPercent}%`} delta={`${cerrados}/${totalTickets}`} deltaColor="#6b7280" />
+        <ReportKpi
+          color="#10b981"
+          label="% RESUELTOS"
+          value={`${resolvedPercent}%`}
+          delta={`${cerrados}/${totalTickets}`}
+          deltaColor="#6b7280"
+        />
         <ReportKpi
           color={slaEnRiesgo > 0 ? "#ef4444" : "#10b981"}
           label="SLA EN RIESGO"
@@ -82,7 +107,9 @@ export default function ReportsSection({ tickets = [], stats }) {
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Eficiencia Operativa</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>Lead Time (horas) por área administrativa, tickets cerrados</Typography>
+          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+            Lead Time (horas) por área administrativa, tickets cerrados
+          </Typography>
           {leadTimeByArea.length === 0 ? (
             <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets cerrados para calcular el lead time por área.
@@ -90,31 +117,67 @@ export default function ReportsSection({ tickets = [], stats }) {
           ) : (
             <>
               {mejorArea && (
-                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#e0f2fe', borderRadius: 1, border: '1px solid #bae6fd' }}>
-                  <Typography sx={{ fontSize: 13, color: '#0369a1', fontWeight: 600 }}>
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 1.5,
+                    bgcolor: "#e0f2fe",
+                    borderRadius: 1,
+                    border: "1px solid #bae6fd",
+                  }}
+                >
+                  <Typography sx={{ fontSize: 13, color: "#0369a1", fontWeight: 600 }}>
                     Área Destacada: {mejorArea.area}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: '#0284c7' }}>
-                    Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de {mejorArea.hours.toFixed(1)}h.
+                  <Typography sx={{ fontSize: 12, color: "#0284c7" }}>
+                    Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de{" "}
+                    {mejorArea.hours.toFixed(1)}h.
                   </Typography>
                 </Box>
               )}
-              <Stack direction="row" spacing={2} sx={{ alignItems: "flex-end", height: 140, mt: 2 }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ alignItems: "flex-end", height: 140, mt: 2 }}
+              >
                 {leadTimeByArea.map((a, i) => (
                   <Box
                     key={a.area}
                     title={`${a.area}: ${a.hours.toFixed(1)}h (${a.count} tickets)`}
-                    sx={{ flex: 1, height: Math.max((a.hours / maxAreaHours) * 140, 6), bgcolor: "primary.main", opacity: 0.4 + (i * 0.1), borderRadius: 1, position: 'relative' }}
+                    sx={{
+                      flex: 1,
+                      height: Math.max((a.hours / maxAreaHours) * 140, 6),
+                      bgcolor: "primary.main",
+                      opacity: 0.4 + i * 0.1,
+                      borderRadius: 1,
+                      position: "relative",
+                    }}
                   >
-                     <Typography sx={{ position: 'absolute', top: -20, left: 0, width: '100%', textAlign: 'center', fontSize: 10, color: 'text.secondary', fontWeight: 700 }}>
-                        {a.count}t
-                     </Typography>
+                    <Typography
+                      sx={{
+                        position: "absolute",
+                        top: -20,
+                        left: 0,
+                        width: "100%",
+                        textAlign: "center",
+                        fontSize: 10,
+                        color: "text.secondary",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {a.count}t
+                    </Typography>
                   </Box>
                 ))}
               </Stack>
               <Stack direction="row" spacing={2} sx={{ mt: 1, justifyContent: "space-between" }}>
                 {leadTimeByArea.map((a) => (
-                  <Typography key={a.area} sx={{ fontSize: 11, color: "#6b7280", flex: 1, textAlign: "center" }}>{a.area}</Typography>
+                  <Typography
+                    key={a.area}
+                    sx={{ fontSize: 11, color: "#6b7280", flex: 1, textAlign: "center" }}
+                  >
+                    {a.area}
+                  </Typography>
                 ))}
               </Stack>
             </>
@@ -122,7 +185,9 @@ export default function ReportsSection({ tickets = [], stats }) {
         </Paper>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Consultas por Categoría</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>Distribución porcentual de tickets</Typography>
+          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+            Distribución porcentual de tickets
+          </Typography>
           {categoriaDistribution.length === 0 ? (
             <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets para calcular la distribución.
@@ -138,7 +203,13 @@ export default function ReportsSection({ tickets = [], stats }) {
                   <LinearProgress
                     variant="determinate"
                     value={r.percent}
-                    sx={{ height: 6, borderRadius: 3, '& .MuiLinearProgress-bar': { bgcolor: CATEGORIA_COLORS[i % CATEGORIA_COLORS.length] } }}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      "& .MuiLinearProgress-bar": {
+                        bgcolor: CATEGORIA_COLORS[i % CATEGORIA_COLORS.length],
+                      },
+                    }}
                   />
                 </Box>
               ))}

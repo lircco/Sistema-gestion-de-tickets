@@ -1,6 +1,23 @@
 const API = import.meta.env.VITE_API_URL;
 const BASE_URL = `${API}/api/`;
 
+// Pedido a la API con el token guardado (si hay). `body` puede ser un objeto, que se
+// envía como JSON, o un FormData, para el que fetch arma el multipart solo.
+const authFetch = (path, { method = "GET", body } = {}) => {
+  const headers = {};
+  const token = localStorage.getItem("access_token");
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const init = { method, headers };
+  if (body instanceof FormData) {
+    init.body = body;
+  } else if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  return fetch(`${BASE_URL}${path}`, init);
+};
+
 export const api = {
   login: async (username, password) => {
     const response = await fetch(`${BASE_URL}token/`, {
@@ -32,13 +49,33 @@ export const api = {
     return await profileResponse.json();
   },
 
-    // 2. FUNCIÓN DE REGISTRO
-    register: async (username, password, email, first_name, last_name, password_confirm, rol = "ESTUDIANTE", area = null, auth_code = "") => {
-        const response = await fetch(`${BASE_URL}registro/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, email, first_name, last_name, password_confirm, rol, area, auth_code })
-        });
+  // 2. FUNCIÓN DE REGISTRO
+  register: async (
+    username,
+    password,
+    email,
+    first_name,
+    last_name,
+    password_confirm,
+    rol = "ESTUDIANTE",
+    area = null,
+    auth_code = "",
+  ) => {
+    const response = await fetch(`${BASE_URL}registro/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        email,
+        first_name,
+        last_name,
+        password_confirm,
+        rol,
+        area,
+        auth_code,
+      }),
+    });
 
     if (!response.ok) {
       const errData = await response.json();
@@ -48,125 +85,56 @@ export const api = {
     return await response.json();
   },
 
-  // 3. BUSCAR ÁREAS
+  // 3. BUSCAR ÁREAS (público: se usa también en el registro)
   getAreas: async () => {
-    const token = localStorage.getItem("access_token");
-    const headers = { "Content-Type": "application/json" };
-    if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-    }
-    const response = await fetch(`${BASE_URL}areas/`, {
-      method: "GET",
-      headers: headers,
-    });
-
+    const response = await authFetch("areas/");
     if (!response.ok) throw new Error("No se pudieron cargar las áreas");
     return await response.json();
   },
 
   // 4. BUSCAR CATEGORÍAS
   getCategorias: async () => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${BASE_URL}categorias/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    const response = await authFetch("categorias/");
     if (!response.ok) throw new Error("No se pudieron cargar las categorías");
     return await response.json();
   },
 
-  // 5. CREAR UN TICKET NUEVO (Soporta archivos y texto)
+  // 5. CREAR UN TICKET NUEVO (acepta FormData con archivos u objeto)
   createTicket: async (ticketData) => {
-    const token = localStorage.getItem("access_token");
-
-    // Para inspeccionar ticketData durante desarrollo, usar breakpoints/DevTools.
-    // Preparamos las cabeceras base (Solo el token)
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    let bodyData;
-
-    // ¿Viene con formato de archivos (FormData)?
-    if (ticketData instanceof FormData) {
-      bodyData = ticketData;
-      // IMPORTANTE: No le ponemos 'Content-Type'.
-      // Fetch es inteligente y le pone 'multipart/form-data' automáticamente.
-    } else {
-      // Si es un objeto de texto normal, lo convertimos a JSON
-      bodyData = JSON.stringify(ticketData);
-      headers["Content-Type"] = "application/json";
-    }
-
-    const response = await fetch(`${BASE_URL}tickets/`, {
-      method: "POST",
-      headers: headers,
-      body: bodyData,
-    });
-
+    const response = await authFetch("tickets/", { method: "POST", body: ticketData });
     if (!response.ok) {
       const errData = await response.json();
       console.error("Motivo del rechazo de Django:", errData);
-      const mensajeError = errData.detail || JSON.stringify(errData);
-      throw new Error(mensajeError);
+      throw new Error(errData.detail || JSON.stringify(errData));
     }
-
     return await response.json();
   },
 
-  // 6. BUSCAR MIS TICKETS (Pasando el token para que Django me reconozca)
+  // 6. BUSCAR MIS TICKETS
   getTickets: async () => {
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${BASE_URL}tickets/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al cargar los tickets");
-    }
+    const response = await authFetch("tickets/");
+    if (!response.ok) throw new Error("Error al cargar los tickets");
     return await response.json();
   },
 
   // 6b. ACTUALIZAR UN TICKET (Derivar / Cambiar Estado / Cerrar)
   updateTicket: async (id, data) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${BASE_URL}tickets/${id}/`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
+    const response = await authFetch(`tickets/${id}/`, { method: "PATCH", body: data });
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.detail || JSON.stringify(errData) || "No se pudo actualizar el ticket");
+      throw new Error(
+        errData.detail || JSON.stringify(errData) || "No se pudo actualizar el ticket",
+      );
     }
     return await response.json();
   },
 
   // 6c. ENVIAR UNA RESPUESTA REAL A UN TICKET
   enviarRespuesta: async (id, mensaje) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${BASE_URL}tickets/${id}/responder/`, {
+    const response = await authFetch(`tickets/${id}/responder/`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ mensaje }),
+      body: { mensaje },
     });
-
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || "No se pudo enviar la respuesta");
@@ -176,72 +144,34 @@ export const api = {
 
   // 7. USUARIO ACTUAL
   getMe: async () => {
-    const token = localStorage.getItem('access_token');
-
-    const response = await fetch(`${BASE_URL}me/`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("No se pudo cargar el usuario actual");
-    }
+    const response = await authFetch("me/");
+    if (!response.ok) throw new Error("No se pudo cargar el usuario actual");
     return await response.json();
   },
 
   updateMe: async (data) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${BASE_URL}me/`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify(data),
-    });
+    const response = await authFetch("me/", { method: "PATCH", body: data });
     if (!response.ok) throw new Error("No se pudo actualizar el perfil");
     return await response.json();
   },
 
   // 8. CERRAR SESIÓN
   logout: async () => {
-    const token = localStorage.getItem('access_token');
-
     try {
-        await fetch(`${BASE_URL}logout/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
+      await authFetch("logout/", { method: "POST" });
     } catch (e) {
-        console.error("Error al cerrar sesión en el servidor", e);
+      console.error("Error al cerrar sesión en el servidor", e);
     } finally {
-        // Siempre limpiamos los tokens locales, incluso si el servidor falla.
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+      // Siempre limpiamos los tokens locales, incluso si el servidor falla.
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
     }
   },
 
   // 9. ESTADÍSTICAS DE TICKETS
   getStats: async () => {
-    const token = localStorage.getItem('access_token');
-
-    const response = await fetch(`${BASE_URL}tickets/estadisticas/`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("No se pudieron cargar las estadísticas");
-    }
+    const response = await authFetch("tickets/estadisticas/");
+    if (!response.ok) throw new Error("No se pudieron cargar las estadísticas");
     return await response.json();
   },
 
@@ -276,28 +206,21 @@ export const api = {
 
   // --- CAMBIAR CONTRASEÑA (usuario ya logueado, desde su perfil) ---
   changePassword: async (passwordActual, passwordNueva) => {
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${BASE_URL}auth/cambiar-password/`, {
+    const response = await authFetch("auth/cambiar-password/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ password_actual: passwordActual, password_nueva: passwordNueva }),
+      body: { password_actual: passwordActual, password_nueva: passwordNueva },
     });
-
     if (!response.ok) {
       const errData = await response.json();
       throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
-  }
+  },
 };
-
 
 export const getFileUrl = (path) => {
   if (!path || path === "null") return "";
-  
+
   let cleanPath = path;
   if (cleanPath.startsWith("http")) {
     try {
@@ -308,7 +231,7 @@ export const getFileUrl = (path) => {
 
   let baseUrl = import.meta.env.VITE_API_URL || "";
   if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-  
+
   if (!cleanPath.startsWith("/media/") && !cleanPath.startsWith("media/")) {
     cleanPath = `/media/${cleanPath.startsWith("/") ? cleanPath.slice(1) : cleanPath}`;
   } else if (!cleanPath.startsWith("/")) {
