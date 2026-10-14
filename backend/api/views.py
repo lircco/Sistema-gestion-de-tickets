@@ -62,15 +62,26 @@ from django.utils.crypto import get_random_string
 
 
 
-from .models import Ticket, Usuario, Area, Categoria, Respuesta
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
 
-
-
-from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer
-
-
+from .serializers import (
+    TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer,
+    UsuarioSerializer, RespuestaSerializer, NotificacionSerializer
+)
 
 from .permissions import PuedeGestionarTicket
+
+def obtener_personal_area(area, excluir_usuario=None):
+    if not area:
+        return Usuario.objects.none()
+    qs = Usuario.objects.filter(
+        models.Q(rol=Usuario.Roles.STAFF, area=area) |
+        models.Q(rol=Usuario.Roles.SUPERVISOR, area=area)
+    )
+    if excluir_usuario:
+        qs = qs.exclude(pk=excluir_usuario.pk)
+    return qs
+
 
 
 
@@ -236,92 +247,117 @@ class TicketViewSet(viewsets.ModelViewSet):
 
 
     def perform_create(self, serializer):
+        ticket = serializer.save(creado_por=self.request.user)
+        # Notificación In-App para el Estudiante/Creador
+        Notificacion.objects.create(
+            usuario=self.request.user,
+            ticket=ticket,
+            mensaje="Tu ticket ha sido generado exitosamente"
+        )
+        # Notificación In-App para Staff del área asignada
+        personal = obtener_personal_area(ticket.area_responsable, excluir_usuario=self.request.user)
+        notifs = [
+            Notificacion(
+                usuario=staff,
+                ticket=ticket,
+                mensaje=f"Nuevo ticket #{ticket.id} asignado a tu área: {ticket.titulo}"
+            )
+            for staff in personal
+        ]
+        if notifs:
+            Notificacion.objects.bulk_create(notifs)
 
+    def perform_update(self, serializer):
+        instancia_previa = Ticket.objects.get(pk=serializer.instance.pk)
+        area_previa = instancia_previa.area_responsable
+        prioridad_previa = instancia_previa.prioridad
+        estado_previo = instancia_previa.estado
 
+        ticket_actualizado = serializer.save()
+        usuario_actual = self.request.user
 
-        serializer.save(creado_por=self.request.user)
+        # 1. Cambio de Prioridad
+        if ticket_actualizado.prioridad != prioridad_previa:
+            personal = obtener_personal_area(ticket_actualizado.area_responsable, excluir_usuario=usuario_actual)
+            notifs = [
+                Notificacion(
+                    usuario=staff,
+                    ticket=ticket_actualizado,
+                    mensaje=f"El ticket #{ticket_actualizado.id} cambió de prioridad a {ticket_actualizado.get_prioridad_display()}"
+                )
+                for staff in personal
+            ]
+            if notifs:
+                Notificacion.objects.bulk_create(notifs)
 
+        # 2. Ticket Derivado
+        if ticket_actualizado.area_responsable_id != area_previa.id:
+            personal_receptor = obtener_personal_area(ticket_actualizado.area_responsable, excluir_usuario=usuario_actual)
+            notifs_receptores = [
+                Notificacion(
+                    usuario=staff,
+                    ticket=ticket_actualizado,
+                    mensaje=f"El ticket #{ticket_actualizado.id} ha sido derivado a tu área"
+                )
+                for staff in personal_receptor
+            ]
+            if notifs_receptores:
+                Notificacion.objects.bulk_create(notifs_receptores)
 
+            Notificacion.objects.create(
+                usuario=usuario_actual,
+                ticket=ticket_actualizado,
+                mensaje=f"Tu ticket #{ticket_actualizado.id} ha sido derivado exitosamente al área {ticket_actualizado.area_responsable.nombre}"
+            )
 
-
-
-
+        # 3. Ticket Cerrado
+        if ticket_actualizado.estado == 'CERRADO' and estado_previo != 'CERRADO':
+            if ticket_actualizado.creado_por != usuario_actual:
+                Notificacion.objects.create(
+                    usuario=ticket_actualizado.creado_por,
+                    ticket=ticket_actualizado,
+                    mensaje=f"Tu ticket #{ticket_actualizado.id} ha sido cerrado"
+                )
 
     @action(detail=False, methods=['get'])
-
-
-
     def estadisticas(self, request):
-
-
-
         stats = Ticket.objects.aggregate(
-
-
-
             total=Count('id'),
-
-
-
             abiertos=Count('id', filter=models.Q(estado='ABIERTO')),
-
-
-
             en_progreso=Count('id', filter=models.Q(estado='EN_PROGRESO')),
-
-
-
             cerrados=Count('id', filter=models.Q(estado='CERRADO'))
-
-
-
         )
-
-
-
         return Response(stats)
 
-
-
-
-
-
-
     @action(detail=True, methods=['post'])
-
-
-
     def responder(self, request, pk=None):
-
-
-
         ticket = self.get_object()
-
-
-
         mensaje = (request.data.get('mensaje') or '').strip()
 
-
-
-
-
-
-
         if not mensaje:
-
-
-
-            return Response({'error': 'El mensaje no puede estar vaco.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
+            return Response({'error': 'El mensaje no puede estar vacío.'}, status=status.HTTP_400_BAD_REQUEST)
 
         respuesta = Respuesta.objects.create(ticket=ticket, autor=request.user, mensaje=mensaje)
 
-
+        # Notificaciones por nuevo mensaje
+        if request.user.rol == Usuario.Roles.ESTUDIANTE:
+            apellido = request.user.last_name or request.user.first_name or request.user.username
+            cat_nombre = ticket.categoria.nombre if ticket.categoria else ""
+            mensaje_notif = f"Alumno {apellido} te ha enviado un mensaje con respecto al ticket #{ticket.id}, {cat_nombre}"
+            personal = obtener_personal_area(ticket.area_responsable, excluir_usuario=request.user)
+            notifs = [
+                Notificacion(usuario=staff, ticket=ticket, mensaje=mensaje_notif)
+                for staff in personal
+            ]
+            if notifs:
+                Notificacion.objects.bulk_create(notifs)
+        elif request.user.rol in [Usuario.Roles.STAFF, Usuario.Roles.SUPERVISOR]:
+            if ticket.creado_por != request.user:
+                Notificacion.objects.create(
+                    usuario=ticket.creado_por,
+                    ticket=ticket,
+                    mensaje=f"Nuevo mensaje del staff con respecto al ticket #{ticket.id}"
+                )
 
         return Response(RespuestaSerializer(respuesta).data, status=status.HTTP_201_CREATED)
 
@@ -363,6 +399,21 @@ class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
 
 
     permission_classes = [permissions.IsAuthenticated]
+
+
+class NotificacionViewSet(viewsets.ModelViewSet):
+    serializer_class = NotificacionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return Notificacion.objects.filter(usuario=self.request.user).order_by('-creada_el')[:50]
+
+    @action(detail=False, methods=['post'], url_path='marcar-todas-leidas')
+    def marcar_todas_leidas(self, request):
+        Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
+        return Response({'message': 'Todas las notificaciones han sido marcadas como leídas.'}, status=status.HTTP_200_OK)
+
 
 
 
