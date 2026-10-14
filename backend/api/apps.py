@@ -7,5 +7,5 @@ class ApiConfig(AppConfig):
     name = 'api'
 
     def ready(self):
-        # Importamos las señales para que Django las escuche al arrancar
+        import api.models  # This imports and registers the signals
         import api.signals

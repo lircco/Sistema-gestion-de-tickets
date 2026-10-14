@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, Card, Stack, Typography, TextField, Button, Link, IconButton,
   InputAdornment, Avatar, Alert, Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions
+  DialogContentText, DialogActions, FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
-import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined } from "@mui/icons-material";
+import { MailOutlined, VisibilityOff, Person, AdminPanelSettings, VisibilityOutlined, SchoolOutlined, SupportAgentOutlined, Close } from "@mui/icons-material";
 import { api } from "../lib/api";
 
 function RoleCard({ active, onClick, icon, label }) {
@@ -39,19 +39,57 @@ export default function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [show, setShow] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState("");
+  const [authCode, setAuthCode] = useState("");
+  useEffect(() => {
+    // Only fetch if tab === 1 and role === "staff" to avoid unnecessary calls? Actually, just fetch them.
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
+
   const [loading, setLoading] = useState(false);
 
+  const resetFormFields = () => {
+    setError("");
+    setSuccess("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setConfirm("");
+    setFirstName("");
+    setLastName("");
+    setAuthCode("");
+    setSelectedArea("");
+  };
+
+  const handleTabChange = (newTab) => {
+    setTab(newTab);
+    resetFormFields();
+  };
+
+  const handleRoleChange = (newRole) => {
+    setRole(newRole);
+    resetFormFields();
+  };
   // NUEVOS ESTADOS: Para controlar el flujo del cartel flotante de recuperación
   const [openModal, setOpenModal] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [isSent, setIsSent] = useState(false);
   const [recoveryError, setRecoveryError] = useState("");
   const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // ESTADO: Para el modal de contacto
+  const [contactOpen, setContactOpen] = useState(false);
 
   // Funciones para abrir y cerrar el cartel de recuperación
   const handleOpenModal = (e) => {
@@ -60,11 +98,50 @@ export default function LoginScreen({ onLoginSuccess }) {
     setIsSent(false);
     setRecoveryEmail("");
     setRecoveryError("");
+    setRecoveryCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setIsSuccess(false);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
     setRecoveryError("");
+    setRecoveryCode("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setIsSuccess(false);
+  };
+
+  const handleOpenContact = (e) => {
+    e.preventDefault();
+    setContactOpen(true);
+  };
+
+  const handleCloseContact = () => {
+    setContactOpen(false);
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setRecoveryError("");
+
+    if (newPassword !== confirmNewPassword) {
+      setRecoveryError("Las contraseñas no coinciden.");
+      return;
+    }
+    
+    if (recoveryCode && newPassword) {
+      setRecoveryLoading(true);
+      try {
+        await api.restablecerPassword(recoveryEmail, recoveryCode, newPassword);
+        setIsSuccess(true);
+      } catch (err) {
+        setRecoveryError(err.message || "Hubo un error al restablecer la contraseña.");
+      } finally {
+        setRecoveryLoading(false);
+      }
+    }
   };
 
   const handleSendRecovery = async (e) => {
@@ -88,54 +165,62 @@ export default function LoginScreen({ onLoginSuccess }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
+  e.preventDefault();
+  setError("");
+  setSuccess("");
 
-    if (tab === 0) {
-      setLoading(true);
-      try {
-        const usernameToLogin = role === "admin" 
-          ? username.trim() 
-          : (email.includes("@") ? email.split("@")[0] : email.trim());
-        
-        if (!usernameToLogin) {
-          setError(role === "admin" ? "Por favor ingrese su nombre de usuario" : "Por favor ingrese su email");
-          setLoading(false);
-          return;
-        }
-
-        const user = await api.login(usernameToLogin, password);
-        onLoginSuccess(user);
-      } catch (err) {
-        setError(err.message || "Error al iniciar sesión");
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
-    if (!name || !email || !password || !confirm) {
-      setError("Por favor complete todos los campos");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Las contraseñas no coinciden");
-      return;
-    }
-
-    const [firstName = "", lastName = ""] = name.split(" ", 2);
+  if (tab === 0) {
+    // Login flow
     setLoading(true);
     try {
-      const user = await api.register(email.split("@")[0], password, email, firstName, lastName, confirm);
-      setSuccess("¡Registro exitoso! Iniciando sesión...");
-      setTimeout(() => onLoginSuccess(user), 1000);
+      const usernameToLogin = (role === "admin" || role === "staff") 
+        ? username.trim() 
+        : (email.includes("@") ? email.split("@")[0] : email.trim());
+
+      if (!usernameToLogin) {
+        setError((role === "admin" || role === "staff") 
+          ? "Por favor ingrese su nombre de usuario" 
+          : "Por favor ingrese su email");
+        setLoading(false);
+        return;
+      }
+
+      const user = await api.login(usernameToLogin, password);
+      onLoginSuccess(user);
     } catch (err) {
-      setError(err.message || "Error al registrarse");
+      setError(err.message || "Error al iniciar sesión");
     } finally {
       setLoading(false);
     }
-  };
+    return;
+  }
+
+  // Registration flow (unchanged)
+  if (!firstName || !lastName || !email || !password || !confirm) {
+    setError("Por favor complete todos los campos");
+    return;
+  }
+  if (password !== confirm) {
+    setError("Las contraseñas no coinciden");
+    return;
+  }
+  setLoading(true);
+  try {
+    const rolBackend = role === "admin" ? "SUPERVISOR" : role === "staff" ? "STAFF" : "ESTUDIANTE";
+    const areaToRegister = role === "staff" ? selectedArea : null;
+    await api.register(email.split('@')[0], password, email, firstName, lastName, confirm, rolBackend, areaToRegister, authCode);
+    setSuccess("¡Registro exitoso! Iniciando sesión...");
+    const loggedUser = await api.login(email.split('@')[0], password);
+    setTimeout(() => onLoginSuccess(loggedUser), 1000);
+  } catch (err) {
+    setError(err.message || "Error al registrarse");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   return (
     <Box
@@ -177,43 +262,83 @@ export default function LoginScreen({ onLoginSuccess }) {
 
         <Card sx={{ width: "100%", p: 3, boxShadow: "0 10px 40px rgba(0,0,0,0.06)" }}>
           <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-            <Button fullWidth variant={tab === 0 ? "contained" : "outlined"} onClick={() => { setTab(0); setError(""); setSuccess(""); }}>
+            <Button fullWidth variant={tab === 0 ? "contained" : "outlined"} onClick={() => handleTabChange(0)}>
               INICIAR SESIÓN
             </Button>
-            <Button fullWidth variant={tab === 1 ? "contained" : "outlined"} onClick={() => { setTab(1); setError(""); setSuccess(""); }}>
+            <Button fullWidth variant={tab === 1 ? "contained" : "outlined"} onClick={() => handleTabChange(1)}>
               REGISTRARSE
             </Button>
           </Stack>
 
           <Box component="form" onSubmit={handleSubmit}>
-            {tab === 0 && (
+            
               <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-                <RoleCard active={role === "alumno"} onClick={() => { setRole("alumno"); setError(""); }} icon={<Person />} label="Soy Alumno" />
-                <RoleCard active={role === "admin"} onClick={() => { setRole("admin"); setError(""); }} icon={<AdminPanelSettings />} label="Soy Administrador" />
+                <RoleCard active={role === "alumno"} onClick={() => handleRoleChange("alumno")} icon={<Person />} label="Alumno" />
+                <RoleCard active={role === "staff"} onClick={() => handleRoleChange("staff")} icon={<SupportAgentOutlined />} label="Staff" />
+                <RoleCard active={role === "admin"} onClick={() => handleRoleChange("admin")} icon={<AdminPanelSettings />} label="Admin" />
+              </Stack>
+
+
+            {tab === 1 && (
+              <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre</Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="Ej. Mateo"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    size="small"
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Apellido</Typography>
+                  <TextField
+                    fullWidth
+                    placeholder="Ej. Rossi"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    size="small"
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </Box>
               </Stack>
             )}
 
-            {tab === 1 && (
-              <>
-                <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre completo</Typography>
-                <TextField
-                  fullWidth
-                  placeholder="Ej. Mateo Rossi"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
-                />
-              </>
-            )}
+              {tab === 1 && role === "staff" && (
+                <>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Área</Typography>
+                  <FormControl size="small" fullWidth sx={{ mb: 2 }}>
+                    <Select value={selectedArea} onChange={(e) => setSelectedArea(e.target.value)} sx={{ bgcolor: "#f4f6f9" }}>
+                      <MenuItem value="" disabled>Seleccione un área</MenuItem>
+                      {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
 
-            {tab === 0 && role === "admin" ? (
+
+              {tab === 1 && (role === "staff" || role === "admin") && (
+                <>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Código de Autorización</Typography>
+                  <TextField
+                    fullWidth
+                    type="password"
+                    placeholder="Ingrese el código secreto"
+                    value={authCode}
+                    onChange={(e) => setAuthCode(e.target.value)}
+                    size="small"
+                    sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  />
+                </>
+              )}
+
+            {tab === 0 && (role === "admin" || role === "staff") ? (
               <>
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>Nombre de Usuario</Typography>
                 <TextField
-                  key="admin-username-input"
                   fullWidth
-                  type="text"
                   placeholder="Ej. Pedro Gonzalez"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -331,14 +456,16 @@ export default function LoginScreen({ onLoginSuccess }) {
                 ? "CREAR CUENTA"
                 : role === "admin"
                   ? "INGRESAR COMO ADMINISTRADOR"
-                  : "INGRESAR COMO ALUMNO"}
+                  : role === "staff"
+                    ? "INGRESAR COMO STAFF"
+                    : "INGRESAR COMO ALUMNO"}
             </Button>
           </Box>
         </Card>
 
         <Typography sx={{ fontSize: 13, color: "#6b7280" }}>
           ¿Necesita ayuda inmediata?{' '}
-          <Link href="#" sx={{ fontWeight: 700, color: "primary.main" }}>
+          <Link href="#" onClick={handleOpenContact} sx={{ fontWeight: 700, color: "primary.main" }}>
             Contactar Soporte
           </Link>
         </Typography>
@@ -347,12 +474,11 @@ export default function LoginScreen({ onLoginSuccess }) {
       {/* NUEVO COMPONENTE: Cartel flotante (Dialog) para el flujo de Olvidó su Contraseña */}
       <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="xs">
         {!isSent ? (
-          // Paso 1: Formulario para ingresar el Gmail
           <Box component="form" onSubmit={handleSendRecovery}>
             <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Recuperar Contraseña</DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
-                Ingresá tu correo electrónico y te enviaremos los pasos para restablecer tu contraseña.
+                Ingresá tu correo electrónico y te enviaremos un código de seguridad para restablecer tu contraseña.
               </DialogContentText>
               {recoveryError && (
                 <Alert severity="error" sx={{ mb: 2 }}>
@@ -378,19 +504,74 @@ export default function LoginScreen({ onLoginSuccess }) {
                 Cancelar
               </Button>
               <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
-                {recoveryLoading ? "Enviando..." : "Enviar Correo"}
+                {recoveryLoading ? "Enviando..." : "Enviar Código"}
+              </Button>
+            </DialogActions>
+          </Box>
+        ) : !isSuccess ? (
+          <Box component="form" onSubmit={handleVerifyCode}>
+            <DialogTitle sx={{ fontWeight: 700, color: "primary.main" }}>Restablecer Contraseña</DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
+                Hemos enviado un código (contraseña temporal) a <strong>{recoveryEmail}</strong>. Ingresalo abajo junto con tu nueva contraseña deseada.
+              </DialogContentText>
+              {recoveryError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {recoveryError}
+                </Alert>
+              )}
+              <Stack spacing={2}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Código recibido en el mail"
+                  value={recoveryCode}
+                  onChange={(e) => setRecoveryCode(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+                <TextField
+                  required
+                  fullWidth
+                  type="password"
+                  label="Nueva Contraseña"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+                <TextField
+                  required
+                  fullWidth
+                  type="password"
+                  label="Confirmar Nueva Contraseña"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  disabled={recoveryLoading}
+                />
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 2.5 }}>
+              <Button onClick={handleCloseModal} color="inherit" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" color="primary" sx={{ fontWeight: 600 }} disabled={recoveryLoading}>
+                {recoveryLoading ? "Verificando..." : "Cambiar Contraseña"}
               </Button>
             </DialogActions>
           </Box>
         ) : (
-          // Paso 2: Mensaje de confirmación exitosa una vez presionado "Enviar"
           <Box sx={{ p: 2, textAlign: "center" }}>
             <DialogTitle sx={{ color: "success.main", fontWeight: 700, fontSize: 22 }}>
-              ¡Solicitud Enviada!
+              ¡Contraseña Actualizada!
             </DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ fontSize: 14, color: "#374151" }}>
-                Si la casilla <strong>{recoveryEmail}</strong> está registrada, recibirás un correo con las instrucciones y tu contraseña temporal para ingresar. Por favor, revisá tu bandeja de entrada.
+                Tu contraseña fue cambiada exitosamente. Ya podés iniciar sesión con tu nueva contraseña.
               </DialogContentText>
             </DialogContent>
             <DialogActions sx={{ justifyContent: "center", pb: 1.5 }}>
@@ -401,6 +582,22 @@ export default function LoginScreen({ onLoginSuccess }) {
           </Box>
         )}
       </Dialog>
+
+      {/* NUEVO COMPONENTE: Cartel flotante (Dialog) para Contactar Soporte */}
+      <Dialog open={contactOpen} onClose={handleCloseContact} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 700, color: "primary.main", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Contacto de Soporte
+          <IconButton onClick={handleCloseContact} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Typography sx={{ fontSize: 15, color: "#374151" }}>
+            Correo: soporte@unraf.edu.ar  
+            Personalmente: Campus UNRaf en Av Angela de la Casa 2500 - Rafaela   Horarios de atención: 15 a 21hs
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }
@@ -408,3 +605,4 @@ export default function LoginScreen({ onLoginSuccess }) {
 function SchoolIcon() {
   return <SchoolOutlined sx={{ color: "#fff", fontSize: 34 }} />;
 }
+

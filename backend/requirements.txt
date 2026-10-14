@@ -13,3 +13,4 @@ python-dotenv==1.2.2
 sqlparse==0.5.5
 tzdata==2026.2
 coverage
+whitenoise==6.7.0

@@ -10,6 +10,7 @@ from .views import (
     LoginView,
     LogoutView,
     RecuperarPasswordView,
+    RestablecerPasswordView,
     CambiarPasswordView
 )
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path('me/', UsuarioActualView.as_view(), name='usuario-actual'),
     # --- RUTA DE RECUPERACIÓN ---
     path('auth/recuperar-password/', RecuperarPasswordView.as_view(), name='recuperar_password'),
+    path('auth/restablecer-password/', RestablecerPasswordView.as_view(), name='restablecer_password'),
     # --- RUTA DE CAMBIO DE CONTRASEÑA (usuario logueado) ---
     path('auth/cambiar-password/', CambiarPasswordView.as_view(), name='cambiar_password'),
 ]

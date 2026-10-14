@@ -2,12 +2,13 @@ import React from "react";
 import { Box, Stack, Typography, Button, Link, Table, TableBody, TableCell, TableHead, TableRow, Paper, Chip, IconButton } from "@mui/material";
 import { MailOutlined, AssignmentOutlined, ArrowForward, VisibilityOutlined, CheckCircleOutlined, HighlightOffOutlined } from "@mui/icons-material";
 import StatCard from "../shared/StatCard";
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, adminName }) {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">¡Bienvenido, {adminName || "Administrador"}!</Typography>
+        <Typography variant="h4">¡Hola, {adminName ? adminName.split(" ")[0] : "Administrador"}!</Typography>
         <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>
@@ -52,13 +53,10 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                     <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.categoria_nombre}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip size="small" label={r.prioridad} sx={{ fontWeight: 600 }} />
+                    <PriorityBadge priority={r.prioridad} />
                   </TableCell>
                   <TableCell>
-                    <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.estado === "ABIERTO" ? "#3b82f6" : "#f59e0b" }} />
-                      <Typography sx={{ fontSize: 13 }}>{r.estado}</Typography>
-                    </Stack>
+                    <StatusBadge status={r.estado} />
                   </TableCell>
                   <TableCell>
                     <IconButton size="small" onClick={() => onOpenTicket(r)}>
