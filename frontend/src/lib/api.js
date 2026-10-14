@@ -291,8 +291,59 @@ export const api = {
       throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
+  },
+
+  // --- NOTIFICACIONES IN-APP ---
+  getNotificaciones: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudieron cargar las notificaciones");
+    }
+    return await response.json();
+  },
+
+  marcarNotificacionLeida: async (id) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ leida: true }),
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo marcar la notificación como leída");
+    }
+    return await response.json();
+  },
+
+  marcarTodasNotificacionesLeidas: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/marcar-todas-leidas/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudieron marcar todas las notificaciones como leídas");
+    }
+    return await response.json();
   }
 };
+
 
 
 export const getFileUrl = (path) => {
