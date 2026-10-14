@@ -407,7 +407,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        return Notificacion.objects.filter(usuario=self.request.user).order_by('-creada_el')[:50]
+        return Notificacion.objects.filter(usuario=self.request.user).order_by('-creada_el')
 
     @action(detail=False, methods=['post'], url_path='marcar-todas-leidas')
     def marcar_todas_leidas(self, request):
