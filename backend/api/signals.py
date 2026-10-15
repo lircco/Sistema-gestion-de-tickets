@@ -4,14 +4,7 @@ from django.core.mail import send_mail
 from .models import Ticket, RegistroEmail, Usuario
 
 
-@receiver(post_save, sender=Usuario)
-def asignar_rol_supervisor_a_superusuario(sender, instance, **kwargs):
-    # createsuperuser no pasa por la serialización/validación de la API, así que
-    # el rol queda en el default (ESTUDIANTE). Si el usuario es superusuario,
-    # forzamos el rol a SUPERVISOR. Usamos .update() (no .save()) para no
-    # volver a disparar esta misma señal.
-    if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
-        Usuario.objects.filter(pk=instance.pk).update(rol=Usuario.Roles.SUPERVISOR)
+
 
 @receiver(post_save, sender=Ticket)
 def notificar_cambio_ticket(sender, instance, created, **kwargs):
@@ -23,9 +16,16 @@ def notificar_cambio_ticket(sender, instance, created, **kwargs):
         asunto = f"Tu ticket #{instance.id} ha sido creado"
         cuerpo = f"Saludos {instance.creado_por.first_name},\n\nTu ticket '{instance.titulo}' ha sido registrado con éxito en el área de {instance.area_responsable.nombre}.\n\nEstado actual: {instance.get_estado_display()}."
     else:
-        # Si el ticket se actualizó, notificamos el estado actual
-        asunto = f"Actualización del ticket #{instance.id}"
-        cuerpo = f"Saludos {instance.creado_por.first_name},\n\nTu ticket #{instance.id} ('{instance.titulo}') ha cambiado de estado.\n\nNuevo Estado: {instance.get_estado_display()}."
+        # Si el ticket se actualizó, notificamos sólo si está CERRADO y no lo habíamos notificado
+        if instance.estado != 'CERRADO':
+            return
+            
+        asunto_cerrado = f"Tu ticket #{instance.id} ha sido cerrado"
+        if RegistroEmail.objects.filter(ticket=instance, asunto=asunto_cerrado, exitoso=True).exists():
+            return
+            
+        asunto = asunto_cerrado
+        cuerpo = f"Saludos {instance.creado_por.first_name},\n\nTu ticket #{instance.id} ('{instance.titulo}') ha cambiado a estado CERRADO.\n\nGracias por utilizar la plataforma."
 
     # Intentamos enviar el correo real solo si el usuario tiene email
     exitoso = False

@@ -1,10 +1,42 @@
-import React, { useState } from "react";
-import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { api } from "../../lib/api";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
+
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(person.area || "");
+  const [areaSuccess, setAreaSuccess] = useState("");
+  useEffect(() => {
+    api.getAreas().then(setAreas).catch(() => {});
+  }, []);
+    const [areaError, setAreaError] = useState("");
+  const handleUpdateArea = async () => {
+    if (!selectedArea) {
+      setAreaError("Seleccione un área para guardar");
+      setAreaSuccess("");
+      return;
+    }
+    setAreaError("");
+    try {
+      await api.updateMe({ area: selectedArea });
+      setAreaSuccess("Área actualizada correctamente.");
+      setTimeout(() => setAreaSuccess(""), 3000);
+    } catch (e) {
+      setAreaError("Error al actualizar el área");
+    }
+  };
+
   const [emailAlerts, setEmailAlerts] = useState(true);
-  const [pushAlerts, setPushAlerts] = useState(false);
+  const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
+  const handlePushAlertsChange = (e) => {
+    const val = e.target.checked;
+    setPushAlerts(val);
+    localStorage.setItem("pushAlerts", val);
+    if (val && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  };
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -49,11 +81,28 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "flex-start" } }}>
             <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main", fontSize: 32 }}>{person.name.charAt(0)}</Avatar>
             <Stack spacing={2} sx={{ flex: 1, width: "100%" }}>
-              <TextField label="Nombre Completo" defaultValue={person.name} size="small" fullWidth key={person.email + "n"} />
+              <TextField label="Nombre Completo" defaultValue={person.name} size="small" fullWidth key={person.email + "n"} slotProps={{ input: { readOnly: true } }} disabled />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} />
+                <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} slotProps={{ input: { readOnly: true } }} disabled />
                 <TextField label="Legajo" defaultValue={legajo} size="small" sx={{ width: { xs: "100%", sm: 200 } }} />
               </Stack>
+              {person.role?.toUpperCase() === "STAFF" && (
+                <>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
+                    <FormControl size="small" fullWidth>
+                      <InputLabel>Área Asignada</InputLabel>
+                      <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)}>
+                        <MenuItem value=""><em>Ninguna</em></MenuItem>
+                        {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                      </Select>
+                    </FormControl>
+                    <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
+                  </Stack>
+                  {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
+                  {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
+                </>
+              )}
+
             </Stack>
           </Stack>
         </Paper>
@@ -90,50 +139,17 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   Alertas inmediatas en navegador y dispositivo móvil.
                 </Typography>
               </Box>
-              <Switch checked={pushAlerts} onChange={(e) => setPushAlerts(e.target.checked)} />
+              <Switch checked={pushAlerts} onChange={handlePushAlertsChange} />
             </Box>
           </Stack>
         </Paper>
 
-        <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Seguridad</Typography>
-          <Stack spacing={2}>
-            <TextField
-              label="Contraseña Actual"
-              type="password"
-              size="small"
-              fullWidth
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label="Nueva Contraseña"
-                type="password"
-                size="small"
-                fullWidth
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <TextField
-                label="Confirmar Nueva Contraseña"
-                type="password"
-                size="small"
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </Stack>
-            {passwordError && <Alert severity="error">{passwordError}</Alert>}
-            {passwordSuccess && <Alert severity="success">{passwordSuccess}</Alert>}
-            <Box>
-              <Button variant="contained" onClick={handleUpdatePassword} disabled={submitting}>
-                {submitting ? "Actualizando..." : "Actualizar Contraseña"}
-              </Button>
-            </Box>
-          </Stack>
-        </Paper>
+        
       </Stack>
     </Stack>
   );
 }
+
+
+
+

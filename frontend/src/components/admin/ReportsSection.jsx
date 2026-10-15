@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
 import { ReportKpi } from "../shared/ReportKpi";
 import {
-  computeAvgLeadTimeHours,
-  computeLeadTimeByArea,
-  computeCategoriaDistribution,
-  computeSlaEnRiesgo,
-  computeResolvedRate,
-} from "../../lib/utils";
+      computeAvgLeadTimeHours,
+      computeLeadTimeByArea,
+      computeCategoriaDistribution,
+      computeSlaEnRiesgo,
+      computeResolvedRate,
+    } from "../../lib/utils";
+
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const CATEGORIA_COLORS = ["#0a3d62", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
 
@@ -27,6 +29,15 @@ export default function ReportsSection({ tickets = [], stats }) {
   const leadTimeByArea = computeLeadTimeByArea(tickets);
   const categoriaDistribution = computeCategoriaDistribution(tickets);
   const maxAreaHours = Math.max(...leadTimeByArea.map((a) => a.hours), 1);
+
+
+  let mejorArea = null;
+  if (leadTimeByArea.length > 0) {
+    mejorArea = [...leadTimeByArea].sort((a, b) => {
+      if (a.count !== b.count) return b.count - a.count;
+      return a.hours - b.hours;
+    })[0];
+  }
 
   return (
     <Stack spacing={3}>
@@ -78,13 +89,27 @@ export default function ReportsSection({ tickets = [], stats }) {
             </Typography>
           ) : (
             <>
+              {mejorArea && (
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#e0f2fe', borderRadius: 1, border: '1px solid #bae6fd' }}>
+                  <Typography sx={{ fontSize: 13, color: '#0369a1', fontWeight: 600 }}>
+                    Área Destacada: {mejorArea.area}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: '#0284c7' }}>
+                    Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de {mejorArea.hours.toFixed(1)}h.
+                  </Typography>
+                </Box>
+              )}
               <Stack direction="row" spacing={2} sx={{ alignItems: "flex-end", height: 140, mt: 2 }}>
                 {leadTimeByArea.map((a, i) => (
                   <Box
                     key={a.area}
-                    title={`${a.area}: ${a.hours.toFixed(1)}h`}
-                    sx={{ flex: 1, height: Math.max((a.hours / maxAreaHours) * 140, 6), bgcolor: "primary.main", opacity: 0.4 + i * 0.1, borderRadius: 1 }}
-                  />
+                    title={`${a.area}: ${a.hours.toFixed(1)}h (${a.count} tickets)`}
+                    sx={{ flex: 1, height: Math.max((a.hours / maxAreaHours) * 140, 6), bgcolor: "primary.main", opacity: 0.4 + (i * 0.1), borderRadius: 1, position: 'relative' }}
+                  >
+                     <Typography sx={{ position: 'absolute', top: -20, left: 0, width: '100%', textAlign: 'center', fontSize: 10, color: 'text.secondary', fontWeight: 700 }}>
+                        {a.count}t
+                     </Typography>
+                  </Box>
                 ))}
               </Stack>
               <Stack direction="row" spacing={2} sx={{ mt: 1, justifyContent: "space-between" }}>

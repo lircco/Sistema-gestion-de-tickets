@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment, Menu, MenuItem } from "@mui/material";
-import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined } from "@mui/icons-material";
+import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
+import { getFileUrl } from "../../lib/api";
+import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
@@ -13,7 +15,7 @@ const FECHA_OPTIONS = [
   { key: "90", label: "Últimos 90 días" },
 ];
 
-export default function TicketsTable({ tickets, onOpenTicket }) {
+export default function TicketsTable({ tickets, onOpenTicket, admin }) {
   const [search, setSearch] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("");
@@ -123,15 +125,35 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
             {visibleTickets.map((r) => (
               <TableRow key={r.id} hover>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>{r.titulo}</TableCell>
-                <TableCell>{r.categoria_nombre}</TableCell>
-                <TableCell><Chip size="small" label={r.estado} sx={{ fontWeight: 700, fontSize: 11 }} /></TableCell>
                 <TableCell>
-                  <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
-                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: r.prioridad === 'ALTA' ? '#ef4444' : '#9ca3af' }} />
-                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{r.prioridad}</Typography>
-                  </Stack>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
+                  {r.archivo_adjunto && r.archivo_adjunto !== "null" && r.archivo_adjunto !== "" && (
+                    <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
+                      <Chip
+                        size="small"
+                        component="a"
+                        href={getFileUrl(r.archivo_adjunto)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        clickable
+                        onClick={(e) => e.stopPropagation()}
+                        icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
+                        label="Ver adjunto"
+                        sx={{ fontSize: 11, maxWidth: 200 }}
+                      />
+                    </Stack>
+                  )}
                 </TableCell>
+                <TableCell>
+                  {r.categoria_nombre}
+                  {admin?.rol === 'SUPERVISOR' && r.area_nombre && (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 11, mt: 0.5 }}>
+                      Área: {r.area_nombre}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell><StatusBadge status={r.estado} /></TableCell>
+                <TableCell><PriorityBadge priority={r.prioridad} /></TableCell>
                 <TableCell>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <IconButton size="small" onClick={() => onOpenTicket(r)}>
@@ -147,3 +169,6 @@ export default function TicketsTable({ tickets, onOpenTicket }) {
     </Stack>
   );
 }
+
+
+
