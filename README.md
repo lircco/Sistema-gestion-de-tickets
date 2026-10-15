@@ -19,7 +19,19 @@ El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para
 docker network create nginx-proxy
 ```
 
-### 2. Levantar el entorno completo
+### 2. Configurar variables de entorno
+
+Copiá el archivo de ejemplo a `.env` en la raíz (junto a `docker-compose.yml`) y ajustá los valores:
+
+```bash
+cp .env.example .env
+```
+
+Si no existe `.env`, Compose usa valores por defecto de desarrollo (`app2_db` / `app2_user` / `app2_password`). Opcionalmente podés crear `backend/.env` a partir de `backend/.env.example` (credenciales de email).
+
+> Si cambiás las credenciales de la base después de haberla levantado una vez, Postgres conserva las anteriores en el volumen. Para reinicializarla (borra los datos): `docker compose down -v`.
+
+### 3. Levantar el entorno completo
 
 Para construir y levantar todos los servicios (Base de datos, Backend, Frontend y Adminer) en segundo plano:
 
