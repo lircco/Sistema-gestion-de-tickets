@@ -2,7 +2,7 @@
 
 
 
-from rest_framework import viewsets, filters, permissions, status
+from rest_framework import viewsets, mixins, filters, permissions, status
 
 
 
@@ -78,7 +78,8 @@ from .permissions import PuedeGestionarTicket
 
 
 
-class RegistroUsuarioViewSet(viewsets.ModelViewSet):
+class RegistroUsuarioViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    # Solo alta de cuentas: listar, editar o borrar usuarios no es público.
 
 
 
