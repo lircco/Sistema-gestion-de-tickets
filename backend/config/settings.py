@@ -167,6 +167,10 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+# Máximo de segundos esperando al servidor SMTP antes de dar el envío por fallido.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 10))
+# Enviar las notificaciones de tickets en segundo plano (ver api/emails.py).
+EMAIL_ASYNC = os.environ.get("EMAIL_ASYNC", "True").lower() == "true"
 
 # ACÁ VAN TUS DATOS REALES:
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "lirccoweb@gmail.com")

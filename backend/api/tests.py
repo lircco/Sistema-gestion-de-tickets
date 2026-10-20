@@ -45,7 +45,9 @@ class APITests(APITestCase):
             "categoria": self.categoria.id,
             "prioridad": "ALTA"
         }
-        response = self.client.post(url, data)
+        # El email se envía al confirmar la transacción (ver api/emails.py)
+        with self.settings(EMAIL_ASYNC=False), self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Ticket.objects.count(), 1)
         ticket = Ticket.objects.first()
