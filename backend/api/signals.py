@@ -1,9 +1,11 @@
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from .models import Ticket, RegistroEmail, Usuario
 
-
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=Ticket)
@@ -39,12 +41,11 @@ def notificar_cambio_ticket(sender, instance, created, **kwargs):
                 fail_silently=False, # Ponlo en False para capturar errores si el SMTP falla
             )
             exitoso = True
-        except Exception as e:
-            # Aquí podrías usar un logger para registrar el error exacto en producción
-            print(f"Error al enviar el correo: {e}")
+        except Exception:
+            logger.exception("Error al enviar el correo '%s' a %s", asunto, destinatario)
             exitoso = False
     else:
-        print(f"Advertencia: El usuario {instance.creado_por.username} no tiene email configurado.")
+        logger.warning("El usuario %s no tiene email configurado.", instance.creado_por.username)
 
     # Guardamos el historial en la base de datos pase lo que pase
     RegistroEmail.objects.create(

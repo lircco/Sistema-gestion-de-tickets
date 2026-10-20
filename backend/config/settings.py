@@ -111,6 +111,26 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Logging a consola (Docker / Cloud Logging lo recolectan desde stdout/stderr).
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{levelname} {asctime} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+        "api": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+    },
+}
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
