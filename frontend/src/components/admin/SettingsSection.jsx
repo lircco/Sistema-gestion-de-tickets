@@ -6,6 +6,8 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
 
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(person.area || "");
+  // Una vez asignada, el área solo la puede cambiar un supervisor.
+  const [areaBloqueada, setAreaBloqueada] = useState(Boolean(person.area));
   const [areaSuccess, setAreaSuccess] = useState("");
   useEffect(() => {
     api.getAreas().then(setAreas).catch(() => {});
@@ -20,6 +22,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
     setAreaError("");
     try {
       await api.updateMe({ area: selectedArea });
+      setAreaBloqueada(true);
       setAreaSuccess("Área actualizada correctamente.");
       setTimeout(() => setAreaSuccess(""), 3000);
     } catch (e) {
@@ -91,13 +94,18 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
                     <FormControl size="small" fullWidth>
                       <InputLabel>Área Asignada</InputLabel>
-                      <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)}>
-                        <MenuItem value=""><em>Ninguna</em></MenuItem>
+                      <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)} disabled={areaBloqueada}>
+                        <MenuItem value="" disabled><em>Seleccioná un área</em></MenuItem>
                         {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
                       </Select>
                     </FormControl>
-                    <Button variant="outlined" onClick={handleUpdateArea}>Guardar Área</Button>
+                    <Button variant="outlined" onClick={handleUpdateArea} disabled={areaBloqueada}>Guardar Área</Button>
                   </Stack>
+                  {areaBloqueada && (
+                    <Typography sx={{ mt: 1, fontSize: 12, color: "text.secondary" }}>
+                      Para cambiar de área, pedíselo a un supervisor.
+                    </Typography>
+                  )}
                   {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
                   {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
                 </>

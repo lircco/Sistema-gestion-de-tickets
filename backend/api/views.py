@@ -436,18 +436,26 @@ class UsuarioActualView(APIView):
 
 
     def patch(self, request):
-
         usuario = request.user
+        if 'area' not in request.data:
+            return Response({'message': 'Perfil actualizado'})
 
-        area_id = request.data.get('area')
+        # El área define qué tickets ve un STAFF: solo puede elegirla la primera vez.
+        # Reasignarla queda en manos de un supervisor (panel de administración).
+        if usuario.rol != Usuario.Roles.STAFF:
+            return Response({'error': 'Solo el personal de Staff tiene un área asignada.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if area_id is not None:
+        try:
+            area = Area.objects.get(pk=request.data.get('area'))
+        except (Area.DoesNotExist, ValueError, TypeError):
+            return Response({'error': 'El área seleccionada no existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            usuario.area_id = area_id
+        if usuario.area_id is not None and usuario.area_id != area.id:
+            return Response({'error': 'Tu área ya está asignada. Para cambiarla, pedíselo a un supervisor.'}, status=status.HTTP_403_FORBIDDEN)
 
-            usuario.save()
-
-        return Response({'message': 'Perfil actualizado'})
+        usuario.area = area
+        usuario.save(update_fields=['area'])
+        return Response({'message': 'Perfil actualizado', 'area': area.id})
 
 
 
