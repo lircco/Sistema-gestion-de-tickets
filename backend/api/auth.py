@@ -16,6 +16,7 @@ class CustomAuthBackend(ModelBackend):
             
             users = Usuario.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name)
             for u in users:
-                if u.check_password(password):
+                # Igual que el login por username: un usuario inactivo no entra.
+                if u.check_password(password) and self.user_can_authenticate(u):
                     return u
         return None
