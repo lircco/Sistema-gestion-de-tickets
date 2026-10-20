@@ -34,7 +34,8 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
   };
 
   const MAX_SIZE = 5 * 1024 * 1024;
-  const ACCEPT = "image/*,application/pdf";
+  // Mismas extensiones que acepta el backend (sin SVG).
+  const ACCEPT = "image/png,image/jpeg,image/gif,image/webp,application/pdf";
 
   const handleFiles = (incoming) => {
     if (!incoming) return;

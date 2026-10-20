@@ -2,7 +2,7 @@
 
 
 
-from rest_framework import viewsets, filters, permissions, status
+from rest_framework import viewsets, mixins, filters, permissions, status
 
 
 
@@ -48,13 +48,17 @@ from django.core.mail import send_mail
 
 from django.conf import settings
 
+import os
+
+from django.http import FileResponse, Http404
 
 
 
 
 
 
-from django.utils.crypto import get_random_string
+
+from django.contrib.auth.tokens import default_token_generator
 
 
 
@@ -89,7 +93,8 @@ def obtener_personal_area(area, excluir_usuario=None):
 
 
 
-class RegistroUsuarioViewSet(viewsets.ModelViewSet):
+class RegistroUsuarioViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    # Solo alta de cuentas: listar, editar o borrar usuarios no es público.
 
 
 
@@ -321,7 +326,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def estadisticas(self, request):
-        stats = Ticket.objects.aggregate(
+        # Mismo alcance que el listado: propios, del área o todos según el rol.
+        stats = self.get_queryset().aggregate(
             total=Count('id'),
             abiertos=Count('id', filter=models.Q(estado='ABIERTO')),
             en_progreso=Count('id', filter=models.Q(estado='EN_PROGRESO')),
@@ -360,6 +366,15 @@ class TicketViewSet(viewsets.ModelViewSet):
                 )
 
         return Response(RespuestaSerializer(respuesta).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def adjunto(self, request, pk=None):
+        # Sirve el adjunto solo a quien puede ver el ticket (get_object aplica get_queryset).
+        ticket = self.get_object()
+        if not ticket.archivo_adjunto:
+            raise Http404('El ticket no tiene adjunto.')
+        nombre = os.path.basename(ticket.archivo_adjunto.name)
+        return FileResponse(ticket.archivo_adjunto.open('rb'), filename=nombre)
 
 
 
@@ -486,18 +501,26 @@ class UsuarioActualView(APIView):
 
 
     def patch(self, request):
-
         usuario = request.user
+        if 'area' not in request.data:
+            return Response({'message': 'Perfil actualizado'})
 
-        area_id = request.data.get('area')
+        # El área define qué tickets ve un STAFF: solo puede elegirla la primera vez.
+        # Reasignarla queda en manos de un supervisor (panel de administración).
+        if usuario.rol != Usuario.Roles.STAFF:
+            return Response({'error': 'Solo el personal de Staff tiene un área asignada.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if area_id is not None:
+        try:
+            area = Area.objects.get(pk=request.data.get('area'))
+        except (Area.DoesNotExist, ValueError, TypeError):
+            return Response({'error': 'El área seleccionada no existe.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            usuario.area_id = area_id
+        if usuario.area_id is not None and usuario.area_id != area.id:
+            return Response({'error': 'Tu área ya está asignada. Para cambiarla, pedíselo a un supervisor.'}, status=status.HTTP_403_FORBIDDEN)
 
-            usuario.save()
-
-        return Response({'message': 'Perfil actualizado'})
+        usuario.area = area
+        usuario.save(update_fields=['area'])
+        return Response({'message': 'Perfil actualizado', 'area': area.id})
 
 
 
@@ -522,39 +545,11 @@ class LoginView(APIView):
 
 
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        
-        user = authenticate(username=username, password=password)
-        
-        if not user and username and ' ' in username:
-            # Intentar login con nombre y apellido
-            parts = username.split(' ', 1)
-            first_name = parts[0]
-            last_name = parts[1] if len(parts) > 1 else ''
-            
-            try:
-                # Filtrar usuarios que coincidan y chequear password manualmente
-                users = Usuario.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name)
-                for u in users:
-                    if u.check_password(password):
-                        user = u
-                        break
-            except Exception:
-                pass
-
+        # CustomAuthBackend resuelve tanto el username como "Nombre Apellido".
+        user = authenticate(request, username=request.data.get('username'), password=request.data.get('password'))
         if user:
-
-
-
             login(request, user)
-
-
-
             return Response(UsuarioSerializer(user).data)
-
-
-
         return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -604,163 +599,39 @@ class LogoutView(APIView):
 
 
 class RecuperarPasswordView(APIView):
-
-
-
+    """
+    Envía por mail un código de un solo uso para restablecer la contraseña.
+    No modifica la contraseña actual: eso recién pasa en RestablecerPasswordView,
+    con el código. El código vence a los PASSWORD_RESET_TIMEOUT segundos y deja de
+    servir apenas la contraseña cambia.
+    """
     permission_classes = [permissions.AllowAny]
 
-
-
-
-
-
-
     def post(self, request):
-
-
-
         email = request.data.get('email')
-
-
-
-        
-
-
-
         if not email:
-
-
-
             return Response({'error': 'Por favor, ingrese un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-        
-
-
-
-        try:
-
-
-
-            usuario = Usuario.objects.get(email=email)
-
-
-
-            
-
-
-
-            nueva_clave = get_random_string(length=12)
-
-
-
-            usuario.set_password(nueva_clave)
-
-
-
-            usuario.save()
-
-
-
-
-
-
-
-            # Configuramos el mensaje para Gmail
-
-
-
-            asunto = 'Contraseña restablecida con éxito - UnRafTickets'
-
-
-
+        minutos_validez = settings.PASSWORD_RESET_TIMEOUT // 60
+        email_desde = f'Sistema de Tickets Universidad <{settings.EMAIL_HOST_USER}>'
+        for usuario in Usuario.objects.filter(email=email, is_active=True):
+            codigo = default_token_generator.make_token(usuario)
             mensaje = (
-
-
-
                 f'Hola {usuario.first_name or usuario.username},\n\n'
-
-
-
-                f'Tu contraseña ha sido restablecida con éxito para el sistema UnrafTickets.\n\n'
-
-
-
-                f'Tu nueva contraseña temporal para ingresar es: {nueva_clave}\n\n'
-
-
-
-                f'Por favor, inicia sesión y cámbiala desde tu perfil.\n\n'
-
-
-
+                f'Recibimos un pedido para restablecer tu contraseña en UnrafTickets.\n\n'
+                f'Tu código de recuperación es:\n\n{codigo}\n\n'
+                f'Copialo en la pantalla de recuperación junto con tu nueva contraseña. '
+                f'El código vence en {minutos_validez} minutos y sirve una sola vez.\n\n'
+                f'Si no pediste este cambio, ignorá este mensaje: tu contraseña actual sigue funcionando.\n\n'
                 f'Saludos,\nSoporte Técnico Institucional.'
-
-
-
             )
-
-
-
-            email_desde = f'Sistema de Tickets Universidad <{settings.EMAIL_HOST_USER}>'
-
-
-
-            emails_destino = [email]
-
-
-
-
-
-
-
             try:
-
-
-
-                send_mail(asunto, mensaje, email_desde, emails_destino, fail_silently=False)
-
-
-
+                send_mail('Código para restablecer tu contraseña - UnRafTickets', mensaje, email_desde, [email], fail_silently=False)
             except Exception:
-
-
-
                 pass
 
-
-
-
-
-
-
-        except Usuario.DoesNotExist:
-
-
-
-            # Para evitar enumeracin de usuarios, devolvemos 200 con mensaje genrico
-
-
-
-            pass
-
-
-
-
-
-
-
-        return Response({'message': 'Si el correo electrnico est registrado, recibirs las instrucciones para restablecer tu contrasea.'}, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-
+        # Para evitar enumeración de usuarios, la respuesta es la misma exista o no el email.
+        return Response({'message': 'Si el correo electrónico está registrado, recibirás las instrucciones para restablecer tu contraseña.'}, status=status.HTTP_200_OK)
 
 
 # --- VISTA DE CAMBIO DE CONTRASEA (desde el perfil, usuario ya logueado) ---
@@ -928,13 +799,20 @@ class RestablecerPasswordView(APIView):
         if not all([email, codigo, nueva_password]):
             return Response({'error': 'Faltan datos obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Misma respuesta si el email no existe o si el código no coincide, para no
+        # revelar qué emails están registrados. El email no es único: se prueban todas.
+        usuario = next(
+            (u for u in Usuario.objects.filter(email=email, is_active=True) if default_token_generator.check_token(u, codigo)),
+            None,
+        )
+        if usuario is None:
+            return Response({'error': 'El email o el código ingresado no son válidos, o el código venció.'}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            usuario = Usuario.objects.get(email=email)
-            if not usuario.check_password(codigo):
-                return Response({'error': 'El codigo ingresado es incorrecto.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            usuario.set_password(nueva_password)
-            usuario.save()
-            return Response({'mensaje': 'Contrasena actualizada correctamente.'}, status=status.HTTP_200_OK)
-        except Usuario.DoesNotExist:
-            return Response({'error': 'Usuario no encontrado o codigo invalido.'}, status=status.HTTP_404_NOT_FOUND)
+            validate_password(nueva_password, user=usuario)
+        except DjangoValidationError as e:
+            return Response({'error': ' '.join(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+        usuario.set_password(nueva_password)
+        usuario.save()
+        return Response({'mensaje': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)

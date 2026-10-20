@@ -1,0 +1,3 @@
+# Dependencias para desarrollo y CI (no se instalan en la imagen de producción)
+-r requirements.txt
+coverage==7.16.2
