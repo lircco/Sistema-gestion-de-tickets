@@ -256,7 +256,8 @@ class TicketViewSet(viewsets.ModelViewSet):
 
 
 
-        stats = Ticket.objects.aggregate(
+        # Mismo alcance que el listado: propios, del área o todos según el rol.
+        stats = self.get_queryset().aggregate(
 
 
 
