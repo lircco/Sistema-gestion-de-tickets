@@ -104,6 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Validez (en segundos) del código de recuperación de contraseña.
+PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", 60 * 30))
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
