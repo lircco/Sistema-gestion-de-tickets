@@ -1,7 +1,7 @@
 import React from "react";
 import { Stack, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, Button, Box } from "@mui/material";
 import { AddCircleOutlined, AttachFileOutlined } from "@mui/icons-material";
-import { getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
 import { StatusBadge } from "../shared/Badges";
 
 export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
@@ -33,12 +33,11 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                     <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
                       <Chip
                         size="small"
-                        component="a"
-                        href={getFileUrl(r.archivo_adjunto)}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         clickable
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          api.abrirAdjunto(r.id).catch(() => alert("No se pudo abrir el adjunto."));
+                        }}
                         icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                         label="Ver adjunto"
                         sx={{ fontSize: 11, maxWidth: 200 }}

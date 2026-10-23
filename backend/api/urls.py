@@ -11,7 +11,8 @@ from .views import (
     LogoutView,
     RecuperarPasswordView,
     RestablecerPasswordView,
-    CambiarPasswordView
+    CambiarPasswordView,
+    NotificacionViewSet
 )
 
 router = DefaultRouter()
@@ -19,6 +20,8 @@ router.register(r'tickets', TicketViewSet, basename='ticket')
 router.register(r'areas', AreaViewSet, basename='area')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'registro', RegistroUsuarioViewSet, basename='registro')
+router.register(r'notificaciones', NotificacionViewSet, basename='notificacion')
+
 
 urlpatterns = [
     path('', include(router.urls)),

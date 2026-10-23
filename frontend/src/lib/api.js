@@ -1,4 +1,5 @@
-const API = import.meta.env.VITE_API_URL;
+// Vacío = rutas relativas (mismo dominio que el frontend).
+const API = import.meta.env.VITE_API_URL ?? "";
 const BASE_URL = `${API}/api/`;
 
 export const api = {
@@ -41,8 +42,10 @@ export const api = {
         });
 
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.detail || "Error al crear la cuenta. Intente con otro correo.");
+      const errData = await response.json().catch(() => ({}));
+      // DRF devuelve los errores de validación por campo: {"rol": ["..."], ...}
+      const primerError = Object.values(errData).flat().find((m) => typeof m === "string");
+      throw new Error(errData.detail || primerError || "Error al crear la cuenta. Intente con otro correo.");
     }
 
     return await response.json();
@@ -119,21 +122,29 @@ export const api = {
   },
 
   // 6. BUSCAR MIS TICKETS (Pasando el token para que Django me reconozca)
+  // El backend pagina el listado: se recorren todas las páginas y se devuelve
+  // la lista completa (máx. 100 tickets por pedido).
   getTickets: async () => {
     const token = localStorage.getItem("access_token");
+    const tickets = [];
 
-    const response = await fetch(`${BASE_URL}tickets/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    for (let page = 1; ; page++) {
+      const response = await fetch(`${BASE_URL}tickets/?page=${page}&page_size=100`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error("Error al cargar los tickets");
+      if (!response.ok) {
+        throw new Error("Error al cargar los tickets");
+      }
+      const data = await response.json();
+      if (Array.isArray(data)) return data;
+      tickets.push(...data.results);
+      if (!data.next) return tickets;
     }
-    return await response.json();
   },
 
   // 6b. ACTUALIZAR UN TICKET (Derivar / Cambiar Estado / Cerrar)
@@ -172,6 +183,26 @@ export const api = {
       throw new Error(errData.error || "No se pudo enviar la respuesta");
     }
     return await response.json();
+  },
+
+  // 6d. ABRIR EL ADJUNTO DE UN TICKET (se descarga con el token y se abre en otra pestaña)
+  abrirAdjunto: async (ticketId) => {
+    const token = localStorage.getItem("access_token");
+    // La pestaña se abre antes del await para que el navegador no la bloquee como popup.
+    const ventana = window.open("", "_blank");
+    try {
+      const response = await fetch(`${BASE_URL}tickets/${ticketId}/adjunto/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("No se pudo abrir el adjunto");
+      const url = URL.createObjectURL(await response.blob());
+      if (ventana) ventana.location.href = url;
+      else window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      ventana?.close();
+      throw e;
+    }
   },
 
   // 7. USUARIO ACTUAL
@@ -291,28 +322,55 @@ export const api = {
       throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
-  }
-};
+  },
 
+  // --- NOTIFICACIONES IN-APP ---
+  getNotificaciones: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-export const getFileUrl = (path) => {
-  if (!path || path === "null") return "";
-  
-  let cleanPath = path;
-  if (cleanPath.startsWith("http")) {
-    try {
-      const urlObj = new URL(cleanPath);
-      cleanPath = urlObj.pathname;
-    } catch (e) {}
-  }
+    if (!response.ok) {
+      throw new Error("No se pudieron cargar las notificaciones");
+    }
+    return await response.json();
+  },
 
-  let baseUrl = import.meta.env.VITE_API_URL || "";
-  if (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
-  
-  if (!cleanPath.startsWith("/media/") && !cleanPath.startsWith("media/")) {
-    cleanPath = `/media/${cleanPath.startsWith("/") ? cleanPath.slice(1) : cleanPath}`;
-  } else if (!cleanPath.startsWith("/")) {
-    cleanPath = `/${cleanPath}`;
+  marcarNotificacionLeida: async (id) => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ leida: true }),
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo marcar la notificación como leída");
+    }
+    return await response.json();
+  },
+
+  marcarTodasNotificacionesLeidas: async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(`${BASE_URL}notificaciones/marcar-todas-leidas/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudieron marcar todas las notificaciones como leídas");
+    }
+    return await response.json();
   }
-  return `${baseUrl}${cleanPath}`;
 };
