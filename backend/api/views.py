@@ -1,79 +1,27 @@
-# --- REEMPLAZ TUS IMPORTS DE ARRIBA POR ESTOS ---
-
-
-
-from rest_framework import viewsets, mixins, filters, permissions, status
-
-
-
-from rest_framework.pagination import PageNumberPagination
-
-
-
-from rest_framework.response import Response
-
-
-
-from rest_framework.decorators import action
-
-
-
-from rest_framework.views import APIView  # <-- SPER IMPORTANTE PARA TU NUEVA CLASE
-
-
-
-from django.contrib.auth import authenticate, login, logout
-
-
-
-from django.contrib.auth.password_validation import validate_password
-
-
-
-from django.core.exceptions import ValidationError as DjangoValidationError
-
-
-
-from django.db.models import Count
-
-
-
-from django.db import models
-
-
-
-from django.core.mail import send_mail
-
-
-
-from django.conf import settings
-
 import os
 
-from django.http import FileResponse, Http404
-
-
-
-
-
-
-
+from django.conf import settings
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
-
-
-
-
-
-
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
+from django.db import models
+from django.db.models import Count
+from django.http import FileResponse, Http404
+from rest_framework import viewsets, mixins, filters, permissions, status
+from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
-
 from .serializers import (
     TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer,
     UsuarioSerializer, RespuestaSerializer, NotificacionSerializer
 )
-
 from .permissions import PuedeGestionarTicket
+
 
 def obtener_personal_area(area, excluir_usuario=None):
     if not area:
@@ -87,144 +35,39 @@ def obtener_personal_area(area, excluir_usuario=None):
     return qs
 
 
-
-
-
-
-
-
 class RegistroUsuarioViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     # Solo alta de cuentas: listar, editar o borrar usuarios no es público.
-
-
-
     queryset = Usuario.objects.all()
-
-
-
     serializer_class = RegistroSerializer
-
-
-
     permission_classes = [permissions.AllowAny]
 
-
-
-
-
-
-
     def perform_create(self, serializer):
-
-
-
         user = serializer.save()
-
-
-
         if user.email:
-
-
-
             try:
-
-
-
                 send_mail(
-
-
-
-                    subject='Bienvenido al Sistema de Tickets de la UnRaf!',
-
-
-
-                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
-
-
-
+                    subject='¡Bienvenido al Sistema de Tickets de la UnRaf!',
+                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. ¡Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
                     from_email=settings.DEFAULT_FROM_EMAIL,
-
-
-
                     recipient_list=[user.email],
-
-
-
                     fail_silently=True,
-
-
-
                 )
-
-
-
             except Exception:
-
-
-
                 pass
 
 
-
-
-
-
-
-
-
-
-
 class StandardResultsSetPagination(PageNumberPagination):
-
-
-
     page_size = 10
-
-
-
     page_size_query_param = 'page_size'
-
-
-
     max_page_size = 100
 
 
-
-
-
-
-
-
-
-
-
 class TicketViewSet(viewsets.ModelViewSet):
-
-
-
     serializer_class = TicketSerializer
-
-
-
     pagination_class = StandardResultsSetPagination
-
-
-
     permission_classes = [permissions.IsAuthenticated, PuedeGestionarTicket]
-
-
-
     filter_backends = [filters.SearchFilter]
-
-
-
     search_fields = ['titulo', 'descripcion', 'estado']
-
-
-
-
-
-
 
     def get_queryset(self):
         user = self.request.user
@@ -244,12 +87,6 @@ class TicketViewSet(viewsets.ModelViewSet):
                 return Ticket.objects.filter(creado_por=user).order_by('-creado_el')
 
         return Ticket.objects.filter(creado_por=user).order_by('-creado_el')
-
-
-
-
-
-
 
     def perform_create(self, serializer):
         ticket = serializer.save(creado_por=self.request.user)
@@ -377,42 +214,15 @@ class TicketViewSet(viewsets.ModelViewSet):
         return FileResponse(ticket.archivo_adjunto.open('rb'), filename=nombre)
 
 
-
-
-
-
-
-
-
-
-
 class AreaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
     permission_classes = [permissions.AllowAny]
 
 
-
-
-
-
-
-
-
-
-
 class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
-
-
-
     queryset = Categoria.objects.all()
-
-
-
     serializer_class = CategoriaSerializer
-
-
-
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -430,75 +240,21 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Todas las notificaciones han sido marcadas como leídas.'}, status=status.HTTP_200_OK)
 
 
-
-
-
-
-
-
-
-
-
-
 class UsuarioActualView(APIView):
-
-
-
     permission_classes = [permissions.IsAuthenticated]
 
-
-
-
-
-
-
     def get(self, request):
-
-
-
         usuario = request.user
-
-
-
         data = {
-
-
-
             'id': usuario.id,
-
-
-
             'username': usuario.username,
-
-
-
             'email': usuario.email,
-
-
-
             'first_name': usuario.first_name,
-
-
-
             'rol': usuario.rol if hasattr(usuario, 'rol') else 'ESTUDIANTE',
-
-
-
             'is_staff': usuario.is_staff,
-
-
-
             'area': usuario.area_id if hasattr(usuario, 'area_id') else None
-
-
-
         }
-
-
-
         return Response(data)
-
-
 
     def patch(self, request):
         usuario = request.user
@@ -523,26 +279,8 @@ class UsuarioActualView(APIView):
         return Response({'message': 'Perfil actualizado', 'area': area.id})
 
 
-
-
-
-
-
-
-
-
-
 class LoginView(APIView):
-
-
-
     permission_classes = [permissions.AllowAny]
-
-
-
-
-
-
 
     def post(self, request):
         # CustomAuthBackend resuelve tanto el username como "Nombre Apellido".
@@ -553,51 +291,15 @@ class LoginView(APIView):
         return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-
-
-
-
-
-
-
-
-
 class LogoutView(APIView):
-
-
-
     permission_classes = [permissions.AllowAny]
 
-
-
-
-
-
-
     def post(self, request):
-
-
-
         logout(request)
-
-
-
         return Response({'message': 'Sesión cerrada correctamente'})
 
 
-
-
-
-
-
-
-
-
-
-# --- VISTA DE RECUPERACION DE CONTRASEA ---
-
-
-
+# --- VISTA DE RECUPERACIÓN DE CONTRASEÑA ---
 class RecuperarPasswordView(APIView):
     """
     Envía por mail un código de un solo uso para restablecer la contraseña.
@@ -634,158 +336,42 @@ class RecuperarPasswordView(APIView):
         return Response({'message': 'Si el correo electrónico está registrado, recibirás las instrucciones para restablecer tu contraseña.'}, status=status.HTTP_200_OK)
 
 
-# --- VISTA DE CAMBIO DE CONTRASEA (desde el perfil, usuario ya logueado) ---
-
-
-
+# --- VISTA DE CAMBIO DE CONTRASEÑA (desde el perfil, usuario ya logueado) ---
 class CambiarPasswordView(APIView):
-
-
-
     permission_classes = [permissions.IsAuthenticated]
 
-
-
-
-
-
-
     def post(self, request):
-
-
-
         password_actual = request.data.get('password_actual')
-
-
-
         password_nueva = request.data.get('password_nueva')
-
-
-
         usuario = request.user
 
-
-
-
-
-
-
         if not password_actual or not password_nueva:
-
-
-
-            return Response({'error': 'Debe ingresar la contrasea actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
+            return Response({'error': 'Debe ingresar la contraseña actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not usuario.check_password(password_actual):
-
-
-
-            return Response({'error': 'La contrasea actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
+            return Response({'error': 'La contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-
-
-
             validate_password(password_nueva, user=usuario)
-
-
-
         except DjangoValidationError as e:
-
-
-
             return Response({'error': ' '.join(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-
-
         usuario.set_password(password_nueva)
-
-
-
         usuario.save()
 
-
-
-
-
-
-
         if usuario.email:
-
-
-
             try:
-
-
-
                 send_mail(
-
-
-
-                    subject='Actualizacin de contrasea',
-
-
-
-                    message=f'Hola {usuario.first_name},\n\nTe informamos que tu contrasea ha sido actualizada correctamente.\n\nSaludos,\nEl soporte tcnico de UnRaf.',
-
-
-
+                    subject='Actualización de contraseña',
+                    message=f'Hola {usuario.first_name},\n\nTe informamos que tu contraseña ha sido actualizada correctamente.\n\nSaludos,\nEl soporte técnico de UnRaf.',
                     from_email=settings.DEFAULT_FROM_EMAIL,
-
-
-
                     recipient_list=[usuario.email],
-
-
-
                     fail_silently=True,
-
-
-
                 )
-
-
-
             except Exception:
-
-
-
                 pass
 
-
-
-
-
-
-
-        return Response({'message': 'Contrasea actualizada correctamente.'}, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-
-
-
+        return Response({'message': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
 
 
 class RestablecerPasswordView(APIView):
