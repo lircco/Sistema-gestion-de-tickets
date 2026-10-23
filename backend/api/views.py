@@ -46,8 +46,8 @@ class RegistroUsuarioViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         if user.email:
             try:
                 send_mail(
-                    subject='Bienvenido al Sistema de Tickets de la UnRaf!',
-                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
+                    subject='¡Bienvenido al Sistema de Tickets de la UnRaf!',
+                    message=f'Hola {user.first_name},\n\nTu cuenta ha sido creada exitosamente. ¡Bienvenido a nuestra plataforma de soporte!\n\nSaludos,\nEl soporte técnico de UnRaf.',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
                     fail_silently=True,
@@ -299,7 +299,7 @@ class LogoutView(APIView):
         return Response({'message': 'Sesión cerrada correctamente'})
 
 
-# --- VISTA DE RECUPERACION DE CONTRASEA ---
+# --- VISTA DE RECUPERACIÓN DE CONTRASEÑA ---
 class RecuperarPasswordView(APIView):
     """
     Envía por mail un código de un solo uso para restablecer la contraseña.
@@ -336,7 +336,7 @@ class RecuperarPasswordView(APIView):
         return Response({'message': 'Si el correo electrónico está registrado, recibirás las instrucciones para restablecer tu contraseña.'}, status=status.HTTP_200_OK)
 
 
-# --- VISTA DE CAMBIO DE CONTRASEA (desde el perfil, usuario ya logueado) ---
+# --- VISTA DE CAMBIO DE CONTRASEÑA (desde el perfil, usuario ya logueado) ---
 class CambiarPasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -346,10 +346,10 @@ class CambiarPasswordView(APIView):
         usuario = request.user
 
         if not password_actual or not password_nueva:
-            return Response({'error': 'Debe ingresar la contrasea actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Debe ingresar la contraseña actual y la nueva.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not usuario.check_password(password_actual):
-            return Response({'error': 'La contrasea actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'La contraseña actual es incorrecta.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             validate_password(password_nueva, user=usuario)
@@ -362,8 +362,8 @@ class CambiarPasswordView(APIView):
         if usuario.email:
             try:
                 send_mail(
-                    subject='Actualizacin de contrasea',
-                    message=f'Hola {usuario.first_name},\n\nTe informamos que tu contrasea ha sido actualizada correctamente.\n\nSaludos,\nEl soporte tcnico de UnRaf.',
+                    subject='Actualización de contraseña',
+                    message=f'Hola {usuario.first_name},\n\nTe informamos que tu contraseña ha sido actualizada correctamente.\n\nSaludos,\nEl soporte técnico de UnRaf.',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[usuario.email],
                     fail_silently=True,
@@ -371,7 +371,7 @@ class CambiarPasswordView(APIView):
             except Exception:
                 pass
 
-        return Response({'message': 'Contrasea actualizada correctamente.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Contraseña actualizada correctamente.'}, status=status.HTTP_200_OK)
 
 
 class RestablecerPasswordView(APIView):
