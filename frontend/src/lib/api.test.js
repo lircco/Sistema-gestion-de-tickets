@@ -159,4 +159,51 @@ describe('api.js', () => {
 
     await expect(api.enviarRespuesta(5, '')).rejects.toThrow('El mensaje no puede estar vacío.');
   });
+
+  it('getNotificaciones should fetch user notifications with authorization header', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ id: 1, mensaje: 'Notif 1', leida: false }]
+    });
+
+    const result = await api.getNotificaciones();
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('notificaciones/'), expect.objectContaining({
+      method: 'GET',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+    }));
+    expect(result).toEqual([{ id: 1, mensaje: 'Notif 1', leida: false }]);
+  });
+
+  it('marcarNotificacionLeida should PATCH the notification with leida: true', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 1, leida: true })
+    });
+
+    const result = await api.marcarNotificacionLeida(1);
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('notificaciones/1/'), expect.objectContaining({
+      method: 'PATCH',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+      body: JSON.stringify({ leida: true }),
+    }));
+    expect(result).toEqual({ id: 1, leida: true });
+  });
+
+  it('marcarTodasNotificacionesLeidas should POST to marcar-todas-leidas endpoint', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ message: 'Todas las notificaciones han sido marcadas como leídas.' })
+    });
+
+    const result = await api.marcarTodasNotificacionesLeidas();
+    expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('notificaciones/marcar-todas-leidas/'), expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ Authorization: 'Bearer my-token' }),
+    }));
+    expect(result).toEqual({ message: 'Todas las notificaciones han sido marcadas como leídas.' });
+  });
 });
+

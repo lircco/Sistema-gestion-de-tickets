@@ -2,7 +2,7 @@ import hmac
 
 from django.conf import settings
 from rest_framework import serializers
-from .models import Ticket, Usuario, Area, Categoria, Respuesta
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -119,3 +119,9 @@ class TicketSerializer(serializers.ModelSerializer):
                     fields[campo].read_only = True
 
         return fields
+
+class NotificacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notificacion
+        fields = ['id', 'usuario', 'ticket', 'mensaje', 'leida', 'creada_el']
+        read_only_fields = ['id', 'usuario', 'creada_el']
