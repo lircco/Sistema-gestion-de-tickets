@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { Stack, Typography, Paper, Box, Avatar, TextField, Switch, FormControlLabel, Button, Alert, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  Paper,
+  Box,
+  Avatar,
+  TextField,
+  Switch,
+  FormControlLabel,
+  Button,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import { api } from "../../lib/api";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
-
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(person.area || "");
   // Una vez asignada, el área solo la puede cambiar un supervisor.
   const [areaBloqueada, setAreaBloqueada] = useState(Boolean(person.area));
   const [areaSuccess, setAreaSuccess] = useState("");
   useEffect(() => {
-    api.getAreas().then(setAreas).catch(() => {});
+    api
+      .getAreas()
+      .then(setAreas)
+      .catch(() => {});
   }, []);
-    const [areaError, setAreaError] = useState("");
+  const [areaError, setAreaError] = useState("");
   const handleUpdateArea = async () => {
     if (!selectedArea) {
       setAreaError("Seleccione un área para guardar");
@@ -77,40 +94,89 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h4" sx={{ color: "primary.main" }}>Configuración</Typography>
+      <Typography variant="h4" sx={{ color: "primary.main" }}>
+        Configuración
+      </Typography>
       <Stack spacing={2.5} sx={{ minWidth: 0 }}>
         <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
           <Typography sx={{ fontWeight: 700, mb: 2 }}>Perfil Personal</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "flex-start" } }}>
-            <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main", fontSize: 32 }}>{person.name.charAt(0)}</Avatar>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={3}
+            sx={{ alignItems: { sm: "flex-start" } }}
+          >
+            <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main", fontSize: 32 }}>
+              {person.name.charAt(0)}
+            </Avatar>
             <Stack spacing={2} sx={{ flex: 1, width: "100%" }}>
-              <TextField label="Nombre Completo" defaultValue={person.name} size="small" fullWidth key={person.email + "n"} slotProps={{ input: { readOnly: true } }} disabled />
+              <TextField
+                label="Nombre Completo"
+                defaultValue={person.name}
+                size="small"
+                fullWidth
+                key={person.email + "n"}
+                slotProps={{ input: { readOnly: true } }}
+                disabled
+              />
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField label="Correo Institucional" defaultValue={person.email} size="small" fullWidth key={person.email + "e"} slotProps={{ input: { readOnly: true } }} disabled />
-                <TextField label="Legajo" defaultValue={legajo} size="small" sx={{ width: { xs: "100%", sm: 200 } }} />
+                <TextField
+                  label="Correo Institucional"
+                  defaultValue={person.email}
+                  size="small"
+                  fullWidth
+                  key={person.email + "e"}
+                  slotProps={{ input: { readOnly: true } }}
+                  disabled
+                />
+                <TextField
+                  label="Legajo"
+                  defaultValue={legajo}
+                  size="small"
+                  sx={{ width: { xs: "100%", sm: 200 } }}
+                />
               </Stack>
               {person.role?.toUpperCase() === "STAFF" && (
                 <>
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
                     <FormControl size="small" fullWidth>
                       <InputLabel>Área Asignada</InputLabel>
-                      <Select value={selectedArea} label="Área Asignada" onChange={(e) => setSelectedArea(e.target.value)} disabled={areaBloqueada}>
-                        <MenuItem value="" disabled><em>Seleccioná un área</em></MenuItem>
-                        {areas.map(a => <MenuItem key={a.id} value={a.id}>{a.nombre}</MenuItem>)}
+                      <Select
+                        value={selectedArea}
+                        label="Área Asignada"
+                        onChange={(e) => setSelectedArea(e.target.value)}
+                        disabled={areaBloqueada}
+                      >
+                        <MenuItem value="" disabled>
+                          <em>Seleccioná un área</em>
+                        </MenuItem>
+                        {areas.map((a) => (
+                          <MenuItem key={a.id} value={a.id}>
+                            {a.nombre}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
-                    <Button variant="outlined" onClick={handleUpdateArea} disabled={areaBloqueada}>Guardar Área</Button>
+                    <Button variant="outlined" onClick={handleUpdateArea} disabled={areaBloqueada}>
+                      Guardar Área
+                    </Button>
                   </Stack>
                   {areaBloqueada && (
                     <Typography sx={{ mt: 1, fontSize: 12, color: "text.secondary" }}>
                       Para cambiar de área, pedíselo a un supervisor.
                     </Typography>
                   )}
-                  {areaSuccess && <Alert severity="success" sx={{ mt: 2 }}>{areaSuccess}</Alert>}
-                  {areaError && <Alert severity="error" sx={{ mt: 2 }}>{areaError}</Alert>}
+                  {areaSuccess && (
+                    <Alert severity="success" sx={{ mt: 2 }}>
+                      {areaSuccess}
+                    </Alert>
+                  )}
+                  {areaError && (
+                    <Alert severity="error" sx={{ mt: 2 }}>
+                      {areaError}
+                    </Alert>
+                  )}
                 </>
               )}
-
             </Stack>
           </Stack>
         </Paper>
@@ -124,14 +190,25 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                 Cambia la apariencia de toda la plataforma.
               </Typography>
             </Box>
-            <FormControlLabel control={<Switch checked={mode === "dark"} onChange={onToggleMode} />} label="" sx={{ m: 0 }} />
+            <FormControlLabel
+              control={<Switch checked={mode === "dark"} onChange={onToggleMode} />}
+              label=""
+              sx={{ m: 0 }}
+            />
           </Box>
         </Paper>
 
         <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
           <Typography sx={{ fontWeight: 700, mb: 2 }}>Notificaciones</Typography>
           <Stack spacing={2}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
               <Box>
                 <Typography sx={{ fontWeight: 600 }}>Alertas por Correo</Typography>
                 <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
@@ -140,7 +217,14 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
               </Box>
               <Switch checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} />
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
               <Box>
                 <Typography sx={{ fontWeight: 600 }}>Notificaciones Push</Typography>
                 <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
@@ -151,13 +235,7 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
             </Box>
           </Stack>
         </Paper>
-
-        
       </Stack>
     </Stack>
   );
 }
-
-
-
-

@@ -8,7 +8,9 @@ export default function KnowledgeBaseSection() {
   return (
     <Stack spacing={3}>
       <Typography variant="h4">Base de Conocimiento</Typography>
-      <Typography sx={{ color: "#6b7280" }}>Documentación y artículos de ayuda para resolver consultas frecuentes.</Typography>
+      <Typography sx={{ color: "#6b7280" }}>
+        Documentación y artículos de ayuda para resolver consultas frecuentes.
+      </Typography>
       <Stack direction="row" spacing={2.5} sx={{ flexWrap: "wrap" }}>
         {[
           { t: "Acceso al SIU Guaraní", c: "Sistemas", v: 1240 },
@@ -19,7 +21,13 @@ export default function KnowledgeBaseSection() {
           <Paper
             key={a.t}
             onClick={() => setSnackbarOpen(true)}
-            sx={{ p: 3, flexBasis: "calc(50% - 10px)", minWidth: 240, cursor: "pointer", '&:hover': { boxShadow: 4 } }}
+            sx={{
+              p: 3,
+              flexBasis: "calc(50% - 10px)",
+              minWidth: 240,
+              cursor: "pointer",
+              "&:hover": { boxShadow: 4 },
+            }}
           >
             <MenuBookOutlined sx={{ color: "primary.main", mb: 1 }} />
             <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{a.t}</Typography>

@@ -12,7 +12,7 @@ export function filterTickets(tickets, query) {
     (t) =>
       String(t.id).includes(q) ||
       t.titulo?.toLowerCase().includes(q) ||
-      t.descripcion?.toLowerCase().includes(q)
+      t.descripcion?.toLowerCase().includes(q),
   );
 }
 
@@ -31,7 +31,9 @@ export function computeAvgLeadTimeHours(tickets) {
 
 // Lead time promedio (horas) agrupado por area_nombre, solo tickets CERRADO.
 export function computeLeadTimeByArea(tickets) {
-  const cerrados = tickets.filter((t) => t.estado === "CERRADO" && t.area_nombre && t.creado_el && t.actualizado_el);
+  const cerrados = tickets.filter(
+    (t) => t.estado === "CERRADO" && t.area_nombre && t.creado_el && t.actualizado_el,
+  );
   const byArea = new Map();
   for (const t of cerrados) {
     const hours = Math.max((new Date(t.actualizado_el) - new Date(t.creado_el)) / 3600000, 0);
