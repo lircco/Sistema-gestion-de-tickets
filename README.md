@@ -19,13 +19,23 @@ El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para
 docker network create nginx-proxy
 ```
 
-### 2. Levantar el entorno completo
+### 2. Configurar las variables de entorno
 
-Para construir y levantar todos los servicios (Base de datos, Backend, Frontend y Adminer) en segundo plano:
+Copiá `.env.example` como `.env` en la raíz del repo y completá los valores (como mínimo `DJANGO_SECRET_KEY` y `DB_PASSWORD`).
+
+### 3. Levantar el entorno completo
+
+Para construir y levantar los servicios (Base de datos, Backend y Frontend) en segundo plano:
 
 ```bash
 docker compose build
 docker compose up -d
+```
+
+Adminer es opcional y solo escucha en el propio servidor (`127.0.0.1:8080`):
+
+```bash
+docker compose --profile tools up -d adminer
 ```
 
 ---
@@ -50,10 +60,12 @@ En Git Bash sobre Windows, activalo con:
 source .venv/Scripts/activate
 ```
 
-Luego instalá las dependencias del backend con:
+Luego instalá las dependencias del backend (incluye las de desarrollo, como `coverage`) con:
 
 ```bash
-.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
+.venv/Scripts/python.exe -m pip install -r backend/requirements-dev.txt
 ```
 
 Para más detalles sobre la arquitectura, convenciones, ejecución de pruebas y comandos específicos, consulta el archivo [project-rules.md](./.agents/rules/project-rules.md).
+
+La documentación de los modelos del backend está en [docs/modelos-backend.md](./docs/modelos-backend.md).

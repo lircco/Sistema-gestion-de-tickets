@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../lib/api";
 import {
   Box,
   Stack,
@@ -78,25 +80,65 @@ export default function AppShell({
   const handleNotifClose = () => setNotifAnchor(null);
   const openNotif = Boolean(notifAnchor);
 
-  // Cambialo para que quede así:
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
-  // 2. ESTADO PARA EL MENÚ DESPLEGABLE DE LA CAMPANITA
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await api.getNotificaciones();
+      setNotifications(Array.isArray(data) ? data : data.results || []);
+    } catch (err) {
+      // Ignorar errores en segundo plano
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 20000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
+    fetchNotifications();
   };
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
-  // 3. FUNCIÓN PARA LIMPIAR TODO EL LISTADO
-  const handleClearNotifications = () => {
-    setNotifications([]);
+  const handleNotificationClick = async (notif) => {
+    handleCloseMenu();
+    if (!notif.leida) {
+      try {
+        await api.marcarNotificacionLeida(notif.id);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, leida: true } : n)),
+        );
+      } catch (err) {
+        console.error("Error al marcar como leída", err);
+      }
+    }
+    if (notif.ticket) {
+      const isStaffOrAdmin = user?.role === "STAFF" || user?.role === "SUPERVISOR";
+      const target = isStaffOrAdmin ? `/admin/tickets/${notif.ticket}` : `/tickets/${notif.ticket}`;
+      navigate(target);
+    }
+  };
+
+  const handleClearNotifications = async () => {
+    try {
+      await api.marcarTodasNotificacionesLeidas();
+      setNotifications((prev) => prev.map((n) => ({ ...n, leida: true })));
+    } catch (err) {
+      console.error("Error al limpiar notificaciones", err);
+    }
     handleCloseMenu();
   };
+
+  const unreadCount = notifications.filter((n) => !n.leida).length;
 
   const [supportOpen, setSupportOpen] = useState(false);
 
@@ -241,9 +283,9 @@ export default function AppShell({
             </IconButton>
           </Tooltip>
 
-          {/* CAMPANITA MODIFICADA */}
+          {/* CAMPANITA */}
           <IconButton onClick={handleOpenMenu}>
-            <Badge badgeContent={notifications.length} color="error">
+            <Badge badgeContent={unreadCount} color="error">
               <NotificationsNoneOutlined />
             </Badge>
           </IconButton>
@@ -256,8 +298,8 @@ export default function AppShell({
             disableScrollLock
             PaperProps={{
               sx: {
-                width: 320,
-                maxHeight: 400,
+                width: 340,
+                maxHeight: 420,
                 mt: 1.5,
                 borderRadius: 2,
                 boxShadow: "0px 4px 20px rgba(0,0,0,0.08)",
@@ -276,7 +318,7 @@ export default function AppShell({
               }}
             >
               <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Notificaciones</Typography>
-              {notifications.length > 0 && (
+              {notifications.some((n) => !n.leida) && (
                 <Button
                   size="small"
                   startIcon={<DeleteSweepOutlined />}
@@ -299,17 +341,39 @@ export default function AppShell({
               notifications.map((notif) => (
                 <MenuItem
                   key={notif.id}
-                  onClick={handleCloseMenu}
+                  onClick={() => handleNotificationClick(notif)}
                   sx={{
                     py: 1.5,
                     px: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
                     whiteSpace: "normal",
-                    fontSize: 13,
+                    bgcolor: notif.leida ? "transparent" : "action.hover",
+                    borderLeft: notif.leida ? "none" : "3px solid #3b82f6",
                     borderBottom: "1px solid #f0f0f0",
+                    cursor: "pointer",
                     "&:last-child": { borderBottom: 0 },
                   }}
                 >
-                  {notif.text}
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: notif.leida ? 400 : 600,
+                      color: "text.primary",
+                    }}
+                  >
+                    {notif.mensaje}
+                  </Typography>
+                  {notif.creada_el && (
+                    <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.5 }}>
+                      {new Date(notif.creada_el).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      · {new Date(notif.creada_el).toLocaleDateString()}
+                    </Typography>
+                  )}
                 </MenuItem>
               ))
             )}

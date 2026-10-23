@@ -101,6 +101,8 @@ export default function LoginScreen({ onLoginSuccess }) {
 
   const handleTabChange = (newTab) => {
     setTab(newTab);
+    // Las cuentas de Admin (supervisor) las crea un administrador: no se registran desde acá.
+    if (newTab === 1 && role === "admin") setRole("alumno");
     resetFormFields();
   };
 
@@ -336,12 +338,14 @@ export default function LoginScreen({ onLoginSuccess }) {
                 icon={<SupportAgentOutlined />}
                 label="Staff"
               />
-              <RoleCard
-                active={role === "admin"}
-                onClick={() => handleRoleChange("admin")}
-                icon={<AdminPanelSettings />}
-                label="Admin"
-              />
+              {tab === 0 && (
+                <RoleCard
+                  active={role === "admin"}
+                  onClick={() => handleRoleChange("admin")}
+                  icon={<AdminPanelSettings />}
+                  label="Admin"
+                />
+              )}
             </Stack>
 
             {tab === 1 && (
@@ -393,7 +397,7 @@ export default function LoginScreen({ onLoginSuccess }) {
               </>
             )}
 
-            {tab === 1 && (role === "staff" || role === "admin") && (
+            {tab === 1 && role === "staff" && (
               <>
                 <Typography sx={{ fontSize: 13, fontWeight: 600, mb: 0.5 }}>
                   Código de Autorización
@@ -636,8 +640,8 @@ export default function LoginScreen({ onLoginSuccess }) {
             </DialogTitle>
             <DialogContent>
               <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
-                Hemos enviado un código (contraseña temporal) a <strong>{recoveryEmail}</strong>.
-                Ingresalo abajo junto con tu nueva contraseña deseada.
+                Si <strong>{recoveryEmail}</strong> está registrado, te enviamos un código de
+                recuperación (vence en 30 minutos). Copialo abajo junto con tu nueva contraseña.
               </DialogContentText>
               {recoveryError && (
                 <Alert severity="error" sx={{ mb: 2 }}>

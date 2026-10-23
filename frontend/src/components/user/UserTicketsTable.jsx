@@ -13,7 +13,7 @@ import {
   Box,
 } from "@mui/material";
 import { AddCircleOutlined, AttachFileOutlined } from "@mui/icons-material";
-import { getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
 import { StatusBadge } from "../shared/Badges";
 
 export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
@@ -58,12 +58,13 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                       >
                         <Chip
                           size="small"
-                          component="a"
-                          href={getFileUrl(r.archivo_adjunto)}
-                          target="_blank"
-                          rel="noopener noreferrer"
                           clickable
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            api
+                              .abrirAdjunto(r.id)
+                              .catch(() => alert("No se pudo abrir el adjunto."));
+                          }}
                           icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
                           label="Ver adjunto"
                           sx={{ fontSize: 11, maxWidth: 200 }}
