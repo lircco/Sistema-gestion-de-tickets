@@ -8,6 +8,11 @@ class CustomAuthBackend(ModelBackend):
         user = super().authenticate(request, username=username, password=password, **kwargs)
         if user:
             return user
+
+        if username and '@' in username:
+            user_by_email = Usuario.objects.filter(email__iexact=username).first()
+            if user_by_email and user_by_email.check_password(password) and self.user_can_authenticate(user_by_email):
+                return user_by_email
         
         if username and ' ' in username:
             parts = username.split(' ', 1)

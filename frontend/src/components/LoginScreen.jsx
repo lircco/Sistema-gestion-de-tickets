@@ -209,9 +209,7 @@ export default function LoginScreen({ onLoginSuccess }) {
         const usernameToLogin =
           role === "admin" || role === "staff"
             ? username.trim()
-            : email.includes("@")
-              ? email.split("@")[0]
-              : email.trim();
+            : email.trim();
 
         if (!usernameToLogin) {
           setError(
