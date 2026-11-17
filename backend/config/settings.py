@@ -161,6 +161,17 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
     "http://localhost:5173,https://app2.academia.ar,https://api.app2.academia.ar",
 ).split(",")
 
+# Sitio servido por HTTPS detrás de un proxy que termina el TLS (nginx, balanceador).
+# Apagado por defecto: con las cookies Secure, el panel /admin/ no funciona por HTTP.
+DJANGO_HTTPS = os.environ.get("DJANGO_HTTPS", "False").lower() == "true"
+if DJANGO_HTTPS:
+    # El proxy tiene que fijar X-Forwarded-Proto (y no reenviar el que mande el cliente).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # HSTS: obliga al navegador a usar HTTPS durante esos segundos. 0 = desactivado.
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "0"))
+
 # 1. Configuración de Emails (SMTP - Gmail)
 # Usamos el backend de SMTP real en lugar del filebased
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
