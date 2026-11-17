@@ -23,6 +23,8 @@ docker network create nginx-proxy
 
 Copiá `.env.example` como `.env` en la raíz del repo y completá los valores (como mínimo `DJANGO_SECRET_KEY` y `DB_PASSWORD`).
 
+> Si cambiás las credenciales de la base después de haberla levantado una vez, Postgres conserva las anteriores en el volumen. Para reinicializarla (borra los datos): `docker compose down -v`.
+
 ### 3. Levantar el entorno completo
 
 Para construir y levantar los servicios (Base de datos, Backend y Frontend) en segundo plano:
