@@ -8,15 +8,15 @@ El sistema es una plataforma de gestión de tickets dividida en dos partes princ
 
 1.  **Backend (Directorio `backend/`):**
     - **Framework:** Django con Django REST Framework (DRF).
-    - **Base de Datos:** SQLite (desarrollo).
-    - **Autenticación:** Session-based Auth de Django.
-    - **Características:** Modelos para Áreas, Categorías, Usuarios y Tickets. Incluye envío de notificaciones por email y seguridad a nivel de fila (los estudiantes solo ven sus tickets).
+    - **Base de Datos:** PostgreSQL. Para desarrollo y tests se puede usar SQLite con `DATABASE_URL=sqlite:///db.sqlite3`.
+    - **Autenticación:** JWT con `djangorestframework-simplejwt` (`/api/token/`). La sesión de Django se usa solo en el panel `/admin/`.
+    - **Características:** Modelos para Áreas, Categorías, Usuarios, Tickets, Respuestas, Notificaciones in-app y registro de emails enviados. Incluye envío de notificaciones por email y seguridad a nivel de fila (los estudiantes solo ven sus tickets; el Staff, los de su área).
 
 2.  **Frontend (Directorio `frontend/`):**
     - **Framework:** React con Vite.
-    - **Enrutado:** TanStack Router.
+    - **Enrutado:** React Router (`react-router-dom`).
     - **UI:** Material UI (MUI) y Tailwind CSS.
-    - **Gestión de Estado:** TanStack Query.
+    - **Gestión de Estado:** Context API (`AuthContext`) y estado local de los componentes. Las llamadas a la API están centralizadas en `src/lib/api.js`.
 
 ---
 
@@ -132,8 +132,9 @@ Configura las siguientes variables de entorno en el servidor:
 
 ### 4. Nginx
 
-Utiliza el archivo `nginx.conf.example` como base para configurar el servidor. Este archivo maneja:
+La configuración de Nginx está en el repositorio:
 
-- Servicio de archivos estáticos y media.
-- Proxy inverso para la API de Django.
-- Soporte para Single Page Application (SPA) con React.
+- `frontend/nginx.conf`: sirve la Single Page Application (SPA) de React y hace de proxy de `/api/` hacia el backend.
+- `proxy/default.conf`: proxy inverso de entrada hacia el frontend y el backend.
+
+Los archivos estáticos de Django los sirve WhiteNoise. Los adjuntos de los tickets no se exponen como archivos públicos: se descargan con autenticación por `/api/tickets/{id}/adjunto/`.
