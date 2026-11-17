@@ -207,9 +207,7 @@ export default function LoginScreen({ onLoginSuccess }) {
       setLoading(true);
       try {
         const usernameToLogin =
-          role === "admin" || role === "staff"
-            ? username.trim()
-            : email.trim();
+          role === "admin" || role === "staff" ? username.trim() : email.trim();
 
         if (!usernameToLogin) {
           setError(
