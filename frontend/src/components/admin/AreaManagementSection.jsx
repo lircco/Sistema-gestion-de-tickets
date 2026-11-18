@@ -1,5 +1,19 @@
 import React from "react";
-import { Stack, Box, Typography, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, IconButton, Divider, LinearProgress } from "@mui/material";
+import {
+  Stack,
+  Box,
+  Typography,
+  Chip,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  IconButton,
+  Divider,
+  LinearProgress,
+} from "@mui/material";
 import { VisibilityOutlined } from "@mui/icons-material";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
@@ -7,13 +21,15 @@ const PRIORIDAD_COLORS = {
   BAJA: { bg: "#e5e7eb", text: "#374151" },
   MEDIA: { bg: "#dbeafe", text: "#1d4ed8" },
   ALTA: { bg: "#fef3c7", text: "#92400e" },
-  CRITICA: { bg: "#fee2e2", text: "#b91c1c" }
+  CRITICA: { bg: "#fee2e2", text: "#b91c1c" },
 };
 
 export default function AreaManagementSection({ tickets = [], admin, onOpenTicket }) {
-  const pendingTickets = tickets.filter(t => t.estado === "ABIERTO");
-  const inProgressTickets = tickets.filter(t => t.estado === "EN_PROGRESO");
-  const activeTickets = [...pendingTickets, ...inProgressTickets].sort((a, b) => new Date(b.creado_el) - new Date(a.creado_el));
+  const pendingTickets = tickets.filter((t) => t.estado === "ABIERTO");
+  const inProgressTickets = tickets.filter((t) => t.estado === "EN_PROGRESO");
+  const activeTickets = [...pendingTickets, ...inProgressTickets].sort(
+    (a, b) => new Date(b.creado_el) - new Date(a.creado_el),
+  );
 
   return (
     <Stack spacing={3}>
@@ -21,15 +37,21 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
         <Box>
           <Typography variant="h4">Gestión de Áreas</Typography>
           <Typography sx={{ color: "#6b7280" }}>
-            Cola de trabajo del departamento:{' '}
+            Cola de trabajo del departamento:{" "}
             <Box component="span" sx={{ color: "primary.main", fontWeight: 700 }}>
               {admin?.area_nombre || "Mi Área"}
             </Box>
           </Typography>
         </Box>
         <Stack direction="row" spacing={1.5}>
-          <Chip label={` ${pendingTickets.length} Pendientes`} sx={{ bgcolor: "#fef3c7", color: "#92400e", fontWeight: 600 }} />
-          <Chip label={` ${inProgressTickets.length} En Proceso`} sx={{ bgcolor: "#dbeafe", color: "#1d4ed8", fontWeight: 600 }} />
+          <Chip
+            label={` ${pendingTickets.length} Pendientes`}
+            sx={{ bgcolor: "#fef3c7", color: "#92400e", fontWeight: 600 }}
+          />
+          <Chip
+            label={` ${inProgressTickets.length} En Proceso`}
+            sx={{ bgcolor: "#dbeafe", color: "#1d4ed8", fontWeight: 600 }}
+          />
         </Stack>
       </Box>
 
@@ -38,30 +60,52 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
           <Paper sx={{ p: 2.5 }}>
             <Typography sx={{ fontWeight: 700, mb: 2 }}>Filtros Activos</Typography>
             <Stack spacing={1}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1.2, borderRadius: 1.5, bgcolor: 'rgba(10,61,98,0.08)', border: '1px solid rgba(10,61,98,0.3)' }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  p: 1.2,
+                  borderRadius: 1.5,
+                  bgcolor: "rgba(10,61,98,0.08)",
+                  border: "1px solid rgba(10,61,98,0.3)",
+                }}
+              >
                 <Typography sx={{ fontSize: 13, fontWeight: 700 }}>Cola Principal</Typography>
-                <Chip size="small" label={activeTickets.length} sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 700, height: 22 }} />
+                <Chip
+                  size="small"
+                  label={activeTickets.length}
+                  sx={{ bgcolor: "primary.main", color: "#fff", fontWeight: 700, height: 22 }}
+                />
               </Box>
             </Stack>
             <Divider sx={{ my: 2 }} />
-            <Typography sx={{ fontSize: 11, color: '#6b7280', fontWeight: 700, mb: 1 }}>
-              {admin?.rol === 'SUPERVISOR' ? 'ESTADO DE LAS ÁREAS' : 'ESTADO DEL ÁREA'}
+            <Typography sx={{ fontSize: 11, color: "#6b7280", fontWeight: 700, mb: 1 }}>
+              {admin?.rol === "SUPERVISOR" ? "ESTADO DE LAS ÁREAS" : "ESTADO DEL ÁREA"}
             </Typography>
             <Stack spacing={1.5}>
               {(() => {
-                if (admin?.rol !== 'SUPERVISOR') {
+                if (admin?.rol !== "SUPERVISOR") {
                   const cap = Math.round((tickets.length / 100) * 100);
                   return (
                     <Box>
-                      <Chip size="small" label={`CAPACIDAD: ${cap}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
-                      <LinearProgress variant="determinate" value={Math.min(cap, 100)} sx={{ height: 6, borderRadius: 3 }} />
+                      <Chip
+                        size="small"
+                        label={`CAPACIDAD: ${cap}%`}
+                        sx={{ bgcolor: "#fef3c7", color: "#92400e", mb: 1 }}
+                      />
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(cap, 100)}
+                        sx={{ height: 6, borderRadius: 3 }}
+                      />
                     </Box>
                   );
                 }
 
                 const areas = {};
-                tickets.forEach(t => {
-                  const areaName = t.area_nombre || 'Sin Área';
+                tickets.forEach((t) => {
+                  const areaName = t.area_nombre || "Sin Área";
                   areas[areaName] = (areas[areaName] || 0) + 1;
                 });
 
@@ -69,30 +113,47 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                   const cap = Math.round((count / 100) * 100);
                   return (
                     <Box key={name}>
-                      <Typography sx={{ fontSize: 12, fontWeight: 600, mb: 0.5, color: '#374151' }}>{name}</Typography>
-                      <Chip size="small" label={`CAPACIDAD: ${cap}%`} sx={{ bgcolor: '#fef3c7', color: '#92400e', mb: 1 }} />
-                      <LinearProgress variant="determinate" value={Math.min(cap, 100)} sx={{ height: 6, borderRadius: 3 }} />
+                      <Typography sx={{ fontSize: 12, fontWeight: 600, mb: 0.5, color: "#374151" }}>
+                        {name}
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={`CAPACIDAD: ${cap}%`}
+                        sx={{ bgcolor: "#fef3c7", color: "#92400e", mb: 1 }}
+                      />
+                      <LinearProgress
+                        variant="determinate"
+                        value={Math.min(cap, 100)}
+                        sx={{ height: 6, borderRadius: 3 }}
+                      />
                     </Box>
                   );
                 });
               })()}
             </Stack>
           </Paper>
-          <Paper sx={{ p: 3, bgcolor: 'primary.main', color: '#fff' }}>
+          <Paper sx={{ p: 3, bgcolor: "primary.main", color: "#fff" }}>
             <Typography sx={{ fontWeight: 700, mb: 1 }}>💡 Protocolo de Área</Typography>
-            <Typography sx={{ fontSize: 13, opacity: 0.9 }}>Recuerda actualizar el estado de los tickets cuando empieces a trabajar en ellos.</Typography>
+            <Typography sx={{ fontSize: 13, opacity: 0.9 }}>
+              Recuerda actualizar el estado de los tickets cuando empieces a trabajar en ellos.
+            </Typography>
           </Paper>
         </Stack>
 
         <Paper sx={{ flex: 1, p: 2.5 }}>
-          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Stack
+            direction="row"
+            sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}
+          >
             <Typography sx={{ fontWeight: 700 }}>Tickets Pendientes de Atención</Typography>
           </Stack>
           <Table size="small">
             <TableHead>
               <TableRow>
-                {['PRIORIDAD', 'TICKET', 'REMITENTE', 'FECHA', 'ACCIÓN'].map((h) => (
-                  <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 11 }}>{h}</TableCell>
+                {["PRIORIDAD", "TICKET", "REMITENTE", "FECHA", "ACCIÓN"].map((h) => (
+                  <TableCell key={h} sx={{ color: "#6b7280", fontWeight: 700, fontSize: 11 }}>
+                    {h}
+                  </TableCell>
                 ))}
               </TableRow>
             </TableHead>
@@ -100,19 +161,38 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
               {activeTickets.map((r) => {
                 const colorConfig = PRIORIDAD_COLORS[r.prioridad] || PRIORIDAD_COLORS.MEDIA;
                 return (
-                  <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: 'pointer' }}>
-                    <TableCell><PriorityBadge priority={r.prioridad} /></TableCell>
+                  <TableRow
+                    key={r.id}
+                    hover
+                    onClick={() => onOpenTicket?.(r)}
+                    sx={{ cursor: "pointer" }}
+                  >
+                    <TableCell>
+                      <PriorityBadge priority={r.prioridad} />
+                    </TableCell>
                     <TableCell>
                       <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{r.titulo}</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#6b7280' }}>
-                          ID: #{r.id} | Cat: {r.categoria_nombre}
-                          {admin?.rol === 'SUPERVISOR' && r.area_nombre ? ` | Area: ${r.area_nombre}` : ''}
-                        </Typography>
+                      <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                        ID: #{r.id} | Cat: {r.categoria_nombre}
+                        {admin?.rol === "SUPERVISOR" && r.area_nombre
+                          ? ` | Area: ${r.area_nombre}`
+                          : ""}
+                      </Typography>
                     </TableCell>
-                    <TableCell sx={{ fontSize: 13 }}>{r.creado_por_nombre || r.creado_por_email}</TableCell>
-                    <TableCell sx={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
+                    <TableCell sx={{ fontSize: 13 }}>
+                      {r.creado_por_nombre || r.creado_por_email}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 13, color: "#6b7280", fontWeight: 600 }}>
+                      {new Date(r.creado_el).toLocaleDateString()}
+                    </TableCell>
                     <TableCell>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); onOpenTicket?.(r); }}>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenTicket?.(r);
+                        }}
+                      >
                         <VisibilityOutlined fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -121,7 +201,10 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
               })}
               {activeTickets.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ textAlign: 'center', py: 3, color: 'text.secondary' }}>
+                  <TableCell
+                    colSpan={5}
+                    sx={{ textAlign: "center", py: 3, color: "text.secondary" }}
+                  >
                     No hay tickets pendientes en tu área.
                   </TableCell>
                 </TableRow>
@@ -133,4 +216,3 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
     </Stack>
   );
 }
-

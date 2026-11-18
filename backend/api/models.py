@@ -99,6 +99,19 @@ class RegistroEmail(models.Model):
     def __str__(self):
         return f"Email a {self.destinatario} - {self.asunto}"
 
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='notificaciones')
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='notificaciones', null=True, blank=True)
+    mensaje = models.CharField(max_length=255)
+    leida = models.BooleanField(default=False)
+    creada_el = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-creada_el']
+
+    def __str__(self):
+        return f"Notificación para {self.usuario.username}: {self.mensaje[:30]}"
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

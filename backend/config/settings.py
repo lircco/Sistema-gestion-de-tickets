@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,14 +15,19 @@ if env_path.exists():
 
 from config.database import DATABASE_URL
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-c9sgq$13)93=+vux=lazxrk()2u4fns2dzyb!-%kjnt!cf)@0w",
-)
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# Sin DEBUG la clave es obligatoria: no hay valor por defecto que pueda filtrarse.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "Falta la variable de entorno DJANGO_SECRET_KEY. "
+            "Para desarrollo local podés usar DJANGO_DEBUG=True (ver .env.example)."
+        )
+    SECRET_KEY = "django-insecure-solo-para-desarrollo-local"
 
 ALLOWED_HOSTS = os.environ.get(
     "DJANGO_ALLOWED_HOSTS", "api.app2.academia.ar,127.0.0.1,localhost"
@@ -98,6 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Validez (en segundos) del código de recuperación de contraseña.
+PASSWORD_RESET_TIMEOUT = int(os.environ.get("PASSWORD_RESET_TIMEOUT", 60 * 30))
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -109,6 +118,26 @@ TIME_ZONE = "America/Argentina/Buenos_Aires"
 USE_I18N = True
 
 USE_TZ = True
+
+
+# Logging a consola (Docker / Cloud Logging lo recolectan desde stdout/stderr).
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "{levelname} {asctime} {name}: {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "django": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+        "api": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+    },
+}
 
 
 # Static files (CSS, JavaScript, Images)
@@ -138,6 +167,10 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+# Máximo de segundos esperando al servidor SMTP antes de dar el envío por fallido.
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", 10))
+# Enviar las notificaciones de tickets en segundo plano (ver api/emails.py).
+EMAIL_ASYNC = os.environ.get("EMAIL_ASYNC", "True").lower() == "true"
 
 # ACÁ VAN TUS DATOS REALES:
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "lirccoweb@gmail.com")
@@ -152,16 +185,31 @@ MEDIA_ROOT = BASE_DIR / "media"
 # 3. Modelo de Usuario Personalizado
 AUTH_USER_MODEL = "api.Usuario"
 
+# Código que habilita el auto-registro como STAFF. Vacío = registro de Staff deshabilitado.
+STAFF_REGISTRATION_CODE = os.environ.get("STAFF_REGISTRATION_CODE", "")
+
 # Redirigir a los tickets después de iniciar sesión en DRF
 LOGIN_REDIRECT_URL = "/api/tickets/"
 
 # 4. Configuración de Django REST Framework y JWT
+
+# Límite de intentos en login, registro y recuperación de contraseña (por IP).
+# Al correr los tests se relaja para no interferir con la suite.
+import sys
+
+_TESTING = sys.argv[1:2] == ["test"]
+AUTH_THROTTLE_RATE = "10000/minute" if _TESTING else os.environ.get("AUTH_THROTTLE_RATE", "10/minute")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
+    "DEFAULT_THROTTLE_CLASSES": ("api.throttling.AutenticacionRateThrottle",),
+    "DEFAULT_THROTTLE_RATES": {"auth": AUTH_THROTTLE_RATE},
+    # Cantidad de proxies delante de Django (nginx, balanceador de Cloud Run...), para
+    # tomar la IP real del cliente de X-Forwarded-For. Sin definir, se usa el header completo.
+    "NUM_PROXIES": int(os.environ["THROTTLE_NUM_PROXIES"]) if os.environ.get("THROTTLE_NUM_PROXIES") else None,
 }
 
 # Configuración opcional para que los tokens duren más tiempo (por defecto duran 5 minutos)

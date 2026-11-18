@@ -1,9 +1,11 @@
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.core.mail import send_mail
+from .emails import enviar_notificacion
 from .models import Ticket, RegistroEmail, Usuario
 
-
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=Ticket)
@@ -27,30 +29,8 @@ def notificar_cambio_ticket(sender, instance, created, **kwargs):
         asunto = asunto_cerrado
         cuerpo = f"Saludos {instance.creado_por.first_name},\n\nTu ticket #{instance.id} ('{instance.titulo}') ha cambiado a estado CERRADO.\n\nGracias por utilizar la plataforma."
 
-    # Intentamos enviar el correo real solo si el usuario tiene email
-    exitoso = False
-    if destinatario:
-        try:
-            send_mail(
-                subject=asunto,
-                message=cuerpo,
-                from_email=None, # Toma el DEFAULT_FROM_EMAIL de settings.py
-                recipient_list=[destinatario],
-                fail_silently=False, # Ponlo en False para capturar errores si el SMTP falla
-            )
-            exitoso = True
-        except Exception as e:
-            # Aquí podrías usar un logger para registrar el error exacto en producción
-            print(f"Error al enviar el correo: {e}")
-            exitoso = False
-    else:
-        print(f"Advertencia: El usuario {instance.creado_por.username} no tiene email configurado.")
+    if not destinatario:
+        logger.warning("El usuario %s no tiene email configurado.", instance.creado_por.username)
 
-    # Guardamos el historial en la base de datos pase lo que pase
-    RegistroEmail.objects.create(
-        ticket=instance,
-        destinatario=destinatario,
-        asunto=asunto,
-        cuerpo=cuerpo,
-        exitoso=exitoso
-    )
+    # El envío (y su RegistroEmail) se hace fuera del request; ver api/emails.py
+    enviar_notificacion(asunto, cuerpo, destinatario, instance.id)

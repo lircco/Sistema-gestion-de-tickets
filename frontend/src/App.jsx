@@ -6,23 +6,25 @@ import LoginScreen from "./components/LoginScreen";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import UserDashboard from "./components/user/UserDashboard";
 
-const buildTheme = (mode) => createTheme({
-  palette: {
-    mode,
-    primary: { main: mode === "dark" ? "#4f9cd6" : "#0a3d62" },
-    secondary: { main: "#f5b400" },
-    background: mode === "dark"
-      ? { default: "#0f172a", paper: "#1e293b" }
-      : { default: "#f4f6f9", paper: "#ffffff" },
-  },
-  typography: {
-    fontFamily: "'Inter','Roboto',sans-serif",
-    h4: { fontWeight: 700 },
-    h5: { fontWeight: 700 },
-    h6: { fontWeight: 700 },
-  },
-  shape: { borderRadius: 12 },
-});
+const buildTheme = (mode) =>
+  createTheme({
+    palette: {
+      mode,
+      primary: { main: mode === "dark" ? "#4f9cd6" : "#0a3d62" },
+      secondary: { main: "#f5b400" },
+      background:
+        mode === "dark"
+          ? { default: "#0f172a", paper: "#1e293b" }
+          : { default: "#f4f6f9", paper: "#ffffff" },
+    },
+    typography: {
+      fontFamily: "'Inter','Roboto',sans-serif",
+      h4: { fontWeight: 700 },
+      h5: { fontWeight: 700 },
+      h6: { fontWeight: 700 },
+    },
+    shape: { borderRadius: 12 },
+  });
 
 const isAdminRole = (rol) => rol === "SUPERVISOR" || rol === "STAFF";
 
@@ -45,7 +47,12 @@ function AppRoutes({ mode, onToggleMode }) {
           user ? (
             <Navigate to="/" replace />
           ) : (
-            <LoginScreen onLoginSuccess={(u) => { setUser(u); navigate("/"); }} />
+            <LoginScreen
+              onLoginSuccess={(u) => {
+                setUser(u);
+                navigate("/");
+              }}
+            />
           )
         }
       />
@@ -57,7 +64,12 @@ function AppRoutes({ mode, onToggleMode }) {
           ) : !isAdminRole(user.rol) ? (
             <Navigate to="/" replace />
           ) : (
-            <AdminDashboard onLogout={handleLogout} admin={user} mode={mode} onToggleMode={onToggleMode} />
+            <AdminDashboard
+              onLogout={handleLogout}
+              admin={user}
+              mode={mode}
+              onToggleMode={onToggleMode}
+            />
           )
         }
       />
@@ -69,7 +81,12 @@ function AppRoutes({ mode, onToggleMode }) {
           ) : isAdminRole(user.rol) ? (
             <Navigate to="/admin" replace />
           ) : (
-            <UserDashboard onLogout={handleLogout} user={user} mode={mode} onToggleMode={onToggleMode} />
+            <UserDashboard
+              onLogout={handleLogout}
+              user={user}
+              mode={mode}
+              onToggleMode={onToggleMode}
+            />
           )
         }
       />

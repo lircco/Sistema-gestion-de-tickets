@@ -11,12 +11,21 @@ import KnowledgeBaseSection from "./KnowledgeBaseSection";
 import SettingsSection from "./SettingsSection";
 import TicketDetail from "./TicketDetail";
 import { Paper, Typography, LinearProgress } from "@mui/material";
-import { DashboardOutlined, ConfirmationNumberOutlined, BarChartOutlined, ApartmentOutlined, MenuBookOutlined, SettingsOutlined } from "@mui/icons-material";
+import {
+  DashboardOutlined,
+  ConfirmationNumberOutlined,
+  BarChartOutlined,
+  ApartmentOutlined,
+  MenuBookOutlined,
+  SettingsOutlined,
+} from "@mui/icons-material";
 
 function PlaceholderSection({ title }) {
   return (
     <Paper sx={{ p: 6, textAlign: "center" }}>
-      <Typography variant="h5" sx={{ mb: 1 }}>{title}</Typography>
+      <Typography variant="h5" sx={{ mb: 1 }}>
+        {title}
+      </Typography>
       <Typography sx={{ color: "#6b7280" }}>Sección en construcción.</Typography>
     </Paper>
   );
@@ -25,7 +34,8 @@ function PlaceholderSection({ title }) {
 export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const displayName = [admin.first_name, admin.last_name].filter(Boolean).join(" ") || admin.username;
+  const displayName =
+    [admin.first_name, admin.last_name].filter(Boolean).join(" ") || admin.username;
 
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState(null);
@@ -51,7 +61,11 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
 
   const items = [
     { key: "dashboard", label: "Inicio", icon: <DashboardOutlined fontSize="small" /> },
-    { key: "tickets", label: "Lista de Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
+    {
+      key: "tickets",
+      label: "Lista de Tickets",
+      icon: <ConfirmationNumberOutlined fontSize="small" />,
+    },
     { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
     { key: "areas", label: "Gestión de Áreas", icon: <ApartmentOutlined fontSize="small" /> },
     { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
@@ -75,19 +89,69 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       onSearchChange={setSearch}
     >
       <Routes>
-        <Route index element={<AdminHome stats={stats} tickets={tickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} onGoTickets={() => navigate("/admin/tickets")} adminName={displayName} />} />
-        <Route path="tickets" element={<TicketsTable tickets={filteredTickets} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} admin={admin} />} />
-        <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} onTicketUpdated={loadData} />} />
+        <Route
+          index
+          element={
+            <AdminHome
+              stats={stats}
+              tickets={tickets}
+              onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)}
+              onGoTickets={() => navigate("/admin/tickets")}
+              adminName={displayName}
+            />
+          }
+        />
+        <Route
+          path="tickets"
+          element={
+            <TicketsTable
+              tickets={filteredTickets}
+              onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)}
+              admin={admin}
+            />
+          }
+        />
+        <Route
+          path="tickets/:id"
+          element={
+            <TicketDetail
+              tickets={tickets}
+              admin={admin}
+              onBack={() => navigate("/admin/tickets")}
+              onTicketUpdated={loadData}
+            />
+          }
+        />
         <Route path="reports" element={<ReportsSection tickets={tickets} stats={stats} />} />
-        <Route path="areas" element={<AreaManagementSection tickets={tickets} admin={admin} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
+        <Route
+          path="areas"
+          element={
+            <AreaManagementSection
+              tickets={tickets}
+              admin={admin}
+              onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)}
+            />
+          }
+        />
         <Route path="kb" element={<KnowledgeBaseSection />} />
-        <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email, role: admin.rol, area: admin.area }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
+        <Route
+          path="settings"
+          element={
+            <SettingsSection
+              person={{
+                name: admin.username,
+                email: admin.email,
+                role: admin.rol,
+                area: admin.area,
+              }}
+              mode={mode}
+              onToggleMode={onToggleMode}
+              legajo="2025-000142"
+            />
+          }
+        />
         <Route path="*" element={<PlaceholderSection title="Página no encontrada" />} />
       </Routes>
     </AppShell>
   );
 }
-
-
-
-

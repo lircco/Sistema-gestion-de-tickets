@@ -1,5 +1,8 @@
+import hmac
+
+from django.conf import settings
 from rest_framework import serializers
-from .models import Ticket, Usuario, Area, Categoria, Respuesta
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,11 +33,17 @@ class RegistroSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
             
         rol = data.get('rol', 'ESTUDIANTE')
-        if rol in ['STAFF', 'SUPERVISOR']:
-            auth_code = data.get('auth_code', '')
-            if auth_code != 'UNRAF2026':
-                raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff o Supervisor.'})
-                
+        if rol == 'SUPERVISOR':
+            # Un supervisor es superusuario: lo crea un administrador, no el registro público.
+            raise serializers.ValidationError({'rol': 'Las cuentas de supervisor las crea un administrador.'})
+        if rol == 'STAFF':
+            codigo_esperado = settings.STAFF_REGISTRATION_CODE
+            if not codigo_esperado:
+                raise serializers.ValidationError({'rol': 'El registro como Staff no está habilitado.'})
+            auth_code = data.get('auth_code') or ''
+            if not hmac.compare_digest(auth_code.encode(), codigo_esperado.encode()):
+                raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff.'})
+
         return data
 
     def create(self, validated_data):
@@ -74,6 +83,20 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = '__all__'
         read_only_fields = ['creado_por', 'creado_el', 'actualizado_el']
+
+    # Mismas reglas que el frontend (imágenes o PDF, hasta 5 MB), aplicadas en el servidor.
+    # SVG queda afuera a propósito: puede contener scripts.
+    EXTENSIONES_ADJUNTO = {'.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp'}
+    MAX_ADJUNTO_BYTES = 5 * 1024 * 1024
+
+    def validate_archivo_adjunto(self, archivo):
+        if not archivo:
+            return archivo
+        if not archivo.name.lower().endswith(tuple(self.EXTENSIONES_ADJUNTO)):
+            raise serializers.ValidationError('Solo se permiten imágenes (PNG, JPG, GIF, WEBP) o PDF.')
+        if archivo.size > self.MAX_ADJUNTO_BYTES:
+            raise serializers.ValidationError('El archivo supera el límite de 5 MB.')
+        return archivo
     
     # Agregamos este método para modificar los campos al vuelo
     def get_fields(self):
@@ -96,3 +119,9 @@ class TicketSerializer(serializers.ModelSerializer):
                     fields[campo].read_only = True
 
         return fields
+
+class NotificacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notificacion
+        fields = ['id', 'usuario', 'ticket', 'mensaje', 'leida', 'creada_el']
+        read_only_fields = ['id', 'usuario', 'creada_el']
