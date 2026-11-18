@@ -38,9 +38,11 @@ Desde la raíz del proyecto o entrando a la carpeta `proxy/`:
 
 ```bash
 cd proxy
-docker compose up -d
+docker compose --env-file ../.env up -d
 cd ..
 ```
+
+*(O directamente desde la raíz del proyecto: `docker compose --env-file .env -f proxy/docker-compose.yml up -d`)*.
 
 > **Nota:** Esto creará automáticamente la red de Docker bridge llamada `nginx-proxy` e iniciará el contenedor `caddy-proxy`.
 

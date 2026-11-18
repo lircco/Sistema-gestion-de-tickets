@@ -13,12 +13,9 @@ services:
         required: false
       - path: ./.env
         required: false
-    command: >
-      sh -c '
-      if [ -z "$$DOMAIN_FRONTEND" ]; then export DOMAIN_FRONTEND="http://localhost"; fi;
-      if [ -z "$$DOMAIN_BACKEND" ]; then export DOMAIN_BACKEND="http://localhost:8000"; fi;
-      exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
-      '
+    environment:
+      DOMAIN_FRONTEND: ${DOMAIN_FRONTEND:-http://localhost}
+      DOMAIN_BACKEND: ${DOMAIN_BACKEND:-http://localhost:8000}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
