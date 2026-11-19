@@ -1,0 +1,49 @@
+name: CD Deploy to VM
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH (Docker Compose)
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          PROJECT_DIR: ${{ secrets.PROJECT_DIR }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes "${SSH_USER}@${SSH_HOST}" bash -s -- "$PROJECT_DIR" << 'EOF'
+            set -euo pipefail
+            PROJECT_DIR="$1"
+            cd "$PROJECT_DIR"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+            docker network create nginx-proxy 2>/dev/null || true
+            docker compose -f proxy/docker-compose.yml up -d
+            docker compose up -d --build --remove-orphans
+            docker compose ps
+          EOF
+
+      - name: Healthcheck Producción
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null https://ingenieriacomputacion.com.ar/login
+          curl -fsS -o /dev/null https://api.ingenieriacomputacion.com.ar/api/areas/
