@@ -29,6 +29,8 @@ venv.bak/
 
 ### Node / React ###
 node_modules
+# El proyecto de Node vive en frontend/; en la raíz no debe haber lockfile
+/package-lock.json
 logs
 .vite/
 
