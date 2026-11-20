@@ -27,6 +27,7 @@ import {
   AttachFileOutlined,
 } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
 import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
@@ -317,47 +318,17 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
               </IconButton>
             </Stack>
           </Stack>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                p: 1.8,
-                borderRadius: 2,
-                bgcolor: "action.hover",
-                maxWidth: { xs: "100%", md: "85%" },
-              }}
-            >
-              <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{solicitanteNombre}</Typography>
-                <Typography sx={{ fontSize: 11, opacity: 0.8 }}>
-                  {new Date(ticket.creado_el).toLocaleString()}
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: 13 }}>{ticket.descripcion}</Typography>
-            </Box>
+          <Stack spacing={1.5}>
+            <ChatBubble mine={false} author={solicitanteNombre} date={ticket.creado_el}>
+              {ticket.descripcion}
+            </ChatBubble>
 
             {(ticket.respuestas || []).map((r) => {
               const isAgent = r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR";
               return (
-                <Box
-                  key={r.id}
-                  sx={{
-                    p: 1.8,
-                    borderRadius: 2,
-                    bgcolor: isAgent ? "primary.main" : "action.hover",
-                    color: isAgent ? "#fff" : "text.primary",
-                    alignSelf: isAgent ? "flex-end" : "flex-start",
-                    maxWidth: { xs: "100%", md: "85%" },
-                    ml: isAgent ? "auto" : 0,
-                  }}
-                >
-                  <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{r.autor_nombre}</Typography>
-                    <Typography sx={{ fontSize: 11, opacity: 0.8 }}>
-                      {new Date(r.creado_el).toLocaleString()}
-                    </Typography>
-                  </Stack>
-                  <Typography sx={{ fontSize: 13 }}>{r.mensaje}</Typography>
-                </Box>
+                <ChatBubble key={r.id} mine={isAgent} author={r.autor_nombre} date={r.creado_el}>
+                  {r.mensaje}
+                </ChatBubble>
               );
             })}
           </Stack>
