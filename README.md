@@ -4,8 +4,8 @@ Plataforma institucional para la gestión de tickets de soporte técnico, diseñ
 
 ## Composición del Proyecto
 
-- **Backend:** Django + Django REST Framework.
-- **Frontend:** React + Vite + TanStack Router + MUI + Tailwind.
+- **Backend:** Django + Django REST Framework, autenticación JWT (SimpleJWT) y PostgreSQL.
+- **Frontend:** React + Vite + React Router + Material UI (MUI) + Tailwind.
 
 ## Inicio Rápido con Docker
 
