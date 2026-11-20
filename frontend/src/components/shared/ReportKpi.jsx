@@ -3,8 +3,10 @@ import { Paper, Typography, Stack } from "@mui/material";
 
 export function ReportKpi({ color, label, value, delta, deltaColor }) {
   return (
-    <Paper sx={{ flex: 1, p: 2.5, borderLeft: `4px solid ${color}` }}>
-      <Typography sx={{ fontSize: 11, color: "#6b7280", fontWeight: 700, letterSpacing: 0.5 }}>
+    <Paper sx={{ flex: 1, p: 2.5, borderLeft: "4px solid", borderLeftColor: color }}>
+      <Typography
+        sx={{ fontSize: 11, color: "text.secondary", fontWeight: 700, letterSpacing: 0.5 }}
+      >
         {label}
       </Typography>
       <Stack

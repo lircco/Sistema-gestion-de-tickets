@@ -36,19 +36,7 @@ import { StatusBadge, PriorityBadge } from "../shared/Badges";
 const CHAT_POLL_MS = 5000;
 const CLOSED_POLL_MS = 15000;
 
-const ESTADO_COLOR = {
-  ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
-  EN_PROGRESO: { bg: "#fef3c7", fg: "#92400e" },
-  CERRADO: { bg: "#d1fae5", fg: "#065f46" },
-};
-
 const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
-
-const PRIORIDAD_COLOR = {
-  ALTA: { bg: "#fee2e2", fg: "#991b1b" },
-  MEDIA: { bg: "#fef3c7", fg: "#92400e" },
-  BAJA: { bg: "#f3f4f6", fg: "#374151" },
-};
 
 const ROL_LABELS = { ESTUDIANTE: "Estudiante", STAFF: "Staff de Área", SUPERVISOR: "Supervisor" };
 
@@ -147,8 +135,6 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
   const solicitanteNombre =
     [ticket.creado_por_first_name, ticket.creado_por_last_name].filter(Boolean).join(" ") ||
     ticket.creado_por_nombre;
-  const estadoColor = ESTADO_COLOR[ticket.estado] || { bg: "#f3f4f6", fg: "#374151" };
-  const prioridadColor = PRIORIDAD_COLOR[ticket.prioridad] || { bg: "#f3f4f6", fg: "#374151" };
 
   return (
     <Stack spacing={2.5}>
@@ -164,19 +150,9 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             {ticket.titulo}
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}>
-          <StatusBadge status={ticket.estado} />
-        </Box>
-        <Box
-          sx={{
-            bgcolor: "#f3f4f6",
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 2,
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          <PriorityBadge priority={ticket.prioridad} />
+        <StatusBadge status={ticket.estado} pill />
+        <Box sx={{ display: { xs: "none", sm: "block" } }}>
+          <PriorityBadge priority={ticket.prioridad} pill />
         </Box>
       </Stack>
 
@@ -191,7 +167,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
                   height: 40,
                   borderRadius: 1.5,
                   bgcolor: "primary.main",
-                  color: "#fff",
+                  color: "primary.contrastText",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",

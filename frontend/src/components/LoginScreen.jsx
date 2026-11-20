@@ -41,8 +41,8 @@ function RoleCard({ active, onClick, icon, label }) {
         flex: 1,
         cursor: "pointer",
         border: "2px solid",
-        borderColor: active ? "primary.main" : "#e5e7eb",
-        bgcolor: active ? "rgba(10,61,98,0.06)" : "#fff",
+        borderColor: active ? "primary.main" : "divider",
+        bgcolor: active ? "action.selected" : "background.paper",
         borderRadius: 2,
         py: 1.8,
         textAlign: "center",
@@ -50,9 +50,9 @@ function RoleCard({ active, onClick, icon, label }) {
         "&:hover": { borderColor: "primary.main" },
       }}
     >
-      <Box sx={{ color: active ? "primary.main" : "#6b7280", mb: 0.3 }}>{icon}</Box>
+      <Box sx={{ color: active ? "primary.main" : "text.secondary", mb: 0.3 }}>{icon}</Box>
       <Typography
-        sx={{ fontSize: 13, fontWeight: 600, color: active ? "primary.main" : "#374151" }}
+        sx={{ fontSize: 13, fontWeight: 600, color: active ? "primary.main" : "text.primary" }}
       >
         {label}
       </Typography>
@@ -271,9 +271,11 @@ export default function LoginScreen({ onLoginSuccess }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        bgcolor: "#fafbfc",
         p: 2,
-        background: "linear-gradient(135deg,#fafbfc 0%,#fafbfc 55%,#eef2f7 55%,#eef2f7 100%)",
+        background: (theme) =>
+          theme.palette.mode === "dark"
+            ? "linear-gradient(135deg,#0f172a 0%,#0f172a 55%,#172033 55%,#172033 100%)"
+            : "linear-gradient(135deg,#fafbfc 0%,#fafbfc 55%,#eef2f7 55%,#eef2f7 100%)",
       }}
     >
       <Stack spacing={3} sx={{ alignItems: "center", width: "100%", maxWidth: 460 }}>
@@ -290,14 +292,18 @@ export default function LoginScreen({ onLoginSuccess }) {
               boxShadow: "0 8px 22px rgba(10,61,98,0.25)",
             }}
           >
-            <Avatar sx={{ bgcolor: "transparent", color: "#fff", width: 34, height: 34 }}>
+            <Avatar
+              sx={{ bgcolor: "transparent", color: "primary.contrastText", width: 34, height: 34 }}
+            >
               <SchoolIcon />
             </Avatar>
           </Box>
           <Typography variant="h4" sx={{ color: "primary.main" }}>
             UnrafTickets
           </Typography>
-          <Typography sx={{ color: "#7a8595", fontSize: 12, letterSpacing: 2, fontWeight: 600 }}>
+          <Typography
+            sx={{ color: "text.secondary", fontSize: 12, letterSpacing: 2, fontWeight: 600 }}
+          >
             SOPORTE TÉCNICO INSTITUCIONAL
           </Typography>
         </Stack>
@@ -354,7 +360,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     size="small"
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   />
                 </Box>
                 <Box sx={{ flex: 1 }}>
@@ -365,7 +371,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     size="small"
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   />
                 </Box>
               </Stack>
@@ -378,7 +384,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                   <Select
                     value={selectedArea}
                     onChange={(e) => setSelectedArea(e.target.value)}
-                    sx={{ bgcolor: "#f4f6f9" }}
+                    sx={{ bgcolor: "action.hover" }}
                   >
                     <MenuItem value="" disabled>
                       Seleccione un área
@@ -405,7 +411,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                   value={authCode}
                   onChange={(e) => setAuthCode(e.target.value)}
                   size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                 />
               </>
             )}
@@ -421,12 +427,12 @@ export default function LoginScreen({ onLoginSuccess }) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   slotProps={{
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
-                          <Person sx={{ color: "#9aa4b2" }} />
+                          <Person sx={{ color: "text.secondary" }} />
                         </InputAdornment>
                       ),
                     },
@@ -444,12 +450,12 @@ export default function LoginScreen({ onLoginSuccess }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   size="small"
-                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   slotProps={{
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
-                          <MailOutlined sx={{ color: "#9aa4b2" }} />
+                          <MailOutlined sx={{ color: "text.secondary" }} />
                         </InputAdornment>
                       ),
                     },
@@ -467,7 +473,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 size="small"
-                sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                sx={{ "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -516,7 +522,7 @@ export default function LoginScreen({ onLoginSuccess }) {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   size="small"
-                  sx={{ mb: 3, "& .MuiOutlinedInput-root": { bgcolor: "#f4f6f9" } }}
+                  sx={{ mb: 3, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   slotProps={{
                     input: {
                       endAdornment: (
@@ -566,7 +572,7 @@ export default function LoginScreen({ onLoginSuccess }) {
           </Box>
         </Card>
 
-        <Typography sx={{ fontSize: 13, color: "#6b7280" }}>
+        <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
           ¿Necesita ayuda inmediata?{" "}
           <Link
             href="#"
@@ -586,7 +592,7 @@ export default function LoginScreen({ onLoginSuccess }) {
               Recuperar Contraseña
             </DialogTitle>
             <DialogContent>
-              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
+              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "text.secondary" }}>
                 Ingresá tu correo electrónico y te enviaremos un código de seguridad para
                 restablecer tu contraseña.
               </DialogContentText>
@@ -635,7 +641,7 @@ export default function LoginScreen({ onLoginSuccess }) {
               Restablecer Contraseña
             </DialogTitle>
             <DialogContent>
-              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "#4b5563" }}>
+              <DialogContentText sx={{ mb: 2, fontSize: 14, color: "text.secondary" }}>
                 Si <strong>{recoveryEmail}</strong> está registrado, te enviamos un código de
                 recuperación (vence en 30 minutos). Copialo abajo junto con tu nueva contraseña.
               </DialogContentText>
@@ -705,7 +711,7 @@ export default function LoginScreen({ onLoginSuccess }) {
               ¡Contraseña Actualizada!
             </DialogTitle>
             <DialogContent>
-              <DialogContentText sx={{ fontSize: 14, color: "#374151" }}>
+              <DialogContentText sx={{ fontSize: 14, color: "text.primary" }}>
                 Tu contraseña fue cambiada exitosamente. Ya podés iniciar sesión con tu nueva
                 contraseña.
               </DialogContentText>
@@ -741,7 +747,7 @@ export default function LoginScreen({ onLoginSuccess }) {
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <Typography sx={{ fontSize: 15, color: "#374151" }}>
+          <Typography sx={{ fontSize: 15, color: "text.primary" }}>
             Correo: soporte@unraf.edu.ar Personalmente: Campus UNRaf en Av Angela de la Casa 2500 -
             Rafaela Horarios de atención: 15 a 21hs
           </Typography>
@@ -752,5 +758,5 @@ export default function LoginScreen({ onLoginSuccess }) {
 }
 
 function SchoolIcon() {
-  return <SchoolOutlined sx={{ color: "#fff", fontSize: 34 }} />;
+  return <SchoolOutlined sx={{ color: "inherit", fontSize: 34 }} />;
 }

@@ -26,7 +26,7 @@ function PlaceholderSection({ title }) {
       <Typography variant="h5" sx={{ mb: 1 }}>
         {title}
       </Typography>
-      <Typography sx={{ color: "#6b7280" }}>Sección en construcción.</Typography>
+      <Typography sx={{ color: "text.secondary" }}>Sección en construcción.</Typography>
     </Paper>
   );
 }
