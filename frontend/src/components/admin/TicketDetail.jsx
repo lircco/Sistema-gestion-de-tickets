@@ -29,8 +29,12 @@ import {
 import DetailRow from "../shared/DetailRow";
 import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
+import usePolling from "../../hooks/use-polling";
 import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
+
+const CHAT_POLL_MS = 5000;
+const CLOSED_POLL_MS = 15000;
 
 const ESTADO_COLOR = {
   ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
@@ -104,6 +108,10 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
     runAction({ prioridad }, `Prioridad actualizada a "${prioridad}".`);
 
   const isClosed = ticket?.estado === "CERRADO";
+
+  // Trae mensajes nuevos (y cambios de estado) sin recargar la página mientras el
+  // ticket esté abierto. Si está cerrado se consulta más espaciado, por si lo reabren.
+  usePolling(onTicketUpdated, isClosed ? CLOSED_POLL_MS : CHAT_POLL_MS, Boolean(ticket));
 
   const handleSend = async () => {
     if (!reply.trim() || !ticket || isClosed) return;

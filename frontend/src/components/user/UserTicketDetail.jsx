@@ -15,6 +15,10 @@ import { ArrowBack, AttachFileOutlined, SendOutlined } from "@mui/icons-material
 import DetailRow from "../shared/DetailRow";
 import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
+import usePolling from "../../hooks/use-polling";
+
+const CHAT_POLL_MS = 5000;
+const CLOSED_POLL_MS = 15000;
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
@@ -27,6 +31,10 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const isClosed = ticket?.estado === "CERRADO";
+
+  // Trae mensajes nuevos (y cambios de estado) sin recargar la página mientras el
+  // ticket esté abierto. Si está cerrado se consulta más espaciado, por si lo reabren.
+  usePolling(onTicketUpdated, isClosed ? CLOSED_POLL_MS : CHAT_POLL_MS, Boolean(ticket));
 
   const handleSend = async () => {
     if (!reply.trim() || !ticket || isClosed) return;
