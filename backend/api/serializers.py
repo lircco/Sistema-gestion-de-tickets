@@ -30,6 +30,13 @@ class RegistroSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name', 'rol', 'area', 'auth_code']
 
+    def validate_email(self, value):
+        # El email no es único en la base, pero el login por email y la recuperación
+        # de contraseña asumen una sola cuenta por dirección.
+        if value and Usuario.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Ya existe una cuenta registrada con este email.')
+        return value
+
     def validate(self, data):
         if data['password'] != data.get('password_confirm'):
             raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
