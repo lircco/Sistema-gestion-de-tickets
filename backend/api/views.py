@@ -226,8 +226,16 @@ class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class NotificacionViewSet(viewsets.ModelViewSet):
+class NotificacionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    # Las notificaciones las crea el sistema: el usuario solo las lista y las
+    # marca como leídas (el serializer deja escribir únicamente 'leida').
     serializer_class = NotificacionSerializer
+    http_method_names = ['get', 'patch', 'post', 'head', 'options']
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = None
 
