@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, AttachFileOutlined, SendOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
@@ -69,7 +70,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
             {ticket.titulo}
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}>
+        <Box sx={{ bgcolor: "action.hover", px: 1.5, py: 0.5, borderRadius: 2 }}>
           <StatusBadge status={ticket.estado} />
         </Box>
       </Stack>
@@ -102,50 +103,21 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
 
         <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, mb: 2 }}>Conversación con el staff</Typography>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                p: 1.8,
-                borderRadius: 2,
-                bgcolor: "action.hover",
-                maxWidth: { xs: "100%", md: "85%" },
-              }}
-            >
-              <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
-                  {user?.name || "Vos"}
-                </Typography>
-                <Typography sx={{ fontSize: 11, opacity: 0.8 }}>
-                  {new Date(ticket.creado_el).toLocaleString()}
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: 13 }}>{ticket.descripcion}</Typography>
-            </Box>
-            {(ticket.respuestas || []).map((r, i) => {
+          <Stack spacing={1.5}>
+            <ChatBubble mine author={user?.name || "Vos"} date={ticket.creado_el}>
+              {ticket.descripcion}
+            </ChatBubble>
+            {(ticket.respuestas || []).map((r) => {
               const isMine = r.autor_rol === "ESTUDIANTE";
               return (
-                <Box
-                  key={i}
-                  sx={{
-                    p: 1.8,
-                    borderRadius: 2,
-                    bgcolor: isMine ? "primary.main" : "#f1f5f9",
-                    color: isMine ? "#fff" : "text.primary",
-                    alignSelf: isMine ? "flex-end" : "flex-start",
-                    maxWidth: { xs: "100%", md: "85%" },
-                    ml: isMine ? "auto" : 0,
-                  }}
+                <ChatBubble
+                  key={r.id}
+                  mine={isMine}
+                  author={isMine ? "Vos" : `Staff de ${ticket.area_nombre}`}
+                  date={r.creado_el}
                 >
-                  <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 700 }}>
-                      {isMine ? "Vos" : `Staff de ${ticket.area_nombre}`}
-                    </Typography>
-                    <Typography sx={{ fontSize: 11, opacity: isMine ? 0.8 : 0.6 }}>
-                      {new Date(r.creado_el).toLocaleString()}
-                    </Typography>
-                  </Stack>
-                  <Typography sx={{ fontSize: 13 }}>{r.mensaje}</Typography>
-                </Box>
+                  {r.mensaje}
+                </ChatBubble>
               );
             })}
           </Stack>
