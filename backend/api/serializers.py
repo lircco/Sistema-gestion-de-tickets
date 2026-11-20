@@ -1,6 +1,8 @@
 import hmac
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
 
@@ -28,6 +30,13 @@ class RegistroSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'username', 'email', 'password', 'password_confirm', 'first_name', 'last_name', 'rol', 'area', 'auth_code']
 
+    def validate_email(self, value):
+        # El email no es único en la base, pero el login por email y la recuperación
+        # de contraseña asumen una sola cuenta por dirección.
+        if value and Usuario.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Ya existe una cuenta registrada con este email.')
+        return value
+
     def validate(self, data):
         if data['password'] != data.get('password_confirm'):
             raise serializers.ValidationError({'password': 'Las contraseñas no coinciden'})
@@ -43,6 +52,19 @@ class RegistroSerializer(serializers.ModelSerializer):
             auth_code = data.get('auth_code') or ''
             if not hmac.compare_digest(auth_code.encode(), codigo_esperado.encode()):
                 raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff.'})
+
+        # Mismas reglas que al cambiar o restablecer la contraseña (AUTH_PASSWORD_VALIDATORS).
+        # El usuario tentativo permite detectar contraseñas parecidas a sus datos.
+        usuario_tentativo = Usuario(
+            username=data.get('username', ''),
+            email=data.get('email', ''),
+            first_name=data.get('first_name', ''),
+            last_name=data.get('last_name', ''),
+        )
+        try:
+            validate_password(data['password'], user=usuario_tentativo)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
 
         return data
 
@@ -106,15 +128,14 @@ class TicketSerializer(serializers.ModelSerializer):
         # Obtenemos el 'request' para saber quién está logueado
         request = self.context.get('request')
         
-        # Si el usuario está logueado y su rol es ESTUDIANTE, y estamos
-        # editando un ticket existente (self.instance) y no creando uno nuevo
-        if request and hasattr(request.user, 'rol') and request.user.rol == 'ESTUDIANTE' and self.instance is not None:
-            # Bloqueamos los campos que solo el staff puede modificar desde
-            # las Acciones Rápidas del detalle de ticket (Derivar, Cambiar
-            # Estado): un estudiante no debería poder reasignar el área ni
-            # el estado/prioridad de su propio ticket. Al crear un ticket
-            # nuevo sí debe poder elegir el área responsable.
-            for campo in ('estado', 'area_responsable', 'prioridad'):
+        if request and getattr(request.user, 'rol', None) == 'ESTUDIANTE':
+            # Estado y prioridad los maneja el staff (Acciones Rápidas del detalle):
+            # el estudiante no los elige ni al crear (toman ABIERTO y MEDIA) ni al
+            # editar. El área sí la elige al crear, pero no puede reasignarla después.
+            bloqueados = ['estado', 'prioridad']
+            if self.instance is not None:
+                bloqueados.append('area_responsable')
+            for campo in bloqueados:
                 if campo in fields:
                     fields[campo].read_only = True
 
@@ -124,4 +145,4 @@ class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
         fields = ['id', 'usuario', 'ticket', 'mensaje', 'leida', 'creada_el']
-        read_only_fields = ['id', 'usuario', 'creada_el']
+        read_only_fields = ['id', 'usuario', 'ticket', 'mensaje', 'creada_el']
