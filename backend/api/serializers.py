@@ -1,6 +1,8 @@
 import hmac
 
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
 
@@ -43,6 +45,19 @@ class RegistroSerializer(serializers.ModelSerializer):
             auth_code = data.get('auth_code') or ''
             if not hmac.compare_digest(auth_code.encode(), codigo_esperado.encode()):
                 raise serializers.ValidationError({'auth_code': 'Código de autorización inválido para registrarse como Staff.'})
+
+        # Mismas reglas que al cambiar o restablecer la contraseña (AUTH_PASSWORD_VALIDATORS).
+        # El usuario tentativo permite detectar contraseñas parecidas a sus datos.
+        usuario_tentativo = Usuario(
+            username=data.get('username', ''),
+            email=data.get('email', ''),
+            first_name=data.get('first_name', ''),
+            last_name=data.get('last_name', ''),
+        )
+        try:
+            validate_password(data['password'], user=usuario_tentativo)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
 
         return data
 
