@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ArrowBack, AttachFileOutlined, SendOutlined } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import ClosedChatNotice from "../shared/ClosedChatNotice";
 
 const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
 
@@ -22,18 +23,22 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
   const { id } = useParams();
   const ticket = (tickets || []).find((t) => String(t.id) === String(id));
   const [reply, setReply] = useState("");
-  const [followUps, setFollowUps] = useState([]);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const isClosed = ticket?.estado === "CERRADO";
 
   const handleSend = async () => {
-    if (!reply.trim()) return;
+    if (!reply.trim() || !ticket || isClosed) return;
+    setSending(true);
+    setSendError("");
     try {
       await api.enviarRespuesta(ticket.id, reply.trim());
       setReply("");
-      if (onTicketUpdated) {
-        onTicketUpdated();
-      }
+      await onTicketUpdated?.();
     } catch (error) {
-      console.error("Error al enviar la respuesta:", error);
+      setSendError(error.message || "No se pudo enviar el mensaje.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -145,7 +150,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
             })}
           </Stack>
 
-          {!(ticket.respuestas && ticket.respuestas.length > 0) && (
+          {!(ticket.respuestas && ticket.respuestas.length > 0) && !isClosed && (
             <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}>
               El staff del area todavia no respondio este ticket.
             </Typography>
@@ -153,19 +158,36 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
 
           <Divider sx={{ my: 2 }} />
 
-          <TextField
-            placeholder="Escribí un mensaje de seguimiento para el staff..."
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            multiline
-            minRows={3}
-            fullWidth
-          />
-          <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
-            <Button variant="contained" endIcon={<SendOutlined />} onClick={handleSend}>
-              Enviar Mensaje
-            </Button>
-          </Stack>
+          {isClosed ? (
+            <ClosedChatNotice />
+          ) : (
+            <>
+              <TextField
+                placeholder="Escribí un mensaje de seguimiento para el staff..."
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+                disabled={sending}
+              />
+              {sendError && (
+                <Typography sx={{ fontSize: 12, color: "error.main", mt: 1 }}>
+                  {sendError}
+                </Typography>
+              )}
+              <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
+                <Button
+                  variant="contained"
+                  endIcon={<SendOutlined />}
+                  onClick={handleSend}
+                  disabled={sending || !reply.trim()}
+                >
+                  {sending ? "Enviando..." : "Enviar Mensaje"}
+                </Button>
+              </Stack>
+            </>
+          )}
         </Paper>
       </Stack>
     </Stack>
