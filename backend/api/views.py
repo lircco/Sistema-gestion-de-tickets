@@ -175,6 +175,11 @@ class TicketViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def responder(self, request, pk=None):
         ticket = self.get_object()
+        if ticket.estado == Ticket.Estados.CERRADO:
+            return Response(
+                {'error': 'El ticket está cerrado: no se pueden enviar más mensajes.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         mensaje = (request.data.get('mensaje') or '').strip()
 
         if not mensaje:

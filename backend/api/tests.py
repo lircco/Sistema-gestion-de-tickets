@@ -239,6 +239,16 @@ class TicketAccionesRapidasTests(APITestCase):
         self.assertEqual(respuesta.autor, self.staff)
         self.assertEqual(respuesta.ticket, self.ticket)
 
+    def test_no_se_puede_responder_un_ticket_cerrado(self):
+        self.ticket.estado = "CERRADO"
+        self.ticket.save()
+        for username in ("agente2", "alumno3"):
+            self.client.login(username=username, password="password123")
+            url = reverse('ticket-responder', args=[self.ticket.id])
+            response = self.client.post(url, {"mensaje": "Hola?"})
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Respuesta.objects.count(), 0)
+
     def test_responder_con_mensaje_vacio_falla(self):
         self.client.login(username="agente2", password="password123")
         url = reverse('ticket-responder', args=[self.ticket.id])

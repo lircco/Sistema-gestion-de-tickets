@@ -27,6 +27,7 @@ import {
   AttachFileOutlined,
 } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import ClosedChatNotice from "../shared/ClosedChatNotice";
 import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
@@ -101,8 +102,10 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
   const handleCambiarPrioridad = (prioridad) =>
     runAction({ prioridad }, `Prioridad actualizada a "${prioridad}".`);
 
+  const isClosed = ticket?.estado === "CERRADO";
+
   const handleSend = async () => {
-    if (!reply.trim() || !ticket) return;
+    if (!reply.trim() || !ticket || isClosed) return;
     setSending(true);
     try {
       await api.enviarRespuesta(ticket.id, reply.trim());
@@ -361,25 +364,31 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
 
           <Divider sx={{ my: 2 }} />
 
-          <TextField
-            placeholder="Escribí tu respuesta o seguimiento aquí..."
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            multiline
-            minRows={3}
-            fullWidth
-            disabled={sending}
-          />
-          <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
-            <Button
-              variant="contained"
-              endIcon={<SendOutlined />}
-              onClick={handleSend}
-              disabled={sending || !reply.trim()}
-            >
-              {sending ? "Enviando..." : "Enviar Respuesta"}
-            </Button>
-          </Stack>
+          {isClosed ? (
+            <ClosedChatNotice />
+          ) : (
+            <>
+              <TextField
+                placeholder="Escribí tu respuesta o seguimiento aquí..."
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                multiline
+                minRows={3}
+                fullWidth
+                disabled={sending}
+              />
+              <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
+                <Button
+                  variant="contained"
+                  endIcon={<SendOutlined />}
+                  onClick={handleSend}
+                  disabled={sending || !reply.trim()}
+                >
+                  {sending ? "Enviando..." : "Enviar Respuesta"}
+                </Button>
+              </Stack>
+            </>
+          )}
         </Paper>
       </Stack>
 
