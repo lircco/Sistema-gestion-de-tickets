@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { api } from "../../lib/api";
 
-export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
+export default function SettingsSection({ person, mode, onToggleMode }) {
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(person.area || "");
   // Una vez asignada, el área solo la puede cambiar un supervisor.
@@ -44,17 +44,6 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
       setTimeout(() => setAreaSuccess(""), 3000);
     } catch (e) {
       setAreaError("Error al actualizar el área");
-    }
-  };
-
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
-  const handlePushAlertsChange = (e) => {
-    const val = e.target.checked;
-    setPushAlerts(val);
-    localStorage.setItem("pushAlerts", val);
-    if (val && Notification.permission !== "granted") {
-      Notification.requestPermission();
     }
   };
 
@@ -129,10 +118,13 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   disabled
                 />
                 <TextField
-                  label="Legajo"
-                  defaultValue={legajo}
+                  label="Usuario"
+                  defaultValue={person.username}
                   size="small"
                   sx={{ width: { xs: "100%", sm: 200 } }}
+                  key={person.email + "u"}
+                  slotProps={{ input: { readOnly: true } }}
+                  disabled
                 />
               </Stack>
               {person.role?.toUpperCase() === "STAFF" && (
@@ -196,44 +188,6 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
               sx={{ m: 0 }}
             />
           </Box>
-        </Paper>
-
-        <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Notificaciones</Typography>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>Alertas por Correo</Typography>
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  Recibir actualizaciones de tickets en {person.email}
-                </Typography>
-              </Box>
-              <Switch checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} />
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>Notificaciones Push</Typography>
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  Alertas inmediatas en navegador y dispositivo móvil.
-                </Typography>
-              </Box>
-              <Switch checked={pushAlerts} onChange={handlePushAlertsChange} />
-            </Box>
-          </Stack>
         </Paper>
       </Stack>
     </Stack>

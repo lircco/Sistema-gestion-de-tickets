@@ -140,13 +140,13 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
             <SettingsSection
               person={{
                 name: admin.username,
+                username: admin.username,
                 email: admin.email,
                 role: admin.rol,
                 area: admin.area,
               }}
               mode={mode}
               onToggleMode={onToggleMode}
-              legajo="2025-000142"
             />
           }
         />

@@ -102,10 +102,9 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
             path="settings"
             element={
               <SettingsSection
-                person={{ name: displayName, email: user.email }}
+                person={{ name: displayName, email: user.email, username: user.username }}
                 mode={mode}
                 onToggleMode={onToggleMode}
-                legajo="2024-001284"
               />
             }
           />
