@@ -9,6 +9,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { ReportKpi } from "../shared/ReportKpi";
 import {
   computeAvgLeadTimeHours,
@@ -19,8 +20,9 @@ import {
 } from "../../lib/utils";
 
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
+import { toneSx } from "../../lib/tones";
 
-const CATEGORIA_COLORS = ["#0a3d62", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
+const CATEGORIA_COLORS = ["primary.main", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
 
 export default function ReportsSection({ tickets = [], stats }) {
   const [last30Active, setLast30Active] = useState(false);
@@ -52,7 +54,7 @@ export default function ReportsSection({ tickets = [], stats }) {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Box>
           <Typography variant="h5">Reportes de Gestión</Typography>
-          <Typography sx={{ color: "#6b7280" }}>
+          <Typography sx={{ color: "text.secondary" }}>
             Monitoreo en tiempo real del rendimiento operativo de la UNRaf.
           </Typography>
         </Box>
@@ -75,61 +77,53 @@ export default function ReportsSection({ tickets = [], stats }) {
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <ReportKpi
-          color="#0a3d62"
+          color="primary.main"
           label="TICKETS TOTALES"
           value={totalTickets}
           delta={`${cerrados} cerrados`}
-          deltaColor="#6b7280"
+          deltaColor="text.secondary"
         />
         <ReportKpi
-          color="#0a3d62"
+          color="primary.main"
           label="LEAD TIME PROMEDIO"
           value={avgLeadTime === null ? "Sin datos" : `${avgLeadTime.toFixed(1)}h`}
           delta={avgLeadTime === null ? "sin tickets cerrados" : "sobre tickets cerrados"}
-          deltaColor="#6b7280"
+          deltaColor="text.secondary"
         />
         <ReportKpi
-          color="#10b981"
+          color="success.main"
           label="% RESUELTOS"
           value={`${resolvedPercent}%`}
           delta={`${cerrados}/${totalTickets}`}
-          deltaColor="#6b7280"
+          deltaColor="text.secondary"
         />
         <ReportKpi
-          color={slaEnRiesgo > 0 ? "#ef4444" : "#10b981"}
+          color={slaEnRiesgo > 0 ? "error.main" : "success.main"}
           label="SLA EN RIESGO"
           value={slaEnRiesgo}
           delta={slaEnRiesgo > 0 ? "! Prioridad alta sin cerrar" : "OK"}
-          deltaColor={slaEnRiesgo > 0 ? "#ef4444" : "#10b981"}
+          deltaColor={slaEnRiesgo > 0 ? "error.main" : "success.main"}
         />
       </Stack>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Eficiencia Operativa</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+          <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
             Lead Time (horas) por área administrativa, tickets cerrados
           </Typography>
           {leadTimeByArea.length === 0 ? (
-            <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets cerrados para calcular el lead time por área.
             </Typography>
           ) : (
             <>
               {mejorArea && (
-                <Box
-                  sx={{
-                    mb: 2,
-                    p: 1.5,
-                    bgcolor: "#e0f2fe",
-                    borderRadius: 1,
-                    border: "1px solid #bae6fd",
-                  }}
-                >
-                  <Typography sx={{ fontSize: 13, color: "#0369a1", fontWeight: 600 }}>
+                <Box sx={[toneSx("blue"), { mb: 2, p: 1.5, borderRadius: 1 }]}>
+                  <Typography sx={{ fontSize: 13, color: "inherit", fontWeight: 600 }}>
                     Área Destacada: {mejorArea.area}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: "#0284c7" }}>
+                  <Typography sx={{ fontSize: 12, color: "inherit" }}>
                     Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de{" "}
                     {mejorArea.hours.toFixed(1)}h.
                   </Typography>
@@ -144,14 +138,13 @@ export default function ReportsSection({ tickets = [], stats }) {
                   <Box
                     key={a.area}
                     title={`${a.area}: ${a.hours.toFixed(1)}h (${a.count} tickets)`}
-                    sx={{
+                    sx={(theme) => ({
                       flex: 1,
                       height: Math.max((a.hours / maxAreaHours) * 140, 6),
-                      bgcolor: "primary.main",
-                      opacity: 0.4 + i * 0.1,
+                      bgcolor: alpha(theme.palette.primary.main, Math.min(0.4 + i * 0.1, 1)),
                       borderRadius: 1,
                       position: "relative",
-                    }}
+                    })}
                   >
                     <Typography
                       sx={{
@@ -174,7 +167,7 @@ export default function ReportsSection({ tickets = [], stats }) {
                 {leadTimeByArea.map((a) => (
                   <Typography
                     key={a.area}
-                    sx={{ fontSize: 11, color: "#6b7280", flex: 1, textAlign: "center" }}
+                    sx={{ fontSize: 11, color: "text.secondary", flex: 1, textAlign: "center" }}
                   >
                     {a.area}
                   </Typography>
@@ -185,11 +178,11 @@ export default function ReportsSection({ tickets = [], stats }) {
         </Paper>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Consultas por Categoría</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>
+          <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
             Distribución porcentual de tickets
           </Typography>
           {categoriaDistribution.length === 0 ? (
-            <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets para calcular la distribución.
             </Typography>
           ) : (

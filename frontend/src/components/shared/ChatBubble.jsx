@@ -24,7 +24,7 @@ export default function ChatBubble({ mine, author, date, children }) {
     >
       <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
         <Typography sx={{ fontSize: 12, fontWeight: 700, color: "inherit" }}>{author}</Typography>
-        <Typography sx={{ fontSize: 11, opacity: 0.85, color: "inherit" }}>
+        <Typography sx={{ fontSize: 11, color: "inherit" }}>
           {new Date(date).toLocaleString()}
         </Typography>
       </Stack>

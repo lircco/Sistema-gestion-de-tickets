@@ -47,7 +47,7 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
     <Stack spacing={3}>
       <Box>
         <Typography variant="h4">¡Hola, {firstName}! ¿En qué podemos ayudarte hoy?</Typography>
-        <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
+        <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
           Bienvenido a la plataforma de gestión académica y técnica de UNRaf. Aquí puedes realizar
           trámites o reportar inconvenientes.
         </Typography>
@@ -80,7 +80,14 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
 
         <Paper
           onClick={onGoTickets}
-          sx={{ flex: 1, p: 3, bgcolor: "secondary.main", minHeight: 200, cursor: "pointer" }}
+          sx={{
+            flex: 1,
+            p: 3,
+            bgcolor: "secondary.main",
+            color: "secondary.contrastText",
+            minHeight: 200,
+            cursor: "pointer",
+          }}
         >
           <AssignmentOutlined sx={{ color: "rgba(0,0,0,0.4)", float: "right" }} />
           <Typography variant="h5" sx={{ mb: 1 }}>
@@ -109,10 +116,10 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>ID / ASUNTO</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>CATEGORÍA</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>ESTADO</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>FECHA</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>ID / ASUNTO</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>CATEGORÍA</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>ESTADO</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>FECHA</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -127,10 +134,12 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
                     <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
                       #{r.id} - {r.titulo}
                     </Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>
+                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                      {r.descripcion}
+                    </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }} />
+                    <Chip size="small" label={r.categoria_nombre} />
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={r.estado} />
@@ -147,25 +156,25 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
         <Stack spacing={2.5} sx={{ flex: 1 }}>
           <Paper sx={{ p: 3 }}>
             <Typography
-              sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}
+              sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}
             >
               MIS TRÁMITES ACTIVOS
             </Typography>
             <Typography sx={{ fontSize: 36, fontWeight: 800, mt: 1 }}>
               {String(tickets.filter((t) => t.estado !== "CERRADO").length).padStart(2, "0")}
             </Typography>
-            <Typography sx={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>
+            <Typography sx={{ fontSize: 12, color: "success.main", fontWeight: 600 }}>
               ↗ {tickets.filter((t) => t.estado === "CERRADO").length} resuelto(s)
             </Typography>
           </Paper>
           <Paper sx={{ p: 3 }}>
             <Typography
-              sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}
+              sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}
             >
               TIEMPO PROMEDIO DE RESPUESTA
             </Typography>
             <Typography sx={{ fontSize: 28, fontWeight: 800, mt: 1 }}>{avgString}</Typography>
-            <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+            <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
               Basado en el equipo de Atención al Alumno
             </Typography>
           </Paper>

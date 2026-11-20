@@ -20,8 +20,6 @@ import usePolling from "../../hooks/use-polling";
 const CHAT_POLL_MS = 5000;
 const CLOSED_POLL_MS = 15000;
 
-const ESTADO_COLOR = { ABIERTO: "#3b82f6", EN_PROGRESO: "#f59e0b", CERRADO: "#10b981" };
-
 import { api } from "../../lib/api";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
@@ -78,9 +76,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
             {ticket.titulo}
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "action.hover", px: 1.5, py: 0.5, borderRadius: 2 }}>
-          <StatusBadge status={ticket.estado} />
-        </Box>
+        <StatusBadge status={ticket.estado} pill />
       </Stack>
 
       <Stack direction={{ xs: "column", lg: "row" }} spacing={2.5}>

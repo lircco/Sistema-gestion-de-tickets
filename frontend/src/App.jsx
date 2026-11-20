@@ -10,8 +10,15 @@ const buildTheme = (mode) =>
   createTheme({
     palette: {
       mode,
-      primary: { main: mode === "dark" ? "#4f9cd6" : "#0a3d62" },
-      secondary: { main: "#f5b400" },
+      // En oscuro el primario es claro: el texto encima va oscuro (blanco daba 2.97:1).
+      primary:
+        mode === "dark"
+          ? { main: "#4f9cd6", contrastText: "#0b1726" }
+          : { main: "#0a3d62", contrastText: "#ffffff" },
+      secondary: { main: "#f5b400", contrastText: "rgba(0,0,0,0.87)" },
+      // Rojo/verde usados también como texto: tonos con contraste AA en cada fondo.
+      error: { main: mode === "dark" ? "#f87171" : "#dc2626" },
+      success: { main: mode === "dark" ? "#34d399" : "#047857" },
       background:
         mode === "dark"
           ? { default: "#0f172a", paper: "#1e293b" }

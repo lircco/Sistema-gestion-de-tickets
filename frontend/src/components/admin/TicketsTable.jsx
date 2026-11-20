@@ -183,7 +183,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
           <TableHead>
             <TableRow>
               {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "PRIORIDAD", "FECHA", "ACCIÓN"].map((h) => (
-                <TableCell key={h} sx={{ color: "#6b7280", fontWeight: 700, fontSize: 12 }}>
+                <TableCell key={h} sx={{ color: "text.secondary", fontWeight: 700, fontSize: 12 }}>
                   {h}
                 </TableCell>
               ))}
@@ -247,7 +247,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
             ))}
           </TableBody>
         </Table>
-        <Typography sx={{ fontSize: 12, color: "#6b7280", mt: 2 }}>
+        <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}>
           Mostrando {visibleTickets.length} tickets
         </Typography>
       </Paper>
