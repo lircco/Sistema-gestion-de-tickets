@@ -28,7 +28,7 @@ Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de est
 
 El stack completo puede ser levantado utilizando contenedores Docker.
 
-1. **Crear la red externa de Nginx:**
+1. **Crear la red externa del proxy** (se llama `nginx-proxy` por historia; hoy la usa Caddy):
    ```bash
    docker network create nginx-proxy
    ```
@@ -104,9 +104,9 @@ Ejemplo: `feat: implementar filtrado de tickets por área`
 
 ---
 
-## Despliegue (Nginx + Producción)
+## Despliegue (Caddy + Producción)
 
-Para desplegar en un entorno de producción con Nginx, sigue estos pasos:
+Para desplegar en un entorno de producción con el proxy Caddy, sigue estos pasos:
 
 ### 1. Variables de Entorno
 
@@ -128,13 +128,13 @@ Configura las siguientes variables de entorno en el servidor:
 ### 3. Frontend
 
 1.  Construir el proyecto: `npm run build`.
-2.  Los archivos generados en `frontend/dist` deben ser servidos por Nginx.
+2.  Los archivos generados en `frontend/dist` los sirve el contenedor del frontend (Nginx, configurado en `frontend/nginx.conf`).
 
-### 4. Nginx
+### 4. Proxy inverso (Caddy)
 
-La configuración de Nginx está en el repositorio:
+La configuración está en el repositorio:
 
-- `frontend/nginx.conf`: sirve la Single Page Application (SPA) de React y hace de proxy de `/api/` hacia el backend.
-- `proxy/default.conf`: proxy inverso de entrada hacia el frontend y el backend.
+- `proxy/Caddyfile` y `proxy/docker-compose.yml`: Caddy es el proxy de entrada. Envía `/api/*` directo al backend y el resto al frontend, y obtiene y renueva los certificados HTTPS solo cuando se definen `DOMAIN_FRONTEND` y `DOMAIN_BACKEND`. Los detalles están en `proxy/README.md`.
+- `frontend/nginx.conf`: el contenedor del frontend sirve la Single Page Application (SPA) de React.
 
 Los archivos estáticos de Django los sirve WhiteNoise. Los adjuntos de los tickets no se exponen como archivos públicos: se descargan con autenticación por `/api/tickets/{id}/adjunto/`.
