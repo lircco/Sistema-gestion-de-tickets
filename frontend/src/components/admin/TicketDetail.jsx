@@ -21,7 +21,6 @@ import {
   SwapHorizOutlined,
   HighlightOffOutlined,
   PrintOutlined,
-  MoreVertOutlined,
   SendOutlined,
   PriorityHighOutlined,
   AttachFileOutlined,
@@ -293,14 +292,9 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}
           >
             <Typography sx={{ fontWeight: 700 }}>● Historial de Mensajes</Typography>
-            <Stack direction="row">
-              <IconButton size="small" onClick={() => window.print()}>
-                <PrintOutlined fontSize="small" />
-              </IconButton>
-              <IconButton size="small">
-                <MoreVertOutlined fontSize="small" />
-              </IconButton>
-            </Stack>
+            <IconButton size="small" onClick={() => window.print()}>
+              <PrintOutlined fontSize="small" />
+            </IconButton>
           </Stack>
           <Stack spacing={1.5}>
             <ChatBubble mine={false} author={solicitanteNombre} date={ticket.creado_el}>
