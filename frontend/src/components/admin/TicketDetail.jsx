@@ -31,6 +31,7 @@ import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
 import usePolling from "../../hooks/use-polling";
 import { api } from "../../lib/api";
+import { etiquetaAutorStaff } from "../../lib/utils";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const CHAT_POLL_MS = 5000;
@@ -310,7 +311,12 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             {(ticket.respuestas || []).map((r) => {
               const isAgent = r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR";
               return (
-                <ChatBubble key={r.id} mine={isAgent} author={r.autor_nombre} date={r.creado_el}>
+                <ChatBubble
+                  key={r.id}
+                  mine={isAgent}
+                  author={isAgent ? etiquetaAutorStaff(r) : r.autor_nombre}
+                  date={r.creado_el}
+                >
                   {r.mensaje}
                 </ChatBubble>
               );

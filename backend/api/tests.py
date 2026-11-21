@@ -208,6 +208,7 @@ class TicketDetailDatosRealesTests(APITestCase):
         self.assertEqual(respuesta['mensaje'], 'Ya lo estamos revisando')
         self.assertEqual(respuesta['autor_nombre'], 'Carlos Diaz')
         self.assertEqual(respuesta['autor_rol'], 'STAFF')
+        self.assertIn('autor_area', respuesta)
 
 
 class TicketAccionesRapidasTests(APITestCase):
@@ -523,3 +524,48 @@ class NotificacionesTests(APITestCase):
         self.assertTrue(notif2.leida)
 
 
+
+
+class RespuestaAreaAutorTests(APITestCase):
+    def test_respuesta_conserva_el_area_del_autor_aunque_el_ticket_se_derive(self):
+        soporte = Area.objects.create(nombre="Soporte")
+        alumnado = Area.objects.create(nombre="Alumnado")
+        categoria = Categoria.objects.create(nombre="General")
+        alumno = Usuario.objects.create_user(username="alu", password="x", rol="ESTUDIANTE")
+        staff = Usuario.objects.create_user(
+            username="ana", password="x", rol="STAFF", area=soporte, first_name="Ana", last_name="Martínez"
+        )
+        ticket = Ticket.objects.create(
+            titulo="t", descripcion="d", creado_por=alumno, area_responsable=soporte, categoria=categoria
+        )
+        Respuesta.objects.create(ticket=ticket, autor=staff, mensaje="Preguntá en alumnado")
+        ticket.area_responsable = alumnado
+        ticket.save()
+        staff.area = alumnado
+        staff.save()
+
+        self.client.force_authenticate(user=alumno)
+        response = self.client.get(reverse('ticket-detail', args=[ticket.id]))
+        respuesta = response.data['respuestas'][0]
+        self.assertEqual(respuesta['autor_nombre'], 'Ana Martínez')
+        self.assertEqual(respuesta['autor_area'], 'Soporte')
+
+
+class RespuestaOrdenTests(APITestCase):
+    def test_respuestas_salen_en_orden_cronologico_aunque_se_actualicen(self):
+        area = Area.objects.create(nombre="Soporte")
+        categoria = Categoria.objects.create(nombre="General")
+        alumno = Usuario.objects.create_user(username="alu", password="x", rol="ESTUDIANTE")
+        staff = Usuario.objects.create_user(username="staff", password="x", rol="STAFF", area=area)
+        ticket = Ticket.objects.create(
+            titulo="t", descripcion="d", creado_por=alumno, area_responsable=area, categoria=categoria
+        )
+        primera = Respuesta.objects.create(ticket=ticket, autor=staff, mensaje="1")
+        Respuesta.objects.create(ticket=ticket, autor=alumno, mensaje="2")
+        Respuesta.objects.create(ticket=ticket, autor=staff, mensaje="3")
+        primera.mensaje = "1"
+        primera.save()
+
+        self.client.force_authenticate(user=alumno)
+        response = self.client.get(reverse('ticket-detail', args=[ticket.id]))
+        self.assertEqual([r['mensaje'] for r in response.data['respuestas']], ["1", "2", "3"])

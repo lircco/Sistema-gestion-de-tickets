@@ -73,3 +73,15 @@ export function computeResolvedRate(tickets) {
   const cerrados = tickets.filter((t) => t.estado === "CERRADO").length;
   return { cerrados, total, percent: total === 0 ? 0 : Math.round((cerrados / total) * 100) };
 }
+
+// Etiqueta de un mensaje del staff en el chat: "Ana Martínez - Staff de Soporte".
+// Usa el área desde la que respondió esa persona (no el área actual del
+// ticket), así se nota en el historial cuando un ticket fue derivado.
+export function etiquetaAutorStaff(respuesta) {
+  const rol = respuesta.autor_area
+    ? `Staff de ${respuesta.autor_area}`
+    : respuesta.autor_rol === "SUPERVISOR"
+      ? "Supervisor"
+      : "Staff";
+  return respuesta.autor_nombre ? `${respuesta.autor_nombre} - ${rol}` : rol;
+}

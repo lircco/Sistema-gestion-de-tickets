@@ -7,6 +7,7 @@ import {
   computeCategoriaDistribution,
   computeSlaEnRiesgo,
   computeResolvedRate,
+  etiquetaAutorStaff,
 } from "./utils";
 
 describe("cn utility", () => {
@@ -166,5 +167,28 @@ describe("computeResolvedRate", () => {
 
   it("handles an empty ticket list without dividing by zero", () => {
     expect(computeResolvedRate([])).toEqual({ cerrados: 0, total: 0, percent: 0 });
+  });
+});
+
+describe("etiquetaAutorStaff", () => {
+  it("muestra nombre completo y área desde la que respondió", () => {
+    expect(
+      etiquetaAutorStaff({
+        autor_nombre: "Ana Martínez",
+        autor_rol: "STAFF",
+        autor_area: "Soporte",
+      }),
+    ).toBe("Ana Martínez - Staff de Soporte");
+  });
+
+  it("usa el rol cuando el autor no tiene área", () => {
+    expect(
+      etiquetaAutorStaff({
+        autor_nombre: "Laura Gómez",
+        autor_rol: "SUPERVISOR",
+        autor_area: null,
+      }),
+    ).toBe("Laura Gómez - Supervisor");
+    expect(etiquetaAutorStaff({ autor_rol: "STAFF" })).toBe("Staff");
   });
 });

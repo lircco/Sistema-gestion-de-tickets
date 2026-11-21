@@ -83,6 +83,21 @@ class Respuesta(models.Model):
     autor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='respuestas_dadas')
     mensaje = models.TextField()
     creado_el = models.DateTimeField(auto_now_add=True)
+    # Área a la que pertenecía el autor al responder. Se guarda como foto del
+    # momento para que, si el ticket se deriva o el staff cambia de área, el
+    # historial siga mostrando desde qué área se escribió cada mensaje.
+    area_autor = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+
+    class Meta:
+        # Sin orden explícito la base devuelve las filas en cualquier orden
+        # (en Postgres, una fila actualizada pasa al final) y el chat se
+        # desordena. Siempre cronológico.
+        ordering = ['creado_el', 'id']
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.area_autor_id is None and self.autor_id:
+            self.area_autor_id = self.autor.area_id
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Respuesta de {self.autor.username} en Ticket #{self.ticket.id}"
@@ -123,4 +138,4 @@ def actualizar_rol_superusuario(sender, instance, created, **kwargs):
     """
     if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
         instance.rol = Usuario.Roles.SUPERVISOR
-        instance.save(update_fields=['rol'])
+        instance.save(update_fields=['rol'])

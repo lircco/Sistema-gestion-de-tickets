@@ -21,6 +21,7 @@ const CHAT_POLL_MS = 5000;
 const CLOSED_POLL_MS = 15000;
 
 import { api } from "../../lib/api";
+import { etiquetaAutorStaff } from "../../lib/utils";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
@@ -61,6 +62,11 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
       </Stack>
     );
   }
+
+  const nombreAlumno =
+    [ticket.creado_por_first_name, ticket.creado_por_last_name].filter(Boolean).join(" ") ||
+    user?.name ||
+    ticket.creado_por_nombre;
 
   return (
     <Stack spacing={2.5}>
@@ -108,7 +114,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
         <Paper sx={{ flex: 1, p: { xs: 2, md: 3 }, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, mb: 2 }}>Conversación con el staff</Typography>
           <Stack spacing={1.5}>
-            <ChatBubble mine author={user?.name || "Vos"} date={ticket.creado_el}>
+            <ChatBubble mine author={nombreAlumno} date={ticket.creado_el}>
               {ticket.descripcion}
             </ChatBubble>
             {(ticket.respuestas || []).map((r) => {
@@ -117,7 +123,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
                 <ChatBubble
                   key={r.id}
                   mine={isMine}
-                  author={isMine ? "Vos" : `Staff de ${ticket.area_nombre}`}
+                  author={isMine ? r.autor_nombre || nombreAlumno : etiquetaAutorStaff(r)}
                   date={r.creado_el}
                 >
                   {r.mensaje}

@@ -80,10 +80,15 @@ class RegistroSerializer(serializers.ModelSerializer):
 class RespuestaSerializer(serializers.ModelSerializer):
     autor_nombre = serializers.SerializerMethodField()
     autor_rol = serializers.CharField(source='autor.rol', read_only=True)
+    autor_area = serializers.SerializerMethodField()
 
     class Meta:
         model = Respuesta
-        fields = ['id', 'mensaje', 'creado_el', 'autor_nombre', 'autor_rol']
+        fields = ['id', 'mensaje', 'creado_el', 'autor_nombre', 'autor_rol', 'autor_area']
+
+    def get_autor_area(self, obj):
+        area = obj.area_autor or obj.autor.area
+        return area.nombre if area else None
 
     def get_autor_nombre(self, obj):
         nombre = f"{obj.autor.first_name} {obj.autor.last_name}".strip()
