@@ -28,7 +28,6 @@ import {
   DarkModeOutlined,
   LightModeOutlined,
   NotificationsNoneOutlined,
-  HelpOutlineOutlined,
   SupportAgentOutlined,
   LogoutOutlined,
   SchoolOutlined,
@@ -375,12 +374,6 @@ export default function AppShell({
             )}
           </Menu>
 
-          <IconButton
-            sx={{ display: { xs: "none", sm: "inline-flex" } }}
-            onClick={() => setSupportOpen(true)}
-          >
-            <HelpOutlineOutlined />
-          </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}>
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
