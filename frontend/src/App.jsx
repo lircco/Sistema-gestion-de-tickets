@@ -55,6 +55,8 @@ function AppRoutes({ mode, onToggleMode }) {
             <Navigate to="/" replace />
           ) : (
             <LoginScreen
+              mode={mode}
+              onToggleMode={onToggleMode}
               onLoginSuccess={(u) => {
                 setUser(u);
                 navigate("/");
