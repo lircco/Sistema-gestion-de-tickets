@@ -112,7 +112,6 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
                 }}
                 mode={mode}
                 onToggleMode={onToggleMode}
-                legajo="2024-001284"
               />
             }
           />

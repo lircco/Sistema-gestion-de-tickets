@@ -149,7 +149,6 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
               }}
               mode={mode}
               onToggleMode={onToggleMode}
-              legajo="2025-000142"
             />
           }
         />

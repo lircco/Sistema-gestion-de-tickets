@@ -5,16 +5,19 @@ import {
   Paper,
   Box,
   Avatar,
-  TextField,
+  Chip,
+  Divider,
   Switch,
   FormControlLabel,
   Button,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
+import {
+  MailOutlined,
+  PersonOutlineOutlined,
+  BadgeOutlined,
+  ApartmentOutlined,
+} from "@mui/icons-material";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/AuthContext";
 
@@ -91,33 +94,15 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
   };
 
   const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState(person.area || "");
-  // Una vez asignada, el área solo la puede cambiar un supervisor.
-  const [areaBloqueada, setAreaBloqueada] = useState(Boolean(person.area));
-  const [areaSuccess, setAreaSuccess] = useState("");
   useEffect(() => {
+    if (!showArea) return;
     api
       .getAreas()
       .then(setAreas)
       .catch(() => {});
-  }, []);
-  const [areaError, setAreaError] = useState("");
-  const handleUpdateArea = async () => {
-    if (!selectedArea) {
-      setAreaError("Seleccione un área para guardar");
-      setAreaSuccess("");
-      return;
-    }
-    setAreaError("");
-    try {
-      await api.updateMe({ area: selectedArea });
-      setAreaBloqueada(true);
-      setAreaSuccess("Área actualizada correctamente.");
-      setTimeout(() => setAreaSuccess(""), 3000);
-    } catch (e) {
-      setAreaError("Error al actualizar el área");
-    }
-  };
+  }, [showArea]);
+  // El área se asigna al registrarse y solo la puede cambiar un supervisor.
+  const areaNombre = areas.find((a) => a.id === person.area)?.nombre || "";
 
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
@@ -236,7 +221,10 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   label="Legajo"
                   defaultValue={legajo}
                   size="small"
-                  sx={{ width: { xs: "100%", sm: 200 } }}
+                  label={ROL_LABELS[role] || person.role}
+                  color="primary"
+                  variant="outlined"
+                  sx={{ mt: 1, fontWeight: 600 }}
                 />
               </Stack>
 
@@ -318,8 +306,48 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   )}
                 </>
               )}
-            </Stack>
+            </Box>
           </Stack>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Box
+            component="dl"
+            sx={{
+              m: 0,
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+              gap: 3,
+            }}
+          >
+            {person.username && (
+              <ProfileField
+                icon={<PersonOutlineOutlined fontSize="small" />}
+                label="Usuario"
+                value={person.username}
+              />
+            )}
+            <ProfileField
+              icon={<MailOutlined fontSize="small" />}
+              label="Correo institucional"
+              value={person.email || "—"}
+            />
+            {role && (
+              <ProfileField
+                icon={<BadgeOutlined fontSize="small" />}
+                label="Rol"
+                value={ROL_LABELS[role] || person.role}
+              />
+            )}
+            {showArea && (
+              <ProfileField
+                icon={<ApartmentOutlined fontSize="small" />}
+                label="Área asignada"
+                value={person.area ? areaNombre || "…" : "Sin asignar"}
+                hint={isStaff ? "Para cambiar de área, pedíselo a un supervisor." : undefined}
+              />
+            )}
+          </Box>
         </Paper>
 
         <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
