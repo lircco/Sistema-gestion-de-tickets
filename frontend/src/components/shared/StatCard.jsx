@@ -13,7 +13,10 @@ export default function StatCard({ tone = "blue", icon, value, label, chip }) {
         borderLeft: `4px solid ${toneColors(tone, theme.palette.mode).fg}`,
       })}
     >
-      <Stack direction="row" sx={{ alignItems: "flex-start", justifyContent: "space-between" }}>
+      <Stack
+        direction="row"
+        sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 1.5 }}
+      >
         <Box
           sx={[
             toneSx(tone),
@@ -24,12 +27,17 @@ export default function StatCard({ tone = "blue", icon, value, label, chip }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexShrink: 0,
             },
           ]}
         >
           {icon}
         </Box>
-        <Chip size="small" label={chip} sx={[toneSx(tone), { fontWeight: 600, fontSize: 11 }]} />
+        <Chip
+          size="small"
+          label={chip}
+          sx={[toneSx(tone), { fontWeight: 600, fontSize: 11, minWidth: 0, maxWidth: "100%" }]}
+        />
       </Stack>
       <Typography sx={{ fontSize: 32, fontWeight: 800, mt: 1.5 }}>{value}</Typography>
       <Typography
