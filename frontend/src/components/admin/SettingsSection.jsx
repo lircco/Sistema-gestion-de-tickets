@@ -10,42 +10,21 @@ import {
   FormControlLabel,
   Button,
   Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { api } from "../../lib/api";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
+  const isStaff = person.role?.toUpperCase() === "STAFF";
   const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState(person.area || "");
-  // Una vez asignada, el área solo la puede cambiar un supervisor.
-  const [areaBloqueada, setAreaBloqueada] = useState(Boolean(person.area));
-  const [areaSuccess, setAreaSuccess] = useState("");
   useEffect(() => {
+    if (!isStaff) return;
     api
       .getAreas()
       .then(setAreas)
       .catch(() => {});
-  }, []);
-  const [areaError, setAreaError] = useState("");
-  const handleUpdateArea = async () => {
-    if (!selectedArea) {
-      setAreaError("Seleccione un área para guardar");
-      setAreaSuccess("");
-      return;
-    }
-    setAreaError("");
-    try {
-      await api.updateMe({ area: selectedArea });
-      setAreaBloqueada(true);
-      setAreaSuccess("Área actualizada correctamente.");
-      setTimeout(() => setAreaSuccess(""), 3000);
-    } catch (e) {
-      setAreaError("Error al actualizar el área");
-    }
-  };
+  }, [isStaff]);
+  // El área se asigna al registrarse y solo la puede cambiar un supervisor.
+  const areaNombre = areas.find((a) => a.id === person.area)?.nombre || "";
 
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
@@ -135,47 +114,20 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   sx={{ width: { xs: "100%", sm: 200 } }}
                 />
               </Stack>
-              {person.role?.toUpperCase() === "STAFF" && (
-                <>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>
-                    <FormControl size="small" fullWidth>
-                      <InputLabel>Área Asignada</InputLabel>
-                      <Select
-                        value={selectedArea}
-                        label="Área Asignada"
-                        onChange={(e) => setSelectedArea(e.target.value)}
-                        disabled={areaBloqueada}
-                      >
-                        <MenuItem value="" disabled>
-                          <em>Seleccioná un área</em>
-                        </MenuItem>
-                        {areas.map((a) => (
-                          <MenuItem key={a.id} value={a.id}>
-                            {a.nombre}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <Button variant="outlined" onClick={handleUpdateArea} disabled={areaBloqueada}>
-                      Guardar Área
-                    </Button>
-                  </Stack>
-                  {areaBloqueada && (
-                    <Typography sx={{ mt: 1, fontSize: 12, color: "text.secondary" }}>
-                      Para cambiar de área, pedíselo a un supervisor.
-                    </Typography>
-                  )}
-                  {areaSuccess && (
-                    <Alert severity="success" sx={{ mt: 2 }}>
-                      {areaSuccess}
-                    </Alert>
-                  )}
-                  {areaError && (
-                    <Alert severity="error" sx={{ mt: 2 }}>
-                      {areaError}
-                    </Alert>
-                  )}
-                </>
+              {isStaff && (
+                <Stack spacing={1} sx={{ mt: 2 }}>
+                  <TextField
+                    label="Área Asignada"
+                    value={person.area ? areaNombre : "Sin asignar"}
+                    size="small"
+                    fullWidth
+                    slotProps={{ input: { readOnly: true } }}
+                    disabled
+                  />
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    Para cambiar de área, pedíselo a un supervisor.
+                  </Typography>
+                </Stack>
               )}
             </Stack>
           </Stack>
