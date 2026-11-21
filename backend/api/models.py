@@ -31,6 +31,8 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=20, choices=Roles.choices, default=Roles.ESTUDIANTE)
     # Solo los usuarios 'STAFF' pertenecerán obligatoriamente a un área
     area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True, related_name='personal')
+    dni = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    foto_perfil = models.FileField(upload_to='perfiles/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.rol == self.Roles.SUPERVISOR:

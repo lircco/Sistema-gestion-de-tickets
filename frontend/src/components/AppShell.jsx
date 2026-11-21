@@ -387,7 +387,10 @@ export default function AppShell({
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
             <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+              <Avatar
+                src={user?.foto_perfil}
+                sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}
+              >
                 {user?.name?.charAt(0) || "U"}
               </Avatar>
             </Tooltip>

@@ -58,7 +58,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
         active={active}
         onSelect={(k) => navigate(k === "dashboard" ? "/" : `/${k}`)}
         onLogout={onLogout}
-        user={{ name: displayName, role: "Alumno UNRaf" }}
+        user={{ name: displayName, role: "Alumno UNRaf", foto_perfil: user.foto_perfil }}
         mode={mode}
         onToggleMode={onToggleMode}
         searchValue={search}
@@ -103,10 +103,12 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
             element={
               <SettingsSection
                 person={{
+                  ...user,
                   name: displayName,
-                  username: user.username,
                   email: user.email,
                   role: user.rol,
+                  dni: user.dni,
+                  foto_perfil: user.foto_perfil,
                 }}
                 mode={mode}
                 onToggleMode={onToggleMode}

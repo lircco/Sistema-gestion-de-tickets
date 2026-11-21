@@ -17,9 +17,16 @@ class CategoriaSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UsuarioSerializer(serializers.ModelSerializer):
+    foto_perfil = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'rol', 'area']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'rol', 'area', 'dni', 'foto_perfil']
+
+    def get_foto_perfil(self, obj):
+        if not obj.foto_perfil:
+            return None
+        return obj.foto_perfil.url
 
 class RegistroSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -80,14 +87,21 @@ class RegistroSerializer(serializers.ModelSerializer):
 class RespuestaSerializer(serializers.ModelSerializer):
     autor_nombre = serializers.SerializerMethodField()
     autor_rol = serializers.CharField(source='autor.rol', read_only=True)
+    autor_dni = serializers.CharField(source='autor.dni', read_only=True)
+    autor_foto_perfil = serializers.SerializerMethodField()
 
     class Meta:
         model = Respuesta
-        fields = ['id', 'mensaje', 'creado_el', 'autor_nombre', 'autor_rol']
+        fields = ['id', 'mensaje', 'creado_el', 'autor_nombre', 'autor_rol', 'autor_dni', 'autor_foto_perfil']
 
     def get_autor_nombre(self, obj):
         nombre = f"{obj.autor.first_name} {obj.autor.last_name}".strip()
         return nombre or obj.autor.username
+
+    def get_autor_foto_perfil(self, obj):
+        if not obj.autor or not obj.autor.foto_perfil:
+            return None
+        return obj.autor.foto_perfil.url
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -97,6 +111,8 @@ class TicketSerializer(serializers.ModelSerializer):
     creado_por_first_name = serializers.CharField(source='creado_por.first_name', read_only=True)
     creado_por_last_name = serializers.CharField(source='creado_por.last_name', read_only=True)
     creado_por_rol = serializers.CharField(source='creado_por.rol', read_only=True)
+    creado_por_dni = serializers.CharField(source='creado_por.dni', read_only=True)
+    creado_por_foto_perfil = serializers.SerializerMethodField()
     area_nombre = serializers.CharField(source='area_responsable.nombre', read_only=True)
     categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)
     respuestas = RespuestaSerializer(many=True, read_only=True)
@@ -105,6 +121,11 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = '__all__'
         read_only_fields = ['creado_por', 'creado_el', 'actualizado_el']
+
+    def get_creado_por_foto_perfil(self, obj):
+        if not obj.creado_por or not obj.creado_por.foto_perfil:
+            return None
+        return obj.creado_por.foto_perfil.url
 
     # Mismas reglas que el frontend (imágenes o PDF, hasta 5 MB), aplicadas en el servidor.
     # SVG queda afuera a propósito: puede contener scripts.
