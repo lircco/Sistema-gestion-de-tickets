@@ -7,7 +7,12 @@ test.describe("Flujo de Administrador", () => {
     await page.goto("/");
 
     // Cambiar al tab de admin
-    await page.locator("text=Admin").click();
+    const adminBtn = page
+      .getByRole("button", { name: "Admin", exact: true })
+      .or(page.getByTestId("role-admin"))
+      .or(page.locator("text=Admin"))
+      .first();
+    await adminBtn.click();
     await page.waitForLoadState("networkidle");
 
     // El frontend para admin pide "Nombre de Usuario" sin @

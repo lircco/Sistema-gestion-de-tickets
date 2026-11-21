@@ -36,6 +36,9 @@ import { api } from "../lib/api";
 function RoleCard({ active, onClick, icon, label }) {
   return (
     <Box
+      role="button"
+      aria-label={label}
+      data-testid={`role-${label.toLowerCase()}`}
       onClick={onClick}
       sx={{
         flex: 1,
@@ -452,6 +455,9 @@ export default function LoginScreen({ onLoginSuccess }) {
                   size="small"
                   sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   slotProps={{
+                    htmlInput: {
+                      "aria-label": "Email",
+                    },
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
