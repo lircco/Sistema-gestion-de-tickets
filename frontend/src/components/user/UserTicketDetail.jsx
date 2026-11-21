@@ -21,6 +21,7 @@ const CHAT_POLL_MS = 5000;
 const CLOSED_POLL_MS = 15000;
 
 import { api } from "../../lib/api";
+import { estadoLabel } from "../../lib/estados";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdated }) {
   const { id } = useParams();
@@ -85,7 +86,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
           <DetailRow label="Categoría" value={ticket.categoria_nombre} />
           <DetailRow label="Área" value={ticket.area_nombre} />
           <DetailRow label="Prioridad" value={ticket.prioridad} />
-          <DetailRow label="Estado" value={ticket.estado} />
+          <DetailRow label="Estado" value={estadoLabel(ticket.estado).toUpperCase()} />
           {ticket.archivo_adjunto &&
             ticket.archivo_adjunto !== "null" &&
             ticket.archivo_adjunto !== "" && (
