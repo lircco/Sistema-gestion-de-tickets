@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Stack,
   Typography,
@@ -16,8 +16,80 @@ import {
   MenuItem,
 } from "@mui/material";
 import { api } from "../../lib/api";
+import { useAuth } from "../../lib/AuthContext";
 
 export default function SettingsSection({ person, mode, onToggleMode, legajo }) {
+  const auth = useAuth();
+  const fileInputRef = useRef(null);
+
+  // 1. Foto de perfil
+  const [fotoPerfil, setFotoPerfil] = useState(person.foto_perfil || null);
+  const [uploadingFoto, setUploadingFoto] = useState(false);
+  const [fotoError, setFotoError] = useState("");
+  const [fotoSuccess, setFotoSuccess] = useState("");
+
+  const handleFotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFotoError("");
+    setFotoSuccess("");
+    setUploadingFoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("foto_perfil", file);
+      const updated = await api.updateMe(formData);
+      const nuevaUrl = updated.foto_perfil || URL.createObjectURL(file);
+      setFotoPerfil(nuevaUrl);
+      setFotoSuccess("Foto de perfil actualizada correctamente.");
+      if (auth?.setUser) {
+        auth.setUser((prev) => (prev ? { ...prev, foto_perfil: updated.foto_perfil || nuevaUrl } : prev));
+      }
+      setTimeout(() => setFotoSuccess(""), 3500);
+    } catch (err) {
+      setFotoError(err.message || "Error al subir la foto de perfil.");
+    } finally {
+      setUploadingFoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // 2. DNI (Inmutable una vez cargado)
+  const dniInicial = person.dni ? String(person.dni).trim() : "";
+  const [dni, setDni] = useState(dniInicial);
+  const [dniBloqueado, setDniBloqueado] = useState(Boolean(dniInicial));
+  const [savingDni, setSavingDni] = useState(false);
+  const [dniError, setDniError] = useState("");
+  const [dniSuccess, setDniSuccess] = useState("");
+
+  const handleGuardarDni = async () => {
+    const valor = dni.trim();
+    if (!valor) {
+      setDniError("Ingresá un número de DNI.");
+      return;
+    }
+    if (!/^\d{6,12}$/.test(valor)) {
+      setDniError("El DNI debe contener solo números (entre 6 y 12 dígitos).");
+      return;
+    }
+    setDniError("");
+    setDniSuccess("");
+    setSavingDni(true);
+    try {
+      await api.updateMe({ dni: valor });
+      setDni(valor);
+      setDniBloqueado(true);
+      setDniSuccess("DNI registrado correctamente.");
+      if (auth?.setUser) {
+        auth.setUser((prev) => (prev ? { ...prev, dni: valor } : prev));
+      }
+      setTimeout(() => setDniSuccess(""), 3500);
+    } catch (err) {
+      setDniError(err.message || "Error al registrar el DNI.");
+    } finally {
+      setSavingDni(false);
+    }
+  };
+
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(person.area || "");
   // Una vez asignada, el área solo la puede cambiar un supervisor.
@@ -105,9 +177,41 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
             spacing={3}
             sx={{ alignItems: { sm: "flex-start" } }}
           >
-            <Avatar sx={{ width: 80, height: 80, bgcolor: "primary.main", fontSize: 32 }}>
-              {person.name.charAt(0)}
-            </Avatar>
+            <Stack direction="column" sx={{ alignItems: "center" }} spacing={1}>
+              <Avatar
+                src={fotoPerfil}
+                sx={{ width: 88, height: 88, bgcolor: "primary.main", fontSize: 32 }}
+              >
+                {person.name ? person.name.charAt(0) : "U"}
+              </Avatar>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleFotoChange}
+              />
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFoto}
+                sx={{ fontSize: 11, textTransform: "none" }}
+              >
+                {uploadingFoto ? "Subiendo..." : "Cambiar foto"}
+              </Button>
+              {fotoError && (
+                <Typography sx={{ fontSize: 11, color: "error.main", textAlign: "center", maxWidth: 120 }}>
+                  {fotoError}
+                </Typography>
+              )}
+              {fotoSuccess && (
+                <Typography sx={{ fontSize: 11, color: "success.main", textAlign: "center", maxWidth: 120 }}>
+                  {fotoSuccess}
+                </Typography>
+              )}
+            </Stack>
+
             <Stack spacing={2} sx={{ flex: 1, width: "100%" }}>
               <TextField
                 label="Nombre Completo"
@@ -135,6 +239,43 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                   sx={{ width: { xs: "100%", sm: 200 } }}
                 />
               </Stack>
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "flex-start" } }}>
+                <TextField
+                  label="DNI"
+                  value={dni}
+                  onChange={(e) => setDni(e.target.value)}
+                  size="small"
+                  disabled={dniBloqueado || savingDni}
+                  helperText={
+                    dniBloqueado
+                      ? "El DNI ya fue registrado y no se puede modificar."
+                      : "Una vez guardado, no se podrá modificar."
+                  }
+                  sx={{ width: { xs: "100%", sm: 260 } }}
+                  slotProps={{ input: { readOnly: dniBloqueado } }}
+                />
+                {!dniBloqueado && (
+                  <Button
+                    variant="outlined"
+                    onClick={handleGuardarDni}
+                    disabled={savingDni || !dni.trim()}
+                    sx={{ height: 40 }}
+                  >
+                    {savingDni ? "Guardando..." : "Guardar DNI"}
+                  </Button>
+                )}
+              </Stack>
+              {dniSuccess && (
+                <Alert severity="success" sx={{ py: 0.5 }}>
+                  {dniSuccess}
+                </Alert>
+              )}
+              {dniError && (
+                <Alert severity="error" sx={{ py: 0.5 }}>
+                  {dniError}
+                </Alert>
+              )}
               {person.role?.toUpperCase() === "STAFF" && (
                 <>
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2 }}>

@@ -183,7 +183,10 @@ export const api = {
 
   updateMe: async (data) => {
     const response = await authFetch("me/", { method: "PATCH", body: data });
-    if (!response.ok) throw new Error("No se pudo actualizar el perfil");
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "No se pudo actualizar el perfil");
+    }
     return await response.json();
   },
 
