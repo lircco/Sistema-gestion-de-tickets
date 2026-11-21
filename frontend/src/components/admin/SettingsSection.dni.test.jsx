@@ -35,7 +35,7 @@ describe("SettingsSection - DNI y Foto de Perfil (Issue #97)", () => {
         mode="light"
         onToggleMode={() => {}}
         legajo="2024-001"
-      />
+      />,
     );
 
     const dniInput = screen.getByLabelText(/DNI/i);
@@ -51,7 +51,7 @@ describe("SettingsSection - DNI y Foto de Perfil (Issue #97)", () => {
         mode="light"
         onToggleMode={() => {}}
         legajo="2024-001"
-      />
+      />,
     );
 
     const dniInput = screen.getByLabelText(/DNI/i);
@@ -70,7 +70,7 @@ describe("SettingsSection - DNI y Foto de Perfil (Issue #97)", () => {
         mode="light"
         onToggleMode={() => {}}
         legajo="2024-001"
-      />
+      />,
     );
 
     const dniInput = screen.getByLabelText(/DNI/i);
@@ -94,7 +94,7 @@ describe("SettingsSection - DNI y Foto de Perfil (Issue #97)", () => {
         mode="light"
         onToggleMode={() => {}}
         legajo="2024-001"
-      />
+      />,
     );
 
     expect(screen.getByRole("button", { name: /Cambiar foto/i })).toBeDefined();

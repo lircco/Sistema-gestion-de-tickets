@@ -165,20 +165,38 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
               Información del Estudiante (Solicitante)
             </Typography>
-            <Typography variant="body2"><strong>Nombre y Apellido:</strong> {solicitanteNombre}</Typography>
-            <Typography variant="body2"><strong>DNI:</strong> {ticket.creado_por_dni || "No registrado"}</Typography>
-            <Typography variant="body2"><strong>Email:</strong> {ticket.creado_por_email || "—"}</Typography>
-            <Typography variant="body2"><strong>Usuario:</strong> {ticket.creado_por_nombre}</Typography>
+            <Typography variant="body2">
+              <strong>Nombre y Apellido:</strong> {solicitanteNombre}
+            </Typography>
+            <Typography variant="body2">
+              <strong>DNI:</strong> {ticket.creado_por_dni || "No registrado"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Email:</strong> {ticket.creado_por_email || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Usuario:</strong> {ticket.creado_por_nombre}
+            </Typography>
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
               Información de Destino y Gestión
             </Typography>
-            <Typography variant="body2"><strong>Área asignada:</strong> {ticket.area_nombre || "—"}</Typography>
-            <Typography variant="body2"><strong>Categoría:</strong> {ticket.categoria_nombre || "—"}</Typography>
-            <Typography variant="body2"><strong>Estado:</strong> {ESTADO_LABELS[ticket.estado] || ticket.estado}</Typography>
-            <Typography variant="body2"><strong>Prioridad:</strong> {ticket.prioridad}</Typography>
-            <Typography variant="body2"><strong>Fecha de creación:</strong> {new Date(ticket.creado_el).toLocaleString()}</Typography>
+            <Typography variant="body2">
+              <strong>Área asignada:</strong> {ticket.area_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Categoría:</strong> {ticket.categoria_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Estado:</strong> {ESTADO_LABELS[ticket.estado] || ticket.estado}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Prioridad:</strong> {ticket.prioridad}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Fecha de creación:</strong> {new Date(ticket.creado_el).toLocaleString()}
+            </Typography>
           </Box>
         </Stack>
         {intervencionesStaff.length > 0 && (
@@ -368,12 +386,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             {(ticket.respuestas || []).map((r) => {
               const isAgent = r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR";
               return (
-                <ChatBubble
-                  key={r.id}
-                  mine={isAgent}
-                  author={r.autor_nombre}
-                  date={r.creado_el}
-                >
+                <ChatBubble key={r.id} mine={isAgent} author={r.autor_nombre} date={r.creado_el}>
                   {r.mensaje}
                 </ChatBubble>
               );

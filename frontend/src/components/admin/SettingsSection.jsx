@@ -45,7 +45,9 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
       setFotoPerfil(nuevaUrl);
       setFotoSuccess("Foto de perfil actualizada correctamente.");
       if (auth?.setUser) {
-        auth.setUser((prev) => (prev ? { ...prev, foto_perfil: updated.foto_perfil || nuevaUrl } : prev));
+        auth.setUser((prev) =>
+          prev ? { ...prev, foto_perfil: updated.foto_perfil || nuevaUrl } : prev,
+        );
       }
       setTimeout(() => setFotoSuccess(""), 3500);
     } catch (err) {
@@ -186,12 +188,16 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                 {uploadingFoto ? "Subiendo..." : "Cambiar foto"}
               </Button>
               {fotoError && (
-                <Typography sx={{ fontSize: 11, color: "error.main", textAlign: "center", maxWidth: 120 }}>
+                <Typography
+                  sx={{ fontSize: 11, color: "error.main", textAlign: "center", maxWidth: 120 }}
+                >
                   {fotoError}
                 </Typography>
               )}
               {fotoSuccess && (
-                <Typography sx={{ fontSize: 11, color: "success.main", textAlign: "center", maxWidth: 120 }}>
+                <Typography
+                  sx={{ fontSize: 11, color: "success.main", textAlign: "center", maxWidth: 120 }}
+                >
                   {fotoSuccess}
                 </Typography>
               )}
@@ -228,7 +234,11 @@ export default function SettingsSection({ person, mode, onToggleMode, legajo }) 
                 />
               </Stack>
 
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "flex-start" } }}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                sx={{ alignItems: { sm: "flex-start" } }}
+              >
                 <TextField
                   label="DNI"
                   value={dni}

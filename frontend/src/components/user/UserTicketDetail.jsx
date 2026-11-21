@@ -83,18 +83,32 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
               Información del Estudiante
             </Typography>
-            <Typography variant="body2"><strong>Nombre y Apellido:</strong> {solicitanteNombre}</Typography>
-            <Typography variant="body2"><strong>DNI:</strong> {ticket.creado_por_dni || "No registrado"}</Typography>
-            <Typography variant="body2"><strong>Email:</strong> {ticket.creado_por_email || "—"}</Typography>
+            <Typography variant="body2">
+              <strong>Nombre y Apellido:</strong> {solicitanteNombre}
+            </Typography>
+            <Typography variant="body2">
+              <strong>DNI:</strong> {ticket.creado_por_dni || "No registrado"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Email:</strong> {ticket.creado_por_email || "—"}
+            </Typography>
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
               Destinatario y Estado
             </Typography>
-            <Typography variant="body2"><strong>Área asignada:</strong> {ticket.area_nombre || "—"}</Typography>
-            <Typography variant="body2"><strong>Categoría:</strong> {ticket.categoria_nombre || "—"}</Typography>
-            <Typography variant="body2"><strong>Estado:</strong> {ticket.estado}</Typography>
-            <Typography variant="body2"><strong>Fecha de creación:</strong> {new Date(ticket.creado_el).toLocaleString()}</Typography>
+            <Typography variant="body2">
+              <strong>Área asignada:</strong> {ticket.area_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Categoría:</strong> {ticket.categoria_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Estado:</strong> {ticket.estado}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Fecha de creación:</strong> {new Date(ticket.creado_el).toLocaleString()}
+            </Typography>
           </Box>
         </Stack>
       </Paper>
@@ -158,12 +172,7 @@ export default function UserTicketDetail({ tickets, user, onBack, onTicketUpdate
             {(ticket.respuestas || []).map((r) => {
               const isMine = r.autor_rol === "ESTUDIANTE";
               return (
-                <ChatBubble
-                  key={r.id}
-                  mine={isMine}
-                  author={r.autor_nombre}
-                  date={r.creado_el}
-                >
+                <ChatBubble key={r.id} mine={isMine} author={r.autor_nombre} date={r.creado_el}>
                   {r.mensaje}
                 </ChatBubble>
               );
