@@ -1,6 +1,7 @@
 import React from "react";
 import { Stack, Box, Typography } from "@mui/material";
 import { STATUS_TONE, PRIORITY_TONE, toneSx } from "../../lib/tones";
+import { estadoLabel } from "../../lib/estados";
 
 export const STATUS_COLORS = {
   ABIERTO: "#3b82f6", // blue
@@ -36,7 +37,7 @@ function Badge({ label, dotColor, tone, pill }) {
 export function StatusBadge({ status, pill = false }) {
   return (
     <Badge
-      label={status}
+      label={estadoLabel(status).toUpperCase()}
       dotColor={STATUS_COLORS[status] || "#9ca3af"}
       tone={STATUS_TONE[status]}
       pill={pill}
