@@ -223,7 +223,19 @@ export default function AppShell({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-      {!isMobile && sidebar}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            flexShrink: 0,
+            overflowY: "auto",
+          }}
+        >
+          {sidebar}
+        </Box>
+      )}
       {isMobile && (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
           {sidebar}
@@ -234,7 +246,11 @@ export default function AppShell({
         <Box
           className="app-shell-header"
           sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
             height: 64,
+            flexShrink: 0,
             bgcolor: "background.paper",
             borderBottom: "1px solid",
             borderColor: "divider",
