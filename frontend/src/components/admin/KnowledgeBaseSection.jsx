@@ -37,7 +37,8 @@ export const DEFAULT_ARTICLES = [
     id: 1,
     titulo: "Acceso al SIU Guaraní",
     categoria: "Sistemas",
-    resumen: "Guía paso a paso para acceder por primera vez o recuperar el acceso al portal de autogestión SIU Guaraní.",
+    resumen:
+      "Guía paso a paso para acceder por primera vez o recuperar el acceso al portal de autogestión SIU Guaraní.",
     contenido: `El sistema SIU Guaraní es la plataforma de gestión académica donde podés consultar tu plan de estudio, historia académica, inscribirte a cursadas y exámenes finales, y solicitar constancias oficiales.
 
 ### 1. ¿Cómo ingresar por primera vez?
@@ -57,7 +58,8 @@ export const DEFAULT_ARTICLES = [
     id: 2,
     titulo: "Restablecer contraseña institucional",
     categoria: "Cuentas",
-    resumen: "Instrucciones para recuperar tu acceso a la cuenta institucional UNRaf, correo y servicios vinculados.",
+    resumen:
+      "Instrucciones para recuperar tu acceso a la cuenta institucional UNRaf, correo y servicios vinculados.",
     contenido: `Tu cuenta institucional (@unraf.edu.ar) te brinda acceso al ecosistema digital de la universidad: correo electrónico, campus virtual, UnrafTickets y redes internas.
 
 ### 1. Recuperación automática desde UnrafTickets
@@ -80,7 +82,8 @@ export const DEFAULT_ARTICLES = [
     id: 3,
     titulo: "Solicitar certificado de alumno regular",
     categoria: "Trámites",
-    resumen: "Cómo emitir y validar de manera 100% online tu constancia de alumno regular con validez oficial.",
+    resumen:
+      "Cómo emitir y validar de manera 100% online tu constancia de alumno regular con validez oficial.",
     contenido: `El Certificado de Alumno Regular acredita tu condición de estudiante activo en la Universidad Nacional de Rafaela para presentar ante organismos públicos, transporte, obras sociales y empleadores.
 
 ### 1. Emisión digital desde SIU Guaraní
@@ -101,7 +104,8 @@ export const DEFAULT_ARTICLES = [
     id: 4,
     titulo: "Conectarse a Wi-Fi UNRaf",
     categoria: "Infraestructura",
-    resumen: "Guía de configuración para conectarte a las redes inalámbricas universitarias desde laptops y celulares.",
+    resumen:
+      "Guía de configuración para conectarte a las redes inalámbricas universitarias desde laptops y celulares.",
     contenido: `La universidad cuenta con cobertura Wi-Fi de alta velocidad en todos sus edificios, aulas, laboratorios y áreas comunes del campus.
 
 ### 1. Redes disponibles
@@ -124,7 +128,8 @@ export const DEFAULT_ARTICLES = [
     id: 5,
     titulo: "Uso de Aulas Virtuales y Campus Moodle",
     categoria: "Sistemas",
-    resumen: "Información para acceder al campus virtual, matricularse en materias y entregar actividades.",
+    resumen:
+      "Información para acceder al campus virtual, matricularse en materias y entregar actividades.",
     contenido: `El Campus Virtual de la UNRaf funciona sobre la plataforma Moodle y es el entorno donde se desarrollan las actividades pedagógicas complementarias y a distancia.
 
 ### 1. Acceso a la plataforma
@@ -143,7 +148,8 @@ export const DEFAULT_ARTICLES = [
     id: 6,
     titulo: "Protocolo de Mantenimiento y Reserva de Equipos",
     categoria: "Infraestructura",
-    resumen: "Procedimiento para solicitar proyectores, netbooks o salas multimedia para actividades académicas.",
+    resumen:
+      "Procedimiento para solicitar proyectores, netbooks o salas multimedia para actividades académicas.",
     contenido: `Para garantizar la disponibilidad de recursos tecnológicos en clases, exámenes y eventos institucionales:
 
 ### 1. Quiénes pueden solicitar equipos
@@ -199,7 +205,7 @@ const renderMarkdownContent = (content) => {
               {renderFormattedText(item)}
             </Typography>
           ))}
-        </Box>
+        </Box>,
       );
       currentList = [];
     }
@@ -223,7 +229,7 @@ const renderMarkdownContent = (content) => {
           sx={{ fontWeight: 700, mt: 3, mb: 1, color: "primary.main" }}
         >
           {heading}
-        </Typography>
+        </Typography>,
       );
     } else if (line.startsWith("- ") || line.startsWith("* ")) {
       currentList.push(line.replace(/^[-*]\s+/, ""));
@@ -232,7 +238,7 @@ const renderMarkdownContent = (content) => {
       elements.push(
         <Typography key={`p-${idx}`} sx={{ mb: 1.5, fontSize: 14 }}>
           {renderFormattedText(line)}
-        </Typography>
+        </Typography>,
       );
     }
   });
@@ -257,6 +263,11 @@ export default function KnowledgeBaseSection({ user, admin }) {
     );
   }
 
+  return <KnowledgeBaseContent />;
+}
+
+// Separado del chequeo de rol para que los hooks se llamen siempre en el mismo orden.
+function KnowledgeBaseContent() {
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -404,7 +415,11 @@ export default function KnowledgeBaseSection({ user, admin }) {
                 ),
                 endAdornment: searchQuery ? (
                   <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setSearchQuery("")} aria-label="Limpiar búsqueda">
+                    <IconButton
+                      size="small"
+                      onClick={() => setSearchQuery("")}
+                      aria-label="Limpiar búsqueda"
+                    >
                       <ClearOutlined fontSize="small" />
                     </IconButton>
                   </InputAdornment>
@@ -447,7 +462,8 @@ export default function KnowledgeBaseSection({ user, admin }) {
             No se encontraron artículos
           </Typography>
           <Typography sx={{ color: "text.secondary", mb: 2 }}>
-            No hay artículos que coincidan con &ldquo;{searchQuery}&rdquo; en la categoría seleccionada.
+            No hay artículos que coincidan con &ldquo;{searchQuery}&rdquo; en la categoría
+            seleccionada.
           </Typography>
           <Button
             variant="outlined"
@@ -542,7 +558,9 @@ export default function KnowledgeBaseSection({ user, admin }) {
                     lineHeight: 1.5,
                   }}
                 >
-                  {a.resumen || a.contenido?.slice(0, 120) || "Documentación y guía de soporte paso a paso."}
+                  {a.resumen ||
+                    a.contenido?.slice(0, 120) ||
+                    "Documentación y guía de soporte paso a paso."}
                 </Typography>
 
                 {/* BOTTOM ACTION LINK */}
@@ -584,7 +602,14 @@ export default function KnowledgeBaseSection({ user, admin }) {
         {activeArticle && (
           <>
             <DialogTitle sx={{ pb: 1 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  gap: 2,
+                }}
+              >
                 <Box>
                   <Box sx={{ mb: 1 }}>
                     <Chip
@@ -598,7 +623,11 @@ export default function KnowledgeBaseSection({ user, admin }) {
                     {activeArticle.titulo}
                   </Typography>
                 </Box>
-                <IconButton onClick={() => setReaderOpen(false)} size="small" aria-label="Cerrar diálogo">
+                <IconButton
+                  onClick={() => setReaderOpen(false)}
+                  size="small"
+                  aria-label="Cerrar diálogo"
+                >
                   <CloseOutlined />
                 </IconButton>
               </Box>

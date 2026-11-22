@@ -44,45 +44,45 @@ test.describe("Flujo de Administrador", () => {
     await expect(page.locator("text=Estamos trabajando en tu solicitud.")).toBeVisible();
   });
 
-  test('staff no debe ver ni tener acceso a Base de Conocimiento', async ({ page }) => {
-    await page.goto('/');
-    
-    // Cambiar al tab de staff
-    await page.locator('text=Staff').click();
-    await page.waitForLoadState('networkidle');
+  test("staff no debe ver ni tener acceso a Base de Conocimiento", async ({ page }) => {
+    await page.goto("/");
 
-    await page.getByPlaceholder('Ej. Pedro Gonzalez').fill('staff_it');
-    await page.getByPlaceholder('••••••••').first().fill('staff123');
+    // Cambiar al tab de staff
+    await page.locator("text=Staff").click();
+    await page.waitForLoadState("networkidle");
+
+    await page.getByPlaceholder("Ej. Pedro Gonzalez").fill("staff_it");
+    await page.getByPlaceholder("••••••••").first().fill("staff123");
     await page.locator('button[type="submit"]').click();
 
     await expect(page).toHaveURL(/\/admin/);
     // Verificar que Base de Conocimiento NO está en el menú de navegación de Staff
-    await expect(page.locator('text=Base de Conocimiento')).not.toBeVisible();
+    await expect(page.locator("text=Base de Conocimiento")).not.toBeVisible();
 
     // Intentar navegar manualmente a la ruta /admin/kb
-    await page.goto('/admin/kb');
-    await expect(page.locator('text=Página no encontrada')).toBeVisible();
+    await page.goto("/admin/kb");
+    await expect(page.locator("text=Página no encontrada")).toBeVisible();
     await expect(page.locator('h4:has-text("Base de Conocimiento")')).not.toBeVisible();
   });
 
-  test('supervisor no debe ver ni tener acceso a Base de Conocimiento', async ({ page }) => {
-    await page.goto('/');
-    
-    // Cambiar al tab de admin/supervisor
-    await page.locator('text=Admin').click();
-    await page.waitForLoadState('networkidle');
+  test("supervisor no debe ver ni tener acceso a Base de Conocimiento", async ({ page }) => {
+    await page.goto("/");
 
-    await page.getByPlaceholder('Ej. Pedro Gonzalez').fill('supervisor');
-    await page.getByPlaceholder('••••••••').first().fill('UnrafSup2026!');
+    // Cambiar al tab de admin/supervisor
+    await page.locator("text=Admin").click();
+    await page.waitForLoadState("networkidle");
+
+    await page.getByPlaceholder("Ej. Pedro Gonzalez").fill("supervisor");
+    await page.getByPlaceholder("••••••••").first().fill("UnrafSup2026!");
     await page.locator('button[type="submit"]').click();
 
     await expect(page).toHaveURL(/\/admin/);
     // Verificar que Base de Conocimiento NO está en el menú de navegación de Supervisor
-    await expect(page.locator('text=Base de Conocimiento')).not.toBeVisible();
+    await expect(page.locator("text=Base de Conocimiento")).not.toBeVisible();
 
     // Intentar navegar manualmente a la ruta /admin/kb
-    await page.goto('/admin/kb');
-    await expect(page.locator('text=Página no encontrada')).toBeVisible();
+    await page.goto("/admin/kb");
+    await expect(page.locator("text=Página no encontrada")).toBeVisible();
     await expect(page.locator('h4:has-text("Base de Conocimiento")')).not.toBeVisible();
   });
 });
