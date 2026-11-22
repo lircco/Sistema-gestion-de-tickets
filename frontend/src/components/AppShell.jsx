@@ -1,13 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../lib/api";
 import {
-  Box, Stack, Divider, Drawer, IconButton, Tooltip, TextField,
-  Badge, Avatar, useMediaQuery, Typography, InputAdornment,
-  Menu, MenuItem, Button, Dialog, DialogTitle, DialogContent, DialogContentText
+  Box,
+  Stack,
+  Divider,
+  Drawer,
+  IconButton,
+  Tooltip,
+  TextField,
+  Badge,
+  Avatar,
+  useMediaQuery,
+  Typography,
+  InputAdornment,
+  Menu,
+  MenuItem,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
 } from "@mui/material";
 import {
-  MenuOutlined, SearchOutlined, DarkModeOutlined, LightModeOutlined,
-  NotificationsNoneOutlined, HelpOutlineOutlined, SupportAgentOutlined,
-  LogoutOutlined, SchoolOutlined, DeleteSweepOutlined
+  MenuOutlined,
+  SearchOutlined,
+  DarkModeOutlined,
+  LightModeOutlined,
+  NotificationsNoneOutlined,
+  SupportAgentOutlined,
+  LogoutOutlined,
+  SchoolOutlined,
+  DeleteSweepOutlined,
 } from "@mui/icons-material";
 
 function SideAction({ icon, label, danger, onClick }) {
@@ -22,10 +46,10 @@ function SideAction({ icon, label, danger, onClick }) {
         py: 1,
         borderRadius: 1.5,
         cursor: "pointer",
-        color: danger ? "#dc2626" : "#374151",
+        color: danger ? "error.main" : "text.primary",
         fontSize: 14,
         fontWeight: 500,
-        "&:hover": { bgcolor: "#f4f6f9" },
+        "&:hover": { bgcolor: "action.hover" },
       }}
     >
       {icon}
@@ -34,7 +58,19 @@ function SideAction({ icon, label, danger, onClick }) {
   );
 }
 
-export default function AppShell({ items, active, onSelect, onLogout, user, mode, onToggleMode, unreadNotificationsCount = 0, searchValue = "", onSearchChange, children }) {
+export default function AppShell({
+  items,
+  active,
+  onSelect,
+  onLogout,
+  user,
+  mode,
+  onToggleMode,
+  unreadNotificationsCount = 0,
+  searchValue = "",
+  onSearchChange,
+  children,
+}) {
   const isMobile = useMediaQuery("(max-width:900px)");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifAnchor, setNotifAnchor] = useState(null);
@@ -43,36 +79,100 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
   const handleNotifClose = () => setNotifAnchor(null);
   const openNotif = Boolean(notifAnchor);
 
-  // Cambialo para que quede así:
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
-  // 2. ESTADO PARA EL MENÚ DESPLEGABLE DE LA CAMPANITA
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await api.getNotificaciones();
+      setNotifications(Array.isArray(data) ? data : data.results || []);
+    } catch (err) {
+      // Ignorar errores en segundo plano
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 20000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
   const handleOpenMenu = (event) => {
     setAnchorEl(event.currentTarget);
+    fetchNotifications();
   };
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
-  // 3. FUNCIÓN PARA LIMPIAR TODO EL LISTADO
-  const handleClearNotifications = () => {
-    setNotifications([]);
+  const handleNotificationClick = async (notif) => {
+    handleCloseMenu();
+    if (!notif.leida) {
+      try {
+        await api.marcarNotificacionLeida(notif.id);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, leida: true } : n)),
+        );
+      } catch (err) {
+        console.error("Error al marcar como leída", err);
+      }
+    }
+    if (notif.ticket) {
+      const isStaffOrAdmin = user?.role === "STAFF" || user?.role === "SUPERVISOR";
+      const target = isStaffOrAdmin ? `/admin/tickets/${notif.ticket}` : `/tickets/${notif.ticket}`;
+      navigate(target);
+    }
+  };
+
+  const handleClearNotifications = async () => {
+    try {
+      await api.marcarTodasNotificacionesLeidas();
+      setNotifications((prev) => prev.map((n) => ({ ...n, leida: true })));
+    } catch (err) {
+      console.error("Error al limpiar notificaciones", err);
+    }
     handleCloseMenu();
   };
+
+  const unreadCount = notifications.filter((n) => !n.leida).length;
 
   const [supportOpen, setSupportOpen] = useState(false);
 
   const sidebar = (
-    <Box className="app-shell-sidebar" sx={{ width: 250, bgcolor: "background.paper", borderRight: "1px solid", borderColor: "divider", display: "flex", flexDirection: "column", p: 2, height: "100%" }}>
+    <Box
+      className="app-shell-sidebar"
+      sx={{
+        width: 250,
+        bgcolor: "background.paper",
+        borderRight: "1px solid",
+        borderColor: "divider",
+        display: "flex",
+        flexDirection: "column",
+        p: 2,
+        height: "100%",
+      }}
+    >
       <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", mb: 3, px: 1 }}>
-        <Box sx={{ width: 36, height: 36, borderRadius: 1.2, bgcolor: "primary.main", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <SchoolOutlined sx={{ color: "#fff", fontSize: 22 }} />
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: 1.2,
+            bgcolor: "primary.main",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <SchoolOutlined sx={{ color: "primary.contrastText", fontSize: 22 }} />
         </Box>
         <Box>
-          <Typography sx={{ fontWeight: 800, color: "primary.main", lineHeight: 1 }}>UNRaf</Typography>
+          <Typography sx={{ fontWeight: 800, color: "primary.main", lineHeight: 1 }}>
+            UNRaf
+          </Typography>
           <Typography sx={{ fontSize: 11, color: "text.secondary" }}>Soporte Técnico</Typography>
         </Box>
       </Stack>
@@ -96,7 +196,7 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
                 borderRadius: 1.5,
                 cursor: "pointer",
                 bgcolor: isActive ? "primary.main" : "transparent",
-                color: isActive ? "#fff" : "text.primary",
+                color: isActive ? "primary.contrastText" : "text.primary",
                 fontWeight: isActive ? 600 : 500,
                 fontSize: 14,
                 "&:hover": { bgcolor: isActive ? "primary.main" : "action.hover" },
@@ -111,15 +211,31 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
 
       <Divider sx={{ my: 2 }} />
       <Stack spacing={0.5}>
-        <SideAction icon={<SupportAgentOutlined />} label="Soporte" onClick={() => setSupportOpen(true)} />
-        <SideAction icon={<LogoutOutlined sx={{ color: "#dc2626" }} />} label="Cerrar Sesión" danger onClick={onLogout} />
+        <SideAction
+          icon={<SupportAgentOutlined />}
+          label="Soporte"
+          onClick={() => setSupportOpen(true)}
+        />
+        <SideAction icon={<LogoutOutlined />} label="Cerrar Sesión" danger onClick={onLogout} />
       </Stack>
     </Box>
   );
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-      {!isMobile && sidebar}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            flexShrink: 0,
+            overflowY: "auto",
+          }}
+        >
+          {sidebar}
+        </Box>
+      )}
       {isMobile && (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
           {sidebar}
@@ -130,7 +246,11 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
         <Box
           className="app-shell-header"
           sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
             height: 64,
+            flexShrink: 0,
             bgcolor: "background.paper",
             borderBottom: "1px solid",
             borderColor: "divider",
@@ -173,9 +293,9 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
             </IconButton>
           </Tooltip>
 
-          {/* CAMPANITA MODIFICADA */}
+          {/* CAMPANITA */}
           <IconButton onClick={handleOpenMenu}>
-            <Badge badgeContent={notifications.length} color="error">
+            <Badge badgeContent={unreadCount} color="error">
               <NotificationsNoneOutlined />
             </Badge>
           </IconButton>
@@ -187,14 +307,28 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
             onClose={handleCloseMenu}
             disableScrollLock
             PaperProps={{
-              sx: { width: 320, maxHeight: 400, mt: 1.5, borderRadius: 2, boxShadow: "0px 4px 20px rgba(0,0,0,0.08)" }
+              sx: {
+                width: 340,
+                maxHeight: 420,
+                mt: 1.5,
+                borderRadius: 2,
+                boxShadow: "0px 4px 20px rgba(0,0,0,0.08)",
+              },
             }}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
           >
-            <Box sx={{ px: 2, py: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Box
+              sx={{
+                px: 2,
+                py: 1.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Notificaciones</Typography>
-              {notifications.length > 0 && (
+              {notifications.some((n) => !n.leida) && (
                 <Button
                   size="small"
                   startIcon={<DeleteSweepOutlined />}
@@ -217,32 +351,64 @@ export default function AppShell({ items, active, onSelect, onLogout, user, mode
               notifications.map((notif) => (
                 <MenuItem
                   key={notif.id}
-                  onClick={handleCloseMenu}
-                  sx={{ py: 1.5, px: 2, whiteSpace: "normal", fontSize: 13, borderBottom: "1px solid #f0f0f0", "&:last-child": { borderBottom: 0 } }}
+                  onClick={() => handleNotificationClick(notif)}
+                  sx={{
+                    py: 1.5,
+                    px: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    whiteSpace: "normal",
+                    bgcolor: notif.leida ? "transparent" : "action.hover",
+                    borderLeft: notif.leida ? "none" : "3px solid #3b82f6",
+                    borderBottom: 1,
+                    borderBottomColor: "divider",
+                    cursor: "pointer",
+                    "&:last-child": { borderBottom: 0 },
+                  }}
                 >
-                  {notif.text}
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      fontWeight: notif.leida ? 400 : 600,
+                      color: "text.primary",
+                    }}
+                  >
+                    {notif.mensaje}
+                  </Typography>
+                  {notif.creada_el && (
+                    <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.5 }}>
+                      {new Date(notif.creada_el).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      · {new Date(notif.creada_el).toLocaleDateString()}
+                    </Typography>
+                  )}
                 </MenuItem>
               ))
             )}
           </Menu>
 
-          <IconButton sx={{ display: { xs: "none", sm: "inline-flex" } }} onClick={() => setSupportOpen(true)}>
-            <HelpOutlineOutlined />
-          </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}>
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
             <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+              <Avatar
+                src={user?.foto_perfil}
+                sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}
+              >
                 {user?.name?.charAt(0) || "U"}
               </Avatar>
             </Tooltip>
           </Stack>
         </Box>
 
-        <Box className="app-shell-content" sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>{children}</Box>
+        <Box className="app-shell-content" sx={{ flex: 1, p: { xs: 2, md: 4 }, overflow: "auto" }}>
+          {children}
+        </Box>
       </Box>
 
       <Dialog open={supportOpen} onClose={() => setSupportOpen(false)}>

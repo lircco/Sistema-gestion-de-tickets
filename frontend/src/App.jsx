@@ -1,28 +1,38 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from "@mui/material";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
+import { getInitialMode, getStoredMode, storeMode, onSystemModeChange } from "./lib/theme-mode";
 import LoginScreen from "./components/LoginScreen";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import UserDashboard from "./components/user/UserDashboard";
 
-const buildTheme = (mode) => createTheme({
-  palette: {
-    mode,
-    primary: { main: mode === "dark" ? "#4f9cd6" : "#0a3d62" },
-    secondary: { main: "#f5b400" },
-    background: mode === "dark"
-      ? { default: "#0f172a", paper: "#1e293b" }
-      : { default: "#f4f6f9", paper: "#ffffff" },
-  },
-  typography: {
-    fontFamily: "'Inter','Roboto',sans-serif",
-    h4: { fontWeight: 700 },
-    h5: { fontWeight: 700 },
-    h6: { fontWeight: 700 },
-  },
-  shape: { borderRadius: 12 },
-});
+const buildTheme = (mode) =>
+  createTheme({
+    palette: {
+      mode,
+      // En oscuro el primario es claro: el texto encima va oscuro (blanco daba 2.97:1).
+      primary:
+        mode === "dark"
+          ? { main: "#4f9cd6", contrastText: "#0b1726" }
+          : { main: "#0a3d62", contrastText: "#ffffff" },
+      secondary: { main: "#f5b400", contrastText: "rgba(0,0,0,0.87)" },
+      // Rojo/verde usados también como texto: tonos con contraste AA en cada fondo.
+      error: { main: mode === "dark" ? "#f87171" : "#dc2626" },
+      success: { main: mode === "dark" ? "#34d399" : "#047857" },
+      background:
+        mode === "dark"
+          ? { default: "#0f172a", paper: "#1e293b" }
+          : { default: "#f4f6f9", paper: "#ffffff" },
+    },
+    typography: {
+      fontFamily: "'Inter','Roboto',sans-serif",
+      h4: { fontWeight: 700 },
+      h5: { fontWeight: 700 },
+      h6: { fontWeight: 700 },
+    },
+    shape: { borderRadius: 12 },
+  });
 
 const isAdminRole = (rol) => rol === "SUPERVISOR" || rol === "STAFF";
 
@@ -45,7 +55,14 @@ function AppRoutes({ mode, onToggleMode }) {
           user ? (
             <Navigate to="/" replace />
           ) : (
-            <LoginScreen onLoginSuccess={(u) => { setUser(u); navigate("/"); }} />
+            <LoginScreen
+              mode={mode}
+              onToggleMode={onToggleMode}
+              onLoginSuccess={(u) => {
+                setUser(u);
+                navigate("/");
+              }}
+            />
           )
         }
       />
@@ -57,7 +74,12 @@ function AppRoutes({ mode, onToggleMode }) {
           ) : !isAdminRole(user.rol) ? (
             <Navigate to="/" replace />
           ) : (
-            <AdminDashboard onLogout={handleLogout} admin={user} mode={mode} onToggleMode={onToggleMode} />
+            <AdminDashboard
+              onLogout={handleLogout}
+              admin={user}
+              mode={mode}
+              onToggleMode={onToggleMode}
+            />
           )
         }
       />
@@ -69,7 +91,12 @@ function AppRoutes({ mode, onToggleMode }) {
           ) : isAdminRole(user.rol) ? (
             <Navigate to="/admin" replace />
           ) : (
-            <UserDashboard onLogout={handleLogout} user={user} mode={mode} onToggleMode={onToggleMode} />
+            <UserDashboard
+              onLogout={handleLogout}
+              user={user}
+              mode={mode}
+              onToggleMode={onToggleMode}
+            />
           )
         }
       />
@@ -78,9 +105,23 @@ function AppRoutes({ mode, onToggleMode }) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState("light");
+  const [mode, setMode] = useState(getInitialMode);
   const theme = useMemo(() => buildTheme(mode), [mode]);
-  const toggleMode = () => setMode((m) => (m === "light" ? "dark" : "light"));
+
+  // Mientras el usuario no elija un tema, se sigue el del sistema operativo.
+  useEffect(
+    () =>
+      onSystemModeChange((systemMode) => {
+        if (!getStoredMode()) setMode(systemMode);
+      }),
+    [],
+  );
+
+  const toggleMode = () => {
+    const next = mode === "light" ? "dark" : "light";
+    storeMode(next);
+    setMode(next);
+  };
 
   return (
     <AuthProvider>

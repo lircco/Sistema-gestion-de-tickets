@@ -31,6 +31,8 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=20, choices=Roles.choices, default=Roles.ESTUDIANTE)
     # Solo los usuarios 'STAFF' pertenecerán obligatoriamente a un área
     area = models.ForeignKey(Area, on_delete=models.SET_NULL, null=True, blank=True, related_name='personal')
+    dni = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    foto_perfil = models.FileField(upload_to='perfiles/', null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if self.rol == self.Roles.SUPERVISOR:
@@ -99,6 +101,20 @@ class RegistroEmail(models.Model):
     def __str__(self):
         return f"Email a {self.destinatario} - {self.asunto}"
 
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='notificaciones')
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name='notificaciones', null=True, blank=True)
+    mensaje = models.CharField(max_length=255)
+    leida = models.BooleanField(default=False)
+    creada_el = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-creada_el']
+
+    def __str__(self):
+        return f"Notificación para {self.usuario.username}: {self.mensaje[:30]}"
+
+
 class Articulo(models.Model):
     titulo = models.CharField(max_length=200)
     resumen = models.TextField(blank=True, default='')
@@ -127,4 +143,4 @@ def actualizar_rol_superusuario(sender, instance, created, **kwargs):
     """
     if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
         instance.rol = Usuario.Roles.SUPERVISOR
-        instance.save(update_fields=['rol'])
+        instance.save(update_fields=['rol'])

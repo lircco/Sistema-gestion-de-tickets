@@ -1,5 +1,19 @@
 import React from "react";
-import { Stack, Box, Typography, Paper, Avatar, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Link } from "@mui/material";
+import {
+  Stack,
+  Box,
+  Typography,
+  Paper,
+  Avatar,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Chip,
+  Link,
+} from "@mui/material";
 import { AddCircleOutlined, AssignmentOutlined, ArrowForward } from "@mui/icons-material";
 import { StatusBadge } from "../shared/Badges";
 
@@ -8,9 +22,9 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
 
   let totalTime = 0;
   let count = 0;
-  (tickets || []).forEach(t => {
+  (tickets || []).forEach((t) => {
     if (t.respuestas && t.respuestas.length > 0) {
-      const firstReply = t.respuestas.find(r => r.autor_rol !== "ESTUDIANTE");
+      const firstReply = t.respuestas.find((r) => r.autor_rol !== "ESTUDIANTE");
       if (firstReply) {
         const diff = new Date(firstReply.creado_el) - new Date(t.creado_el);
         if (diff > 0) {
@@ -20,7 +34,7 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
       }
     }
   });
-  
+
   let avgString = "N/A";
   if (count > 0) {
     const avgMs = totalTime / count;
@@ -33,26 +47,52 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
     <Stack spacing={3}>
       <Box>
         <Typography variant="h4">¡Hola, {firstName}! ¿En qué podemos ayudarte hoy?</Typography>
-        <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
+        <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
           Bienvenido a la plataforma de gestión académica y técnica de UNRaf. Aquí puedes realizar
           trámites o reportar inconvenientes.
         </Typography>
       </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
-        <Paper onClick={onOpenNew} sx={{ flex: 2, p: 4, bgcolor: "primary.main", color: "#fff", minHeight: 200, backgroundImage: "linear-gradient(135deg, rgba(10,61,98,0.92), rgba(10,61,98,0.85))", cursor: "pointer" }}>
+        <Paper
+          onClick={onOpenNew}
+          sx={{
+            flex: 2,
+            p: 4,
+            bgcolor: "primary.main",
+            color: "#fff",
+            minHeight: 200,
+            backgroundImage: "linear-gradient(135deg, rgba(10,61,98,0.92), rgba(10,61,98,0.85))",
+            cursor: "pointer",
+          }}
+        >
           <Avatar sx={{ bgcolor: "rgba(255,255,255,0.15)", mb: 2 }}>
             <AddCircleOutlined />
           </Avatar>
-          <Typography variant="h5" sx={{ mb: 1 }}>Crear Nuevo Ticket</Typography>
+          <Typography variant="h5" sx={{ mb: 1 }}>
+            Crear Nuevo Ticket
+          </Typography>
           <Typography sx={{ opacity: 0.85, maxWidth: 420 }}>
-            Inicia una nueva solicitud técnica o administrativa. El equipo correspondiente te contactará a la brevedad.
+            Inicia una nueva solicitud técnica o administrativa. El equipo correspondiente te
+            contactará a la brevedad.
           </Typography>
         </Paper>
 
-        <Paper onClick={onGoTickets} sx={{ flex: 1, p: 3, bgcolor: "secondary.main", minHeight: 200, cursor: "pointer" }}>
+        <Paper
+          onClick={onGoTickets}
+          sx={{
+            flex: 1,
+            p: 3,
+            bgcolor: "secondary.main",
+            color: "secondary.contrastText",
+            minHeight: 200,
+            cursor: "pointer",
+          }}
+        >
           <AssignmentOutlined sx={{ color: "rgba(0,0,0,0.4)", float: "right" }} />
-          <Typography variant="h5" sx={{ mb: 1 }}>Mis Trámites</Typography>
+          <Typography variant="h5" sx={{ mb: 1 }}>
+            Mis Trámites
+          </Typography>
           <Typography sx={{ color: "rgba(0,0,0,0.7)", mb: 2 }}>
             Consulta el historial y seguimiento de tus solicitudes activas.
           </Typography>
@@ -64,31 +104,49 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ flex: 2, p: 3 }}>
-          <Stack direction="row" sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+          <Stack
+            direction="row"
+            sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}
+          >
             <Typography sx={{ fontWeight: 700 }}>Tickets Recientes</Typography>
-            <Link component="button" onClick={onGoTickets} sx={{ fontSize: 13 }}>Ver todos</Link>
+            <Link component="button" onClick={onGoTickets} sx={{ fontSize: 13 }}>
+              Ver todos
+            </Link>
           </Stack>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>ID / ASUNTO</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>CATEGORÍA</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>ESTADO</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>FECHA</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>ID / ASUNTO</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>CATEGORÍA</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>ESTADO</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>FECHA</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {tickets.slice(0, 5).map((r) => (
-                <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: "pointer" }}>
+                <TableRow
+                  key={r.id}
+                  hover
+                  onClick={() => onOpenTicket?.(r)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell>
-                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>#{r.id} - {r.titulo}</Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>
+                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+                      #{r.id} - {r.titulo}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                      {r.descripcion}
+                    </Typography>
                   </TableCell>
-                  <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }} /></TableCell>
+                  <TableCell>
+                    <Chip size="small" label={r.categoria_nombre} />
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={r.estado} />
                   </TableCell>
-                  <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
+                  <TableCell sx={{ fontSize: 13 }}>
+                    {new Date(r.creado_el).toLocaleDateString()}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -97,18 +155,31 @@ export default function UserHome({ user, tickets, onOpenNew, onGoTickets, onOpen
 
         <Stack spacing={2.5} sx={{ flex: 1 }}>
           <Paper sx={{ p: 3 }}>
-            <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>MIS TRÁMITES ACTIVOS</Typography>
-            <Typography sx={{ fontSize: 36, fontWeight: 800, mt: 1 }}>{String(tickets.filter(t => t.estado !== 'CERRADO').length).padStart(2, "0")}</Typography>
-            <Typography sx={{ fontSize: 12, color: "#10b981", fontWeight: 600 }}>↗ {tickets.filter((t) => t.estado === 'CERRADO').length} resuelto(s)</Typography>
+            <Typography
+              sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}
+            >
+              MIS TRÁMITES ACTIVOS
+            </Typography>
+            <Typography sx={{ fontSize: 36, fontWeight: 800, mt: 1 }}>
+              {String(tickets.filter((t) => t.estado !== "CERRADO").length).padStart(2, "0")}
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "success.main", fontWeight: 600 }}>
+              ↗ {tickets.filter((t) => t.estado === "CERRADO").length} resuelto(s)
+            </Typography>
           </Paper>
           <Paper sx={{ p: 3 }}>
-            <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>TIEMPO PROMEDIO DE RESPUESTA</Typography>
+            <Typography
+              sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}
+            >
+              TIEMPO PROMEDIO DE RESPUESTA
+            </Typography>
             <Typography sx={{ fontSize: 28, fontWeight: 800, mt: 1 }}>{avgString}</Typography>
-            <Typography sx={{ fontSize: 11, color: "#6b7280" }}>Basado en el equipo de Atención al Alumno</Typography>
+            <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
+              Basado en el equipo de Atención al Alumno
+            </Typography>
           </Paper>
         </Stack>
       </Stack>
     </Stack>
   );
 }
-

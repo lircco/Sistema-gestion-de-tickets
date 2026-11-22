@@ -1,7 +1,19 @@
 import React from "react";
-import { Stack, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow, Chip, Button, Box } from "@mui/material";
+import {
+  Stack,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Chip,
+  Button,
+  Box,
+} from "@mui/material";
 import { AddCircleOutlined, AttachFileOutlined } from "@mui/icons-material";
-import { getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
 import { StatusBadge } from "../shared/Badges";
 
 export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
@@ -17,46 +29,66 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
         <Table size="small">
           <TableHead>
             <TableRow>
-              {['ID', 'TÍTULO', 'CATEGORÍA', 'ESTADO', 'FECHA'].map((h) => (
-                <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 12 }}>{h}</TableCell>
+              {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "FECHA"].map((h) => (
+                <TableCell key={h} sx={{ color: "text.secondary", fontWeight: 700, fontSize: 12 }}>
+                  {h}
+                </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {tickets.map((r) => (
-              <TableRow key={r.id} hover onClick={() => onOpenTicket?.(r)} sx={{ cursor: "pointer" }}>
+              <TableRow
+                key={r.id}
+                hover
+                onClick={() => onOpenTicket?.(r)}
+                sx={{ cursor: "pointer" }}
+              >
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
-                  <Typography sx={{ fontSize: 12, color: '#6b7280' }}>{r.descripcion}</Typography>
-                  {r.archivo_adjunto && r.archivo_adjunto !== "null" && r.archivo_adjunto !== "" && (
-                    <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
-                      <Chip
-                        size="small"
-                        component="a"
-                        href={getFileUrl(r.archivo_adjunto)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        clickable
-                        onClick={(e) => e.stopPropagation()}
-                        icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
-                        label="Ver adjunto"
-                        sx={{ fontSize: 11, maxWidth: 200 }}
-                      />
-                    </Stack>
-                  )}
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    {r.descripcion}
+                  </Typography>
+                  {r.archivo_adjunto &&
+                    r.archivo_adjunto !== "null" &&
+                    r.archivo_adjunto !== "" && (
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}
+                      >
+                        <Chip
+                          size="small"
+                          clickable
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            api
+                              .abrirAdjunto(r.id)
+                              .catch(() => alert("No se pudo abrir el adjunto."));
+                          }}
+                          icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
+                          label="Ver adjunto"
+                          sx={{ fontSize: 11, maxWidth: 200 }}
+                        />
+                      </Stack>
+                    )}
                 </TableCell>
-                <TableCell><Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: '#f3f4f6' }} /></TableCell>
+                <TableCell>
+                  <Chip size="small" label={r.categoria_nombre} />
+                </TableCell>
                 <TableCell>
                   <StatusBadge status={r.estado} />
                 </TableCell>
-                <TableCell sx={{ fontSize: 13 }}>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
+                <TableCell sx={{ fontSize: 13 }}>
+                  {new Date(r.creado_el).toLocaleDateString()}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
         {tickets.length === 0 && (
-          <Typography sx={{ textAlign: "center", color: "#6b7280", py: 4 }}>
+          <Typography sx={{ textAlign: "center", color: "text.secondary", py: 4 }}>
             No tenés tickets todavía. Creá uno nuevo.
           </Typography>
         )}

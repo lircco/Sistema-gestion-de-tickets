@@ -1,12 +1,27 @@
 import React, { useMemo, useState } from "react";
-import { Stack, Typography, Paper, TextField, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip, Box, IconButton, InputAdornment, Menu, MenuItem } from "@mui/material";
-import { SearchOutlined, VisibilityOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
+import {
+  Stack,
+  Typography,
+  Paper,
+  TextField,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Chip,
+  Box,
+  InputAdornment,
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import { SearchOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
-import { getFileUrl } from "../../lib/api";
+import { api } from "../../lib/api";
+import { ESTADO_LABELS } from "../../lib/estados";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
-
-const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
 const FECHA_OPTIONS = [
   { key: "", label: "Todas" },
@@ -25,7 +40,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
 
   const categorias = useMemo(
     () => [...new Set(tickets.map((t) => t.categoria_nombre).filter(Boolean))],
-    [tickets]
+    [tickets],
   );
 
   const handleOpenMenu = (menu) => (e) => {
@@ -38,7 +53,8 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
   };
 
   let visibleTickets = filterTickets(tickets, search);
-  if (categoriaFilter) visibleTickets = visibleTickets.filter((t) => t.categoria_nombre === categoriaFilter);
+  if (categoriaFilter)
+    visibleTickets = visibleTickets.filter((t) => t.categoria_nombre === categoriaFilter);
   if (estadoFilter) visibleTickets = visibleTickets.filter((t) => t.estado === estadoFilter);
   if (fechaFilter) {
     const since = subDays(new Date(), Number(fechaFilter));
@@ -93,22 +109,65 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
             </Button>
 
             <Menu anchorEl={menuAnchor} open={openMenu === "categoria"} onClose={handleCloseMenu}>
-              <MenuItem selected={!categoriaFilter} onClick={() => { setCategoriaFilter(""); handleCloseMenu(); }}>Todas</MenuItem>
+              <MenuItem
+                selected={!categoriaFilter}
+                onClick={() => {
+                  setCategoriaFilter("");
+                  handleCloseMenu();
+                }}
+              >
+                Todas
+              </MenuItem>
               {categorias.map((c) => (
-                <MenuItem key={c} selected={categoriaFilter === c} onClick={() => { setCategoriaFilter(c); handleCloseMenu(); }}>{c}</MenuItem>
+                <MenuItem
+                  key={c}
+                  selected={categoriaFilter === c}
+                  onClick={() => {
+                    setCategoriaFilter(c);
+                    handleCloseMenu();
+                  }}
+                >
+                  {c}
+                </MenuItem>
               ))}
             </Menu>
 
             <Menu anchorEl={menuAnchor} open={openMenu === "estado"} onClose={handleCloseMenu}>
-              <MenuItem selected={!estadoFilter} onClick={() => { setEstadoFilter(""); handleCloseMenu(); }}>Todos</MenuItem>
+              <MenuItem
+                selected={!estadoFilter}
+                onClick={() => {
+                  setEstadoFilter("");
+                  handleCloseMenu();
+                }}
+              >
+                Todos
+              </MenuItem>
               {Object.entries(ESTADO_LABELS).map(([value, label]) => (
-                <MenuItem key={value} selected={estadoFilter === value} onClick={() => { setEstadoFilter(value); handleCloseMenu(); }}>{label}</MenuItem>
+                <MenuItem
+                  key={value}
+                  selected={estadoFilter === value}
+                  onClick={() => {
+                    setEstadoFilter(value);
+                    handleCloseMenu();
+                  }}
+                >
+                  {label}
+                </MenuItem>
               ))}
             </Menu>
 
             <Menu anchorEl={menuAnchor} open={openMenu === "fechas"} onClose={handleCloseMenu}>
               {FECHA_OPTIONS.map((o) => (
-                <MenuItem key={o.key} selected={fechaFilter === o.key} onClick={() => { setFechaFilter(o.key); handleCloseMenu(); }}>{o.label}</MenuItem>
+                <MenuItem
+                  key={o.key}
+                  selected={fechaFilter === o.key}
+                  onClick={() => {
+                    setFechaFilter(o.key);
+                    handleCloseMenu();
+                  }}
+                >
+                  {o.label}
+                </MenuItem>
               ))}
             </Menu>
           </Stack>
@@ -116,59 +175,70 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
         <Table size="small" sx={{ minWidth: 720 }}>
           <TableHead>
             <TableRow>
-              {['ID', 'TÍTULO', 'CATEGORÍA', 'ESTADO', 'PRIORIDAD', 'FECHA', 'ACCIÓN'].map((h) => (
-                <TableCell key={h} sx={{ color: '#6b7280', fontWeight: 700, fontSize: 12 }}>{h}</TableCell>
+              {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "PRIORIDAD", "FECHA"].map((h) => (
+                <TableCell key={h} sx={{ color: "text.secondary", fontWeight: 700, fontSize: 12 }}>
+                  {h}
+                </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {visibleTickets.map((r) => (
-              <TableRow key={r.id} hover>
+              <TableRow key={r.id} hover onClick={() => onOpenTicket(r)} sx={{ cursor: "pointer" }}>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
-                  {r.archivo_adjunto && r.archivo_adjunto !== "null" && r.archivo_adjunto !== "" && (
-                    <Stack direction="row" spacing={0.5} sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}>
-                      <Chip
-                        size="small"
-                        component="a"
-                        href={getFileUrl(r.archivo_adjunto)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        clickable
-                        onClick={(e) => e.stopPropagation()}
-                        icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
-                        label="Ver adjunto"
-                        sx={{ fontSize: 11, maxWidth: 200 }}
-                      />
-                    </Stack>
-                  )}
+                  {r.archivo_adjunto &&
+                    r.archivo_adjunto !== "null" &&
+                    r.archivo_adjunto !== "" && (
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ mt: 0.8, flexWrap: "wrap", gap: 0.5 }}
+                      >
+                        <Chip
+                          size="small"
+                          clickable
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            api
+                              .abrirAdjunto(r.id)
+                              .catch(() => alert("No se pudo abrir el adjunto."));
+                          }}
+                          icon={<AttachFileOutlined sx={{ fontSize: 14 }} />}
+                          label="Ver adjunto"
+                          sx={{ fontSize: 11, maxWidth: 200 }}
+                        />
+                      </Stack>
+                    )}
                 </TableCell>
                 <TableCell>
                   {r.categoria_nombre}
-                  {admin?.rol === 'SUPERVISOR' && r.area_nombre && (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: 11, mt: 0.5 }}>
+                  {admin?.rol === "SUPERVISOR" && r.area_nombre && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: 11, mt: 0.5 }}
+                    >
                       Área: {r.area_nombre}
                     </Typography>
                   )}
                 </TableCell>
-                <TableCell><StatusBadge status={r.estado} /></TableCell>
-                <TableCell><PriorityBadge priority={r.prioridad} /></TableCell>
-                <TableCell>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <IconButton size="small" onClick={() => onOpenTicket(r)}>
-                    <VisibilityOutlined fontSize="small" />
-                  </IconButton>
+                  <StatusBadge status={r.estado} />
                 </TableCell>
+                <TableCell>
+                  <PriorityBadge priority={r.prioridad} />
+                </TableCell>
+                <TableCell>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <Typography sx={{ fontSize: 12, color: '#6b7280', mt: 2 }}>Mostrando {visibleTickets.length} tickets</Typography>
+        <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 2 }}>
+          Mostrando {visibleTickets.length} tickets
+        </Typography>
       </Paper>
     </Stack>
   );
 }
-
-
-

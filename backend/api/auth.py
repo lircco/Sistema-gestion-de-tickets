@@ -9,14 +9,10 @@ class CustomAuthBackend(ModelBackend):
         if user:
             return user
 
-        # Permitir login usando el email como identificador
         if username and '@' in username:
-            try:
-                user_by_email = Usuario.objects.get(email__iexact=username.strip())
-                if user_by_email.check_password(password):
-                    return user_by_email
-            except (Usuario.DoesNotExist, Usuario.MultipleObjectsReturned):
-                pass
+            user_by_email = Usuario.objects.filter(email__iexact=username).first()
+            if user_by_email and user_by_email.check_password(password) and self.user_can_authenticate(user_by_email):
+                return user_by_email
         
         if username and ' ' in username:
             parts = username.split(' ', 1)
@@ -25,6 +21,7 @@ class CustomAuthBackend(ModelBackend):
             
             users = Usuario.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name)
             for u in users:
-                if u.check_password(password):
+                # Igual que el login por username: un usuario inactivo no entra.
+                if u.check_password(password) and self.user_can_authenticate(u):
                     return u
         return None

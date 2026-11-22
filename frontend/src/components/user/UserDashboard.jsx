@@ -10,7 +10,12 @@ import NewTicketDialog from "./NewTicketDialog";
 import KnowledgeBaseSection from "../admin/KnowledgeBaseSection";
 import SettingsSection from "../admin/SettingsSection";
 import { Paper, Typography, LinearProgress } from "@mui/material";
-import { DashboardOutlined, ConfirmationNumberOutlined, MenuBookOutlined, SettingsOutlined } from "@mui/icons-material";
+import {
+  DashboardOutlined,
+  ConfirmationNumberOutlined,
+  MenuBookOutlined,
+  SettingsOutlined,
+} from "@mui/icons-material";
 
 export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
   const location = useLocation();
@@ -56,19 +61,72 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
         active={active}
         onSelect={(k) => navigate(k === "dashboard" ? "/" : `/${k}`)}
         onLogout={onLogout}
-        user={{ name: displayName, role: "Alumno UNRaf" }}
+        user={{ name: displayName, role: "Alumno UNRaf", foto_perfil: user.foto_perfil }}
         mode={mode}
         onToggleMode={onToggleMode}
         searchValue={search}
         onSearchChange={setSearch}
       >
         <Routes>
-          <Route index element={<UserHome user={{ name: displayName }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} onOpenTicket={(t) => navigate(`/tickets/${t.id}`)} />} />
-          <Route path="tickets" element={<UserTicketsTable tickets={filteredTickets} onOpenNew={() => setOpenNew(true)} onOpenTicket={(t) => navigate(`/tickets/${t.id}`)} />} />
-          <Route path="tickets/:id" element={<UserTicketDetail tickets={tickets} user={{ name: displayName }} onBack={() => navigate("/tickets")} onTicketUpdated={loadTickets} />} />
+          <Route
+            index
+            element={
+              <UserHome
+                user={{ name: displayName }}
+                tickets={tickets}
+                onOpenNew={() => setOpenNew(true)}
+                onGoTickets={() => navigate("/tickets")}
+                onOpenTicket={(t) => navigate(`/tickets/${t.id}`)}
+              />
+            }
+          />
+          <Route
+            path="tickets"
+            element={
+              <UserTicketsTable
+                tickets={filteredTickets}
+                onOpenNew={() => setOpenNew(true)}
+                onOpenTicket={(t) => navigate(`/tickets/${t.id}`)}
+              />
+            }
+          />
+          <Route
+            path="tickets/:id"
+            element={
+              <UserTicketDetail
+                tickets={tickets}
+                user={{ name: displayName }}
+                onBack={() => navigate("/tickets")}
+                onTicketUpdated={loadTickets}
+              />
+            }
+          />
           <Route path="kb" element={<KnowledgeBaseSection user={user} />} />
-          <Route path="settings" element={<SettingsSection person={{ name: displayName, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
-          <Route path="*" element={<Paper sx={{ p: 6, textAlign: "center" }}><Typography variant="h5">Página no encontrada</Typography></Paper>} />
+          <Route
+            path="settings"
+            element={
+              <SettingsSection
+                person={{
+                  ...user,
+                  name: displayName,
+                  email: user.email,
+                  role: user.rol,
+                  dni: user.dni,
+                  foto_perfil: user.foto_perfil,
+                }}
+                mode={mode}
+                onToggleMode={onToggleMode}
+              />
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <Paper sx={{ p: 6, textAlign: "center" }}>
+                <Typography variant="h5">Página no encontrada</Typography>
+              </Paper>
+            }
+          />
         </Routes>
       </AppShell>
       <NewTicketDialog open={openNew} onClose={() => setOpenNew(false)} onCreated={loadTickets} />

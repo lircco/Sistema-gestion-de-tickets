@@ -1,17 +1,28 @@
 import React, { useState } from "react";
-import { Box, Stack, Typography, Button, Paper, LinearProgress, Snackbar, Alert } from "@mui/material";
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Paper,
+  LinearProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { ReportKpi } from "../shared/ReportKpi";
 import {
-      computeAvgLeadTimeHours,
-      computeLeadTimeByArea,
-      computeCategoriaDistribution,
-      computeSlaEnRiesgo,
-      computeResolvedRate,
-    } from "../../lib/utils";
+  computeAvgLeadTimeHours,
+  computeLeadTimeByArea,
+  computeCategoriaDistribution,
+  computeSlaEnRiesgo,
+  computeResolvedRate,
+} from "../../lib/utils";
 
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
+import { toneSx } from "../../lib/tones";
 
-const CATEGORIA_COLORS = ["#0a3d62", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
+const CATEGORIA_COLORS = ["primary.main", "#f5b400", "#10b981", "#ef4444", "#6b7280", "#8b5cf6"];
 
 export default function ReportsSection({ tickets = [], stats }) {
   const [last30Active, setLast30Active] = useState(false);
@@ -30,7 +41,6 @@ export default function ReportsSection({ tickets = [], stats }) {
   const categoriaDistribution = computeCategoriaDistribution(tickets);
   const maxAreaHours = Math.max(...leadTimeByArea.map((a) => a.hours), 1);
 
-
   let mejorArea = null;
   if (leadTimeByArea.length > 0) {
     mejorArea = [...leadTimeByArea].sort((a, b) => {
@@ -44,77 +54,129 @@ export default function ReportsSection({ tickets = [], stats }) {
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Box>
           <Typography variant="h5">Reportes de Gestión</Typography>
-          <Typography sx={{ color: "#6b7280" }}>
+          <Typography sx={{ color: "text.secondary" }}>
             Monitoreo en tiempo real del rendimiento operativo de la UNRaf.
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Button variant={last30Active ? "contained" : "outlined"} onClick={handleLast30Click}>Últimos 30 días</Button>
-          <Button variant="outlined" onClick={() => window.print()}>Exportar PDF</Button>
+          <Button variant={last30Active ? "contained" : "outlined"} onClick={handleLast30Click}>
+            Últimos 30 días
+          </Button>
+          <Button variant="outlined" onClick={() => window.print()}>
+            Exportar PDF
+          </Button>
         </Stack>
       </Box>
 
       <Snackbar open={snackbarOpen} autoHideDuration={4000} onClose={() => setSnackbarOpen(false)}>
         <Alert severity="info" onClose={() => setSnackbarOpen(false)} sx={{ width: "100%" }}>
-          Las estadísticas en tiempo real por rango de fechas requieren endpoints adicionales en el backend (ver issue #40).
+          Las estadísticas en tiempo real por rango de fechas requieren endpoints adicionales en el
+          backend (ver issue #40).
         </Alert>
       </Snackbar>
 
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
-        <ReportKpi color="#0a3d62" label="TICKETS TOTALES" value={totalTickets} delta={`${cerrados} cerrados`} deltaColor="#6b7280" />
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
+      >
         <ReportKpi
-          color="#0a3d62"
+          color="primary.main"
+          label="TICKETS TOTALES"
+          value={totalTickets}
+          delta={`${cerrados} cerrados`}
+          deltaColor="text.secondary"
+        />
+        <ReportKpi
+          color="primary.main"
           label="LEAD TIME PROMEDIO"
           value={avgLeadTime === null ? "Sin datos" : `${avgLeadTime.toFixed(1)}h`}
           delta={avgLeadTime === null ? "sin tickets cerrados" : "sobre tickets cerrados"}
-          deltaColor="#6b7280"
+          deltaColor="text.secondary"
         />
-        <ReportKpi color="#10b981" label="% RESUELTOS" value={`${resolvedPercent}%`} delta={`${cerrados}/${totalTickets}`} deltaColor="#6b7280" />
         <ReportKpi
-          color={slaEnRiesgo > 0 ? "#ef4444" : "#10b981"}
+          color="success.main"
+          label="% RESUELTOS"
+          value={`${resolvedPercent}%`}
+          delta={`${cerrados}/${totalTickets}`}
+          deltaColor="text.secondary"
+        />
+        <ReportKpi
+          color={slaEnRiesgo > 0 ? "error.main" : "success.main"}
           label="SLA EN RIESGO"
           value={slaEnRiesgo}
           delta={slaEnRiesgo > 0 ? "! Prioridad alta sin cerrar" : "OK"}
-          deltaColor={slaEnRiesgo > 0 ? "#ef4444" : "#10b981"}
+          deltaColor={slaEnRiesgo > 0 ? "error.main" : "success.main"}
         />
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Eficiencia Operativa</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>Lead Time (horas) por área administrativa, tickets cerrados</Typography>
+          <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
+            Lead Time (horas) por área administrativa, tickets cerrados
+          </Typography>
           {leadTimeByArea.length === 0 ? (
-            <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets cerrados para calcular el lead time por área.
             </Typography>
           ) : (
             <>
               {mejorArea && (
-                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#e0f2fe', borderRadius: 1, border: '1px solid #bae6fd' }}>
-                  <Typography sx={{ fontSize: 13, color: '#0369a1', fontWeight: 600 }}>
+                <Box sx={[toneSx("blue"), { mb: 2, p: 1.5, borderRadius: 1 }]}>
+                  <Typography sx={{ fontSize: 13, color: "inherit", fontWeight: 600 }}>
                     Área Destacada: {mejorArea.area}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: '#0284c7' }}>
-                    Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de {mejorArea.hours.toFixed(1)}h.
+                  <Typography sx={{ fontSize: 12, color: "inherit" }}>
+                    Resolvió la mayor cantidad de tickets ({mejorArea.count}) con un promedio de{" "}
+                    {mejorArea.hours.toFixed(1)}h.
                   </Typography>
                 </Box>
               )}
-              <Stack direction="row" spacing={2} sx={{ alignItems: "flex-end", height: 140, mt: 2 }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{ alignItems: "flex-end", height: 140, mt: 2 }}
+              >
                 {leadTimeByArea.map((a, i) => (
                   <Box
                     key={a.area}
                     title={`${a.area}: ${a.hours.toFixed(1)}h (${a.count} tickets)`}
-                    sx={{ flex: 1, height: Math.max((a.hours / maxAreaHours) * 140, 6), bgcolor: "primary.main", opacity: 0.4 + (i * 0.1), borderRadius: 1, position: 'relative' }}
+                    sx={(theme) => ({
+                      flex: 1,
+                      height: Math.max((a.hours / maxAreaHours) * 140, 6),
+                      bgcolor: alpha(theme.palette.primary.main, Math.min(0.4 + i * 0.1, 1)),
+                      borderRadius: 1,
+                      position: "relative",
+                    })}
                   >
-                     <Typography sx={{ position: 'absolute', top: -20, left: 0, width: '100%', textAlign: 'center', fontSize: 10, color: 'text.secondary', fontWeight: 700 }}>
-                        {a.count}t
-                     </Typography>
+                    <Typography
+                      sx={{
+                        position: "absolute",
+                        top: -20,
+                        left: 0,
+                        width: "100%",
+                        textAlign: "center",
+                        fontSize: 10,
+                        color: "text.secondary",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {a.count}t
+                    </Typography>
                   </Box>
                 ))}
               </Stack>
               <Stack direction="row" spacing={2} sx={{ mt: 1, justifyContent: "space-between" }}>
                 {leadTimeByArea.map((a) => (
-                  <Typography key={a.area} sx={{ fontSize: 11, color: "#6b7280", flex: 1, textAlign: "center" }}>{a.area}</Typography>
+                  <Typography
+                    key={a.area}
+                    sx={{ fontSize: 11, color: "text.secondary", flex: 1, textAlign: "center" }}
+                  >
+                    {a.area}
+                  </Typography>
                 ))}
               </Stack>
             </>
@@ -122,9 +184,11 @@ export default function ReportsSection({ tickets = [], stats }) {
         </Paper>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>
           <Typography sx={{ fontWeight: 700 }}>Consultas por Categoría</Typography>
-          <Typography sx={{ fontSize: 12, color: "#6b7280", mb: 2 }}>Distribución porcentual de tickets</Typography>
+          <Typography sx={{ fontSize: 12, color: "text.secondary", mb: 2 }}>
+            Distribución porcentual de tickets
+          </Typography>
           {categoriaDistribution.length === 0 ? (
-            <Typography sx={{ fontSize: 13, color: "#6b7280", mt: 4, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 13, color: "text.secondary", mt: 4, textAlign: "center" }}>
               Todavía no hay tickets para calcular la distribución.
             </Typography>
           ) : (
@@ -138,7 +202,13 @@ export default function ReportsSection({ tickets = [], stats }) {
                   <LinearProgress
                     variant="determinate"
                     value={r.percent}
-                    sx={{ height: 6, borderRadius: 3, '& .MuiLinearProgress-bar': { bgcolor: CATEGORIA_COLORS[i % CATEGORIA_COLORS.length] } }}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      "& .MuiLinearProgress-bar": {
+                        bgcolor: CATEGORIA_COLORS[i % CATEGORIA_COLORS.length],
+                      },
+                    }}
                   />
                 </Box>
               ))}

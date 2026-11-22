@@ -146,7 +146,7 @@ def revertir_articulos(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ('api', '0004_usuario_dni_usuario_foto_perfil'),
     ]
 
     operations = [
@@ -167,14 +167,6 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Artículos',
                 'ordering': ['-visitas', '-creado_el'],
             },
-        ),
-        migrations.AlterModelOptions(
-            name='area',
-            options={'ordering': ['nombre']},
-        ),
-        migrations.AlterModelOptions(
-            name='categoria',
-            options={'ordering': ['nombre']},
         ),
         migrations.RunPython(crear_articulos_iniciales, revertir_articulos),
     ]
