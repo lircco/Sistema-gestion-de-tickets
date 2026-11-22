@@ -26,9 +26,8 @@ import {
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
 import { api } from "../../lib/api";
+import { ESTADO_LABELS } from "../../lib/estados";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
-
-const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
 const FECHA_OPTIONS = [
   { key: "", label: "Todas" },

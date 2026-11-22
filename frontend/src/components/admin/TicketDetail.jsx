@@ -31,12 +31,11 @@ import ChatBubble from "../shared/ChatBubble";
 import ClosedChatNotice from "../shared/ClosedChatNotice";
 import usePolling from "../../hooks/use-polling";
 import { api } from "../../lib/api";
+import { ESTADO_LABELS } from "../../lib/estados";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
 const CHAT_POLL_MS = 5000;
 const CLOSED_POLL_MS = 15000;
-
-const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
 
 const ROL_LABELS = { ESTUDIANTE: "Estudiante", STAFF: "Staff de Área", SUPERVISOR: "Supervisor" };
 
