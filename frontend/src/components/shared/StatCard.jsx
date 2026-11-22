@@ -1,32 +1,48 @@
 import React from "react";
 import { Paper, Stack, Box, Chip, Typography } from "@mui/material";
+import { toneColors, toneSx } from "../../lib/tones";
 
-export default function StatCard({ color, icon, value, label, chip, chipColor, chipText }) {
+// `tone` (blue | amber | green | red | gray) define el color del ícono, el borde y el chip,
+// con contraste adecuado en tema claro y oscuro.
+export default function StatCard({ tone = "blue", icon, value, label, chip }) {
   return (
-    <Paper sx={{ p: 2.5, flex: 1, borderLeft: `4px solid ${color}` }}>
-      <Stack direction="row" sx={{ alignItems: "flex-start", justifyContent: "space-between" }}>
+    <Paper
+      sx={(theme) => ({
+        p: 2.5,
+        flex: 1,
+        borderLeft: `4px solid ${toneColors(tone, theme.palette.mode).fg}`,
+      })}
+    >
+      <Stack
+        direction="row"
+        sx={{ alignItems: "flex-start", justifyContent: "space-between", gap: 1.5 }}
+      >
         <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: 1.5,
-            bgcolor: `${color}15`,
-            color,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          sx={[
+            toneSx(tone),
+            {
+              width: 40,
+              height: 40,
+              borderRadius: 1.5,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            },
+          ]}
         >
           {icon}
         </Box>
         <Chip
           size="small"
           label={chip}
-          sx={{ bgcolor: chipColor, color: chipText, fontWeight: 600, fontSize: 11 }}
+          sx={[toneSx(tone), { fontWeight: 600, fontSize: 11, minWidth: 0, maxWidth: "100%" }]}
         />
       </Stack>
       <Typography sx={{ fontSize: 32, fontWeight: 800, mt: 1.5 }}>{value}</Typography>
-      <Typography sx={{ fontSize: 12, color: "#6b7280", fontWeight: 600, letterSpacing: 0.5 }}>
+      <Typography
+        sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}
+      >
         {label}
       </Typography>
     </Paper>

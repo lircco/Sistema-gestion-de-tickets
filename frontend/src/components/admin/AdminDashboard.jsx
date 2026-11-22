@@ -26,7 +26,7 @@ function PlaceholderSection({ title }) {
       <Typography variant="h5" sx={{ mb: 1 }}>
         {title}
       </Typography>
-      <Typography sx={{ color: "#6b7280" }}>Sección en construcción.</Typography>
+      <Typography sx={{ color: "text.secondary" }}>Sección en construcción.</Typography>
     </Paper>
   );
 }
@@ -82,7 +82,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       active={active}
       onSelect={(k) => navigate(k === "dashboard" ? "/admin" : `/admin/${k}`)}
       onLogout={onLogout}
-      user={{ name: displayName, role: admin.rol }}
+      user={{ name: displayName, role: admin.rol, foto_perfil: admin.foto_perfil }}
       mode={mode}
       onToggleMode={onToggleMode}
       searchValue={search}
@@ -139,11 +139,13 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
           element={
             <SettingsSection
               person={{
-                name: admin.username,
-                username: admin.username,
+                ...admin,
+                name: displayName,
                 email: admin.email,
                 role: admin.rol,
                 area: admin.area,
+                dni: admin.dni,
+                foto_perfil: admin.foto_perfil,
               }}
               mode={mode}
               onToggleMode={onToggleMode}

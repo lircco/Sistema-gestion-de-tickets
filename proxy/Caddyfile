@@ -1,0 +1,42 @@
+# Configuración de Caddy Proxy Reverso
+
+# 1. Frontend con dominio o fallback a localhost
+{$DOMAIN_FRONTEND:http://localhost} {
+	handle /api/* {
+		reverse_proxy app2-backend:8000
+	}
+	handle /media/* {
+		reverse_proxy app2-backend:8000
+	}
+	handle {
+		reverse_proxy app2-frontend:80
+	}
+}
+
+# 2. Backend API en subdominio (ej: api.ingenieriacomputacion.com.ar)
+{$DOMAIN_BACKEND:http://localhost:8000} {
+	reverse_proxy app2-backend:8000
+}
+
+# 3. Fallback para acceso directo por HTTP (IP pública, localhost)
+http:// {
+	handle /api/* {
+		reverse_proxy app2-backend:8000
+	}
+	handle /media/* {
+		reverse_proxy app2-backend:8000
+	}
+	handle {
+		reverse_proxy app2-frontend:80
+	}
+}
+
+# 4. Acceso directo por puerto 8000 (Backend API)
+:8000 {
+	reverse_proxy app2-backend:8000
+}
+
+# 5. Acceso directo por puerto 8081 (Adminer DB)
+:8081 {
+	reverse_proxy app2-adminer:8080
+}

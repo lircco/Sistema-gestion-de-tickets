@@ -8,15 +8,15 @@ El sistema es una plataforma de gestión de tickets dividida en dos partes princ
 
 1.  **Backend (Directorio `backend/`):**
     - **Framework:** Django con Django REST Framework (DRF).
-    - **Base de Datos:** SQLite (desarrollo).
-    - **Autenticación:** Session-based Auth de Django.
-    - **Características:** Modelos para Áreas, Categorías, Usuarios y Tickets. Incluye envío de notificaciones por email y seguridad a nivel de fila (los estudiantes solo ven sus tickets).
+    - **Base de Datos:** PostgreSQL. Para desarrollo y tests se puede usar SQLite con `DATABASE_URL=sqlite:///db.sqlite3`.
+    - **Autenticación:** JWT con `djangorestframework-simplejwt` (`/api/token/`). La sesión de Django se usa solo en el panel `/admin/`.
+    - **Características:** Modelos para Áreas, Categorías, Usuarios, Tickets, Respuestas, Notificaciones in-app y registro de emails enviados. Incluye envío de notificaciones por email y seguridad a nivel de fila (los estudiantes solo ven sus tickets; el Staff, los de su área).
 
 2.  **Frontend (Directorio `frontend/`):**
     - **Framework:** React con Vite.
-    - **Enrutado:** TanStack Router.
+    - **Enrutado:** React Router (`react-router-dom`).
     - **UI:** Material UI (MUI) y Tailwind CSS.
-    - **Gestión de Estado:** TanStack Query.
+    - **Gestión de Estado:** Context API (`AuthContext`) y estado local de los componentes. Las llamadas a la API están centralizadas en `src/lib/api.js`.
 
 ---
 
@@ -28,7 +28,7 @@ Para trabajar en el proyecto, utiliza los siguientes comandos (asegúrate de est
 
 El stack completo puede ser levantado utilizando contenedores Docker.
 
-1. **Crear la red externa de Nginx:**
+1. **Crear la red externa del proxy** (se llama `nginx-proxy` por historia; hoy la usa Caddy):
    ```bash
    docker network create nginx-proxy
    ```
@@ -104,9 +104,9 @@ Ejemplo: `feat: implementar filtrado de tickets por área`
 
 ---
 
-## Despliegue (Nginx + Producción)
+## Despliegue (Caddy + Producción)
 
-Para desplegar en un entorno de producción con Nginx, sigue estos pasos:
+Para desplegar en un entorno de producción con el proxy Caddy, sigue estos pasos:
 
 ### 1. Variables de Entorno
 
@@ -128,12 +128,13 @@ Configura las siguientes variables de entorno en el servidor:
 ### 3. Frontend
 
 1.  Construir el proyecto: `npm run build`.
-2.  Los archivos generados en `frontend/dist` deben ser servidos por Nginx.
+2.  Los archivos generados en `frontend/dist` los sirve el contenedor del frontend (Nginx, configurado en `frontend/nginx.conf`).
 
-### 4. Nginx
+### 4. Proxy inverso (Caddy)
 
-Utiliza el archivo `nginx.conf.example` como base para configurar el servidor. Este archivo maneja:
+La configuración está en el repositorio:
 
-- Servicio de archivos estáticos y media.
-- Proxy inverso para la API de Django.
-- Soporte para Single Page Application (SPA) con React.
+- `proxy/Caddyfile` y `proxy/docker-compose.yml`: Caddy es el proxy de entrada. Envía `/api/*` directo al backend y el resto al frontend, y obtiene y renueva los certificados HTTPS solo cuando se definen `DOMAIN_FRONTEND` y `DOMAIN_BACKEND`. Los detalles están en `proxy/README.md`.
+- `frontend/nginx.conf`: el contenedor del frontend sirve la Single Page Application (SPA) de React.
+
+Los archivos estáticos de Django los sirve WhiteNoise. Los adjuntos de los tickets no se exponen como archivos públicos: se descargan con autenticación por `/api/tickets/{id}/adjunto/`.

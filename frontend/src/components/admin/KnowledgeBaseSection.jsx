@@ -8,7 +8,7 @@ export default function KnowledgeBaseSection() {
   return (
     <Stack spacing={3}>
       <Typography variant="h4">Base de Conocimiento</Typography>
-      <Typography sx={{ color: "#6b7280" }}>
+      <Typography sx={{ color: "text.secondary" }}>
         Documentación y artículos de ayuda para resolver consultas frecuentes.
       </Typography>
       <Stack direction="row" spacing={2.5} sx={{ flexWrap: "wrap" }}>
@@ -31,8 +31,8 @@ export default function KnowledgeBaseSection() {
           >
             <MenuBookOutlined sx={{ color: "primary.main", mb: 1 }} />
             <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{a.t}</Typography>
-            <Chip size="small" label={a.c} sx={{ bgcolor: "#f3f4f6", mb: 1 }} />
-            <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{a.v} visitas</Typography>
+            <Chip size="small" label={a.c} sx={{ mb: 1 }} />
+            <Typography sx={{ fontSize: 12, color: "text.secondary" }}>{a.v} visitas</Typography>
           </Paper>
         ))}
       </Stack>

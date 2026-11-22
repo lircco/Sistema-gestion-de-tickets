@@ -7,7 +7,12 @@ test.describe("Flujo de Administrador", () => {
     await page.goto("/");
 
     // Cambiar al tab de admin
-    await page.locator("text=Admin").click();
+    const adminBtn = page
+      .getByRole("button", { name: "Admin", exact: true })
+      .or(page.getByTestId("role-admin"))
+      .or(page.locator("text=Admin"))
+      .first();
+    await adminBtn.click();
     await page.waitForLoadState("networkidle");
 
     // El frontend para admin pide "Nombre de Usuario" sin @
@@ -23,10 +28,8 @@ test.describe("Flujo de Administrador", () => {
     const ticketRow = page.locator("tr", { hasText: "Ticket de Prueba Global" });
     await expect(ticketRow).toBeVisible();
 
-    // 4. Hacer clic en el botón de "Ver Detalle" (Ojo al icono de ojo)
-    // Asumimos que la fila es clickeable o tiene un botón con aria-label "Ver detalle" o similar.
-    // En este caso, buscaremos el botón dentro de la fila:
-    await ticketRow.getByRole("button").click();
+    // 4. Hacer clic en cualquier parte de la fila para abrir el detalle
+    await ticketRow.click();
 
     // 5. Verificar que estamos en la vista de detalle
     await expect(page.locator("text=Historial de Mensajes")).toBeVisible();
