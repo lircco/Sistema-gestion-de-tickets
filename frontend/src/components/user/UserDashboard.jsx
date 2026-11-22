@@ -7,9 +7,10 @@ import UserHome from "./UserHome";
 import UserTicketsTable from "./UserTicketsTable";
 import UserTicketDetail from "./UserTicketDetail";
 import NewTicketDialog from "./NewTicketDialog";
+import KnowledgeBaseSection from "../admin/KnowledgeBaseSection";
 import SettingsSection from "../admin/SettingsSection";
 import { Paper, Typography, LinearProgress } from "@mui/material";
-import { DashboardOutlined, ConfirmationNumberOutlined, SettingsOutlined } from "@mui/icons-material";
+import { DashboardOutlined, ConfirmationNumberOutlined, MenuBookOutlined, SettingsOutlined } from "@mui/icons-material";
 
 export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
   const location = useLocation();
@@ -40,6 +41,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
   const items = [
     { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small" /> },
     { key: "tickets", label: "Mis Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
+    { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
     { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
@@ -64,6 +66,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
           <Route index element={<UserHome user={{ name: displayName }} tickets={tickets} onOpenNew={() => setOpenNew(true)} onGoTickets={() => navigate("/tickets")} onOpenTicket={(t) => navigate(`/tickets/${t.id}`)} />} />
           <Route path="tickets" element={<UserTicketsTable tickets={filteredTickets} onOpenNew={() => setOpenNew(true)} onOpenTicket={(t) => navigate(`/tickets/${t.id}`)} />} />
           <Route path="tickets/:id" element={<UserTicketDetail tickets={tickets} user={{ name: displayName }} onBack={() => navigate("/tickets")} onTicketUpdated={loadTickets} />} />
+          <Route path="kb" element={<KnowledgeBaseSection user={user} />} />
           <Route path="settings" element={<SettingsSection person={{ name: displayName, email: user.email }} mode={mode} onToggleMode={onToggleMode} legajo="2024-001284" />} />
           <Route path="*" element={<Paper sx={{ p: 6, textAlign: "center" }}><Typography variant="h5">Página no encontrada</Typography></Paper>} />
         </Routes>
@@ -72,4 +75,3 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
     </>
   );
 }
-

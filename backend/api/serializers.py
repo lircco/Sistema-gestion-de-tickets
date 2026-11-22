@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Ticket, Usuario, Area, Categoria, Respuesta
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Articulo
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -96,3 +96,9 @@ class TicketSerializer(serializers.ModelSerializer):
                     fields[campo].read_only = True
 
         return fields
+
+
+class ArticuloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Articulo
+        fields = ['id', 'titulo', 'resumen', 'contenido', 'categoria', 'visitas', 'creado_el', 'actualizado_el']

@@ -62,11 +62,8 @@ from django.utils.crypto import get_random_string
 
 
 
-from .models import Ticket, Usuario, Area, Categoria, Respuesta
-
-
-
-from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Articulo
+from .serializers import TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer, UsuarioSerializer, RespuestaSerializer, ArticuloSerializer
 
 
 
@@ -372,6 +369,28 @@ class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 
+
+
+class ArticuloViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Articulo.objects.all().order_by('-visitas', '-creado_el')
+    serializer_class = ArticuloSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['titulo', 'contenido', 'resumen', 'categoria']
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.visitas += 1
+        instance.save(update_fields=['visitas'])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def leer(self, request, pk=None):
+        articulo = self.get_object()
+        articulo.visitas += 1
+        articulo.save(update_fields=['visitas'])
+        return Response(self.get_serializer(articulo).data)
 
 
 class UsuarioActualView(APIView):

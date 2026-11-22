@@ -291,6 +291,60 @@ export const api = {
       throw new Error(errData.error || errData.detail || "No se pudo actualizar la contraseña.");
     }
     return await response.json();
+  },
+
+  // 10. BASE DE CONOCIMIENTO (ARTÍCULOS)
+  getArticulos: async (search = "") => {
+    const token = localStorage.getItem("access_token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    let url = `${BASE_URL}articulos/`;
+    if (search && search.trim()) {
+      url += `?search=${encodeURIComponent(search.trim())}`;
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudieron cargar los artículos de la base de conocimiento");
+    }
+    return await response.json();
+  },
+
+  getArticulo: async (id) => {
+    const token = localStorage.getItem("access_token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const response = await fetch(`${BASE_URL}articulos/${id}/`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo cargar el artículo");
+    }
+    return await response.json();
+  },
+
+  marcarLecturaArticulo: async (id) => {
+    const token = localStorage.getItem("access_token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const response = await fetch(`${BASE_URL}articulos/${id}/leer/`, {
+      method: "POST",
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo registrar la lectura del artículo");
+    }
+    return await response.json();
   }
 };
 

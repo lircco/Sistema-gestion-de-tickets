@@ -99,6 +99,23 @@ class RegistroEmail(models.Model):
     def __str__(self):
         return f"Email a {self.destinatario} - {self.asunto}"
 
+class Articulo(models.Model):
+    titulo = models.CharField(max_length=200)
+    resumen = models.TextField(blank=True, default='')
+    contenido = models.TextField()
+    categoria = models.CharField(max_length=100)
+    visitas = models.PositiveIntegerField(default=0)
+    creado_el = models.DateTimeField(auto_now_add=True)
+    actualizado_el = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Artículo'
+        verbose_name_plural = 'Artículos'
+        ordering = ['-visitas', '-creado_el']
+
+    def __str__(self):
+        return f"{self.titulo} ({self.categoria})"
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

@@ -5,10 +5,18 @@ Usuario = get_user_model()
 
 class CustomAuthBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        print(f"TRYING AUTH WITH username: '{username}' password: '{password}'", flush=True)
         user = super().authenticate(request, username=username, password=password, **kwargs)
         if user:
             return user
+
+        # Permitir login usando el email como identificador
+        if username and '@' in username:
+            try:
+                user_by_email = Usuario.objects.get(email__iexact=username.strip())
+                if user_by_email.check_password(password):
+                    return user_by_email
+            except (Usuario.DoesNotExist, Usuario.MultipleObjectsReturned):
+                pass
         
         if username and ' ' in username:
             parts = username.split(' ', 1)

@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import Area, Categoria, Usuario, Ticket, Respuesta
+from api.models import Area, Categoria, Usuario, Ticket, Respuesta, Articulo
 
 class ModelTests(TestCase):
     def test_create_area(self):
@@ -303,4 +303,67 @@ class RecuperarPasswordTests(APITestCase):
     def test_recuperar_password_sin_email(self):
         response = self.client.post(self.url, {})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ArticuloTests(APITestCase):
+    def setUp(self):
+        self.art1 = Articulo.objects.create(
+            titulo="Acceso al SIU Guaraní",
+            resumen="Guía de acceso al SIU",
+            contenido="Pasos para ingresar al SIU Guaraní con DNI.",
+            categoria="Sistemas",
+            visitas=10
+        )
+        self.art2 = Articulo.objects.create(
+            titulo="Configuración de Red WiFi",
+            resumen="Conectar a la red UNRaf",
+            contenido="Instrucciones para conectar al WiFi institucional.",
+            categoria="Infraestructura",
+            visitas=5
+        )
+
+    def test_articulo_str(self):
+        self.assertIn("Acceso al SIU Guaraní", str(self.art1))
+        self.assertIn("Sistemas", str(self.art1))
+
+    def test_listar_articulos(self):
+        url = reverse('articulo-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Debe contener al menos los 2 artículos creados
+        titulos = [a['titulo'] for a in response.data]
+        self.assertIn("Acceso al SIU Guaraní", titulos)
+        self.assertIn("Configuración de Red WiFi", titulos)
+
+    def test_buscar_articulos_por_titulo(self):
+        url = reverse('articulo-list') + '?search=Configuración de Red WiFi'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['titulo'], "Configuración de Red WiFi")
+
+    def test_buscar_articulos_por_categoria(self):
+        url = reverse('articulo-list') + '?search=Infraestructura'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) >= 1)
+        self.assertTrue(all(a['categoria'] == "Infraestructura" for a in response.data))
+
+    def test_detalle_articulo_incrementa_visitas(self):
+        url = reverse('articulo-detail', args=[self.art1.id])
+        visitas_iniciales = self.art1.visitas
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['visitas'], visitas_iniciales + 1)
+        self.art1.refresh_from_db()
+        self.assertEqual(self.art1.visitas, visitas_iniciales + 1)
+
+    def test_leer_articulo_action(self):
+        url = reverse('articulo-leer', args=[self.art2.id])
+        visitas_iniciales = self.art2.visitas
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['visitas'], visitas_iniciales + 1)
+        self.art2.refresh_from_db()
+        self.assertEqual(self.art2.visitas, visitas_iniciales + 1)
 

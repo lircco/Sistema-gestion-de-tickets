@@ -159,4 +159,65 @@ describe('api.js', () => {
 
     await expect(api.enviarRespuesta(5, '')).rejects.toThrow('El mensaje no puede estar vacío.');
   });
+
+  it('getArticulos should fetch articulos with search parameter', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ([{ id: 1, titulo: 'Acceso SIU' }])
+    });
+
+    const result = await api.getArticulos('SIU');
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('articulos/?search=SIU'),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer my-token' })
+      })
+    );
+    expect(result).toEqual([{ id: 1, titulo: 'Acceso SIU' }]);
+  });
+
+  it('getArticulos should throw error when request fails', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false });
+    await expect(api.getArticulos()).rejects.toThrow('No se pudieron cargar los artículos de la base de conocimiento');
+  });
+
+  it('getArticulo should fetch single article detail', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 1, titulo: 'Acceso SIU', visitas: 1241 })
+    });
+
+    const result = await api.getArticulo(1);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('articulos/1/'),
+      expect.objectContaining({
+        method: 'GET',
+        headers: expect.objectContaining({ Authorization: 'Bearer my-token' })
+      })
+    );
+    expect(result).toEqual({ id: 1, titulo: 'Acceso SIU', visitas: 1241 });
+  });
+
+  it('marcarLecturaArticulo should POST to /leer/ endpoint', async () => {
+    localStorage.setItem('access_token', 'my-token');
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 2, visitas: 981 })
+    });
+
+    const result = await api.marcarLecturaArticulo(2);
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('articulos/2/leer/'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer my-token' })
+      })
+    );
+    expect(result).toEqual({ id: 2, visitas: 981 });
+  });
 });

@@ -7,11 +7,10 @@ import AdminHome from "./AdminHome";
 import TicketsTable from "./TicketsTable";
 import ReportsSection from "./ReportsSection";
 import AreaManagementSection from "./AreaManagementSection";
-import KnowledgeBaseSection from "./KnowledgeBaseSection";
 import SettingsSection from "./SettingsSection";
 import TicketDetail from "./TicketDetail";
 import { Paper, Typography, LinearProgress } from "@mui/material";
-import { DashboardOutlined, ConfirmationNumberOutlined, BarChartOutlined, ApartmentOutlined, MenuBookOutlined, SettingsOutlined } from "@mui/icons-material";
+import { DashboardOutlined, ConfirmationNumberOutlined, BarChartOutlined, ApartmentOutlined, SettingsOutlined } from "@mui/icons-material";
 
 function PlaceholderSection({ title }) {
   return (
@@ -54,7 +53,6 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     { key: "tickets", label: "Lista de Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
     { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
     { key: "areas", label: "Gestión de Áreas", icon: <ApartmentOutlined fontSize="small" /> },
-    { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
     { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
@@ -80,14 +78,9 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
         <Route path="tickets/:id" element={<TicketDetail tickets={tickets} admin={admin} onBack={() => navigate("/admin/tickets")} onTicketUpdated={loadData} />} />
         <Route path="reports" element={<ReportsSection tickets={tickets} stats={stats} />} />
         <Route path="areas" element={<AreaManagementSection tickets={tickets} admin={admin} onOpenTicket={(t) => navigate(`/admin/tickets/${t.id}`)} />} />
-        <Route path="kb" element={<KnowledgeBaseSection />} />
         <Route path="settings" element={<SettingsSection person={{ name: admin.username, email: admin.email, role: admin.rol, area: admin.area }} mode={mode} onToggleMode={onToggleMode} legajo="2025-000142" />} />
         <Route path="*" element={<PlaceholderSection title="Página no encontrada" />} />
       </Routes>
     </AppShell>
   );
 }
-
-
-
-
