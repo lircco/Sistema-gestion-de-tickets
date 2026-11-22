@@ -75,7 +75,13 @@ export default function ReportsSection({ tickets = [], stats }) {
         </Alert>
       </Snackbar>
 
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
+      >
         <ReportKpi
           color="primary.main"
           label="TICKETS TOTALES"
@@ -104,7 +110,7 @@ export default function ReportsSection({ tickets = [], stats }) {
           delta={slaEnRiesgo > 0 ? "! Prioridad alta sin cerrar" : "OK"}
           deltaColor={slaEnRiesgo > 0 ? "error.main" : "success.main"}
         />
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ flex: 1, p: 3, minHeight: 260 }}>

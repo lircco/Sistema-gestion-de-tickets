@@ -10,11 +10,9 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  IconButton,
   Divider,
   LinearProgress,
 } from "@mui/material";
-import { VisibilityOutlined } from "@mui/icons-material";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 import { toneSx } from "../../lib/tones";
 
@@ -152,7 +150,7 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
           <Table size="small">
             <TableHead>
               <TableRow>
-                {["PRIORIDAD", "TICKET", "REMITENTE", "FECHA", "ACCIÓN"].map((h) => (
+                {["PRIORIDAD", "TICKET", "REMITENTE", "FECHA"].map((h) => (
                   <TableCell
                     key={h}
                     sx={{ color: "text.secondary", fontWeight: 700, fontSize: 11 }}
@@ -189,24 +187,13 @@ export default function AreaManagementSection({ tickets = [], admin, onOpenTicke
                     <TableCell sx={{ fontSize: 13, color: "text.secondary", fontWeight: 600 }}>
                       {new Date(r.creado_el).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenTicket?.(r);
-                        }}
-                      >
-                        <VisibilityOutlined fontSize="small" />
-                      </IconButton>
-                    </TableCell>
                   </TableRow>
                 );
               })}
               {activeTickets.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     sx={{ textAlign: "center", py: 3, color: "text.secondary" }}
                   >
                     No hay tickets pendientes en tu área.

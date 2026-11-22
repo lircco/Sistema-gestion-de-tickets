@@ -82,7 +82,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       active={active}
       onSelect={(k) => navigate(k === "dashboard" ? "/admin" : `/admin/${k}`)}
       onLogout={onLogout}
-      user={{ name: displayName, role: admin.rol }}
+      user={{ name: displayName, role: admin.rol, foto_perfil: admin.foto_perfil }}
       mode={mode}
       onToggleMode={onToggleMode}
       searchValue={search}
@@ -139,14 +139,16 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
           element={
             <SettingsSection
               person={{
-                name: admin.username,
+                ...admin,
+                name: displayName,
                 email: admin.email,
                 role: admin.rol,
                 area: admin.area,
+                dni: admin.dni,
+                foto_perfil: admin.foto_perfil,
               }}
               mode={mode}
               onToggleMode={onToggleMode}
-              legajo="2025-000142"
             />
           }
         />

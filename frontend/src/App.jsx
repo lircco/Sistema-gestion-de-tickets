@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme, LinearProgress } from "@mui/material";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
+import { getInitialMode, getStoredMode, storeMode, onSystemModeChange } from "./lib/theme-mode";
 import LoginScreen from "./components/LoginScreen";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import UserDashboard from "./components/user/UserDashboard";
@@ -55,6 +56,8 @@ function AppRoutes({ mode, onToggleMode }) {
             <Navigate to="/" replace />
           ) : (
             <LoginScreen
+              mode={mode}
+              onToggleMode={onToggleMode}
               onLoginSuccess={(u) => {
                 setUser(u);
                 navigate("/");
@@ -102,9 +105,23 @@ function AppRoutes({ mode, onToggleMode }) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState("light");
+  const [mode, setMode] = useState(getInitialMode);
   const theme = useMemo(() => buildTheme(mode), [mode]);
-  const toggleMode = () => setMode((m) => (m === "light" ? "dark" : "light"));
+
+  // Mientras el usuario no elija un tema, se sigue el del sistema operativo.
+  useEffect(
+    () =>
+      onSystemModeChange((systemMode) => {
+        if (!getStoredMode()) setMode(systemMode);
+      }),
+    [],
+  );
+
+  const toggleMode = () => {
+    const next = mode === "light" ? "dark" : "light";
+    storeMode(next);
+    setMode(next);
+  };
 
   return (
     <AuthProvider>

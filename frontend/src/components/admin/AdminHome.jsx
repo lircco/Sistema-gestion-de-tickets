@@ -12,13 +12,11 @@ import {
   TableRow,
   Paper,
   Chip,
-  IconButton,
 } from "@mui/material";
 import {
   MailOutlined,
   AssignmentOutlined,
   ArrowForward,
-  VisibilityOutlined,
   CheckCircleOutlined,
   HighlightOffOutlined,
 } from "@mui/icons-material";
@@ -37,10 +35,12 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
         </Typography>
       </Box>
 
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2.5}
-        sx={{ flexWrap: { sm: "wrap", md: "nowrap" } }}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
       >
         <StatCard
           tone="blue"
@@ -70,7 +70,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
           label="CERRADOS"
           chip="92% Eficiencia"
         />
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ p: 3, width: { md: 280 }, display: "flex", flexDirection: "column" }}>
@@ -103,12 +103,16 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Asunto</TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Prioridad</TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Estado</TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Acción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {tickets.slice(0, 3).map((r) => (
-                <TableRow key={r.id}>
+                <TableRow
+                  key={r.id}
+                  hover
+                  onClick={() => onOpenTicket(r)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell sx={{ fontWeight: 600 }}>#{r.id}</TableCell>
                   <TableCell>
                     <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
@@ -121,11 +125,6 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={r.estado} />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small" onClick={() => onOpenTicket(r)}>
-                      <VisibilityOutlined fontSize="small" />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}

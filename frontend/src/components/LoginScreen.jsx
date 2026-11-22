@@ -20,6 +20,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
 import {
   MailOutlined,
@@ -28,6 +29,8 @@ import {
   AdminPanelSettings,
   VisibilityOutlined,
   SchoolOutlined,
+  DarkModeOutlined,
+  LightModeOutlined,
   SupportAgentOutlined,
   Close,
 } from "@mui/icons-material";
@@ -36,6 +39,9 @@ import { api } from "../lib/api";
 function RoleCard({ active, onClick, icon, label }) {
   return (
     <Box
+      role="button"
+      aria-label={label}
+      data-testid={`role-${label.toLowerCase()}`}
       onClick={onClick}
       sx={{
         flex: 1,
@@ -60,7 +66,7 @@ function RoleCard({ active, onClick, icon, label }) {
   );
 }
 
-export default function LoginScreen({ onLoginSuccess }) {
+export default function LoginScreen({ onLoginSuccess, mode, onToggleMode }) {
   const [tab, setTab] = useState(0);
   const [role, setRole] = useState("alumno");
   const [username, setUsername] = useState("");
@@ -278,6 +284,24 @@ export default function LoginScreen({ onLoginSuccess }) {
             : "linear-gradient(135deg,#fafbfc 0%,#fafbfc 55%,#eef2f7 55%,#eef2f7 100%)",
       }}
     >
+      {onToggleMode && (
+        <Tooltip title={mode === "dark" ? "Modo claro" : "Modo oscuro"}>
+          <IconButton
+            onClick={onToggleMode}
+            aria-label={mode === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+            sx={{
+              position: "fixed",
+              top: 16,
+              right: 16,
+              bgcolor: "background.paper",
+              boxShadow: 1,
+              "&:hover": { bgcolor: "background.paper" },
+            }}
+          >
+            {mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
+          </IconButton>
+        </Tooltip>
+      )}
       <Stack spacing={3} sx={{ alignItems: "center", width: "100%", maxWidth: 460 }}>
         <Stack spacing={1.5} sx={{ alignItems: "center" }}>
           <Box
@@ -452,6 +476,9 @@ export default function LoginScreen({ onLoginSuccess }) {
                   size="small"
                   sx={{ mb: 2, "& .MuiOutlinedInput-root": { bgcolor: "action.hover" } }}
                   slotProps={{
+                    htmlInput: {
+                      "aria-label": "Email",
+                    },
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">

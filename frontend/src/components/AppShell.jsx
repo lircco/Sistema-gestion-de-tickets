@@ -28,7 +28,6 @@ import {
   DarkModeOutlined,
   LightModeOutlined,
   NotificationsNoneOutlined,
-  HelpOutlineOutlined,
   SupportAgentOutlined,
   LogoutOutlined,
   SchoolOutlined,
@@ -224,7 +223,19 @@ export default function AppShell({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-      {!isMobile && sidebar}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            flexShrink: 0,
+            overflowY: "auto",
+          }}
+        >
+          {sidebar}
+        </Box>
+      )}
       {isMobile && (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
           {sidebar}
@@ -235,7 +246,11 @@ export default function AppShell({
         <Box
           className="app-shell-header"
           sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
             height: 64,
+            flexShrink: 0,
             bgcolor: "background.paper",
             borderBottom: "1px solid",
             borderColor: "divider",
@@ -375,19 +390,16 @@ export default function AppShell({
             )}
           </Menu>
 
-          <IconButton
-            sx={{ display: { xs: "none", sm: "inline-flex" } }}
-            onClick={() => setSupportOpen(true)}
-          >
-            <HelpOutlineOutlined />
-          </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}>
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
             <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+              <Avatar
+                src={user?.foto_perfil}
+                sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}
+              >
                 {user?.name?.charAt(0) || "U"}
               </Avatar>
             </Tooltip>

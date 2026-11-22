@@ -4,7 +4,11 @@ test.describe("Flujo de Alumno", () => {
   test("debe poder loguearse y crear un ticket", async ({ page }) => {
     // 1. Navegar y Loguearse
     await page.goto("/");
-    await page.getByPlaceholder("usuario@gmail.com").fill("alumno_e2e@test.com");
+    const emailInput = page
+      .getByPlaceholder("usuario@gmail.com")
+      .or(page.getByRole("textbox", { name: /email/i }))
+      .first();
+    await emailInput.fill("alumno_e2e@test.com");
     await page.getByPlaceholder("••••••••").first().fill("password123");
     await page.locator('button[type="submit"]').click();
 
