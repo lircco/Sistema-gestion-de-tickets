@@ -37,10 +37,12 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
         </Typography>
       </Box>
 
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2.5}
-        sx={{ flexWrap: { sm: "wrap", md: "nowrap" } }}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
       >
         <StatCard
           tone="blue"
@@ -70,7 +72,7 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
           label="CERRADOS"
           chip="92% Eficiencia"
         />
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ p: 3, width: { md: 280 }, display: "flex", flexDirection: "column" }}>
