@@ -12,17 +12,11 @@ import {
   TableRow,
   Chip,
   Box,
-  IconButton,
   InputAdornment,
   Menu,
   MenuItem,
 } from "@mui/material";
-import {
-  SearchOutlined,
-  VisibilityOutlined,
-  KeyboardArrowDownOutlined,
-  AttachFileOutlined,
-} from "@mui/icons-material";
+import { SearchOutlined, KeyboardArrowDownOutlined, AttachFileOutlined } from "@mui/icons-material";
 import { subDays } from "date-fns";
 import { filterTickets } from "../../lib/utils";
 import { api } from "../../lib/api";
@@ -181,7 +175,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
         <Table size="small" sx={{ minWidth: 720 }}>
           <TableHead>
             <TableRow>
-              {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "PRIORIDAD", "FECHA", "ACCIÓN"].map((h) => (
+              {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "PRIORIDAD", "FECHA"].map((h) => (
                 <TableCell key={h} sx={{ color: "text.secondary", fontWeight: 700, fontSize: 12 }}>
                   {h}
                 </TableCell>
@@ -190,7 +184,7 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
           </TableHead>
           <TableBody>
             {visibleTickets.map((r) => (
-              <TableRow key={r.id} hover>
+              <TableRow key={r.id} hover onClick={() => onOpenTicket(r)} sx={{ cursor: "pointer" }}>
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
@@ -237,11 +231,6 @@ export default function TicketsTable({ tickets, onOpenTicket, admin }) {
                   <PriorityBadge priority={r.prioridad} />
                 </TableCell>
                 <TableCell>{new Date(r.creado_el).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <IconButton size="small" onClick={() => onOpenTicket(r)}>
-                    <VisibilityOutlined fontSize="small" />
-                  </IconButton>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>

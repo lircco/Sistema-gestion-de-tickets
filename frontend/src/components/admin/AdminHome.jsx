@@ -12,13 +12,11 @@ import {
   TableRow,
   Paper,
   Chip,
-  IconButton,
 } from "@mui/material";
 import {
   MailOutlined,
   AssignmentOutlined,
   ArrowForward,
-  VisibilityOutlined,
   CheckCircleOutlined,
   HighlightOffOutlined,
 } from "@mui/icons-material";
@@ -105,12 +103,16 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Asunto</TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Prioridad</TableCell>
                 <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Estado</TableCell>
-                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Acción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {tickets.slice(0, 3).map((r) => (
-                <TableRow key={r.id}>
+                <TableRow
+                  key={r.id}
+                  hover
+                  onClick={() => onOpenTicket(r)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell sx={{ fontWeight: 600 }}>#{r.id}</TableCell>
                   <TableCell>
                     <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
@@ -123,11 +125,6 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={r.estado} />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small" onClick={() => onOpenTicket(r)}>
-                      <VisibilityOutlined fontSize="small" />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
