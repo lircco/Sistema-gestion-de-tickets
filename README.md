@@ -11,13 +11,17 @@ Plataforma institucional para la gestión de tickets de soporte técnico, diseñ
 
 El proyecto está preparado para correr en contenedores Docker mediante Docker Compose.
 
-### 1. Crear la red externa de Nginx
+### 1. Iniciar el Proxy Reverso (Caddy) y crear la red
 
-El archivo de Docker Compose requiere una red externa llamada `nginx-proxy` para la comunicación y el ruteo inverso. Créala antes de levantar los servicios:
+El archivo de Docker Compose principal requiere la red externa `nginx-proxy` para la comunicación y el ruteo inverso. Al levantar el proxy desde el subdirectorio `proxy/`, la red se crea automáticamente:
 
 ```bash
-docker network create nginx-proxy
+cd proxy
+docker compose up -d
+cd ..
 ```
+
+*(De forma alternativa, podés crear la red manualmente con `docker network create nginx-proxy` antes de levantar los servicios).*
 
 ### 2. Configurar las variables de entorno
 
@@ -25,13 +29,12 @@ Copiá `.env.example` como `.env` en la raíz del repo y completá los valores (
 
 > Si cambiás las credenciales de la base después de haberla levantado una vez, Postgres conserva las anteriores en el volumen. Para reinicializarla (borra los datos): `docker compose down -v`.
 
-### 3. Levantar el entorno completo
+### 3. Levantar los servicios principales
 
-Para construir y levantar los servicios (Base de datos, Backend y Frontend) en segundo plano:
+Para construir y levantar los servicios (Base de datos, Backend y Frontend) en segundo plano desde la raíz:
 
 ```bash
-docker compose build
-docker compose up -d
+docker compose up --build -d
 ```
 
 Adminer es opcional y solo escucha en el propio servidor (`127.0.0.1:8080`):
