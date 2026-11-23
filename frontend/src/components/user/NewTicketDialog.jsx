@@ -174,7 +174,7 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
                 onChange={(e) => handleFiles(e.target.files)}
               />
             </Button>
-            <Typography sx={{ fontSize: 11, color: "#6b7280", mt: 0.5 }}>
+            <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.5 }}>
               Imágenes o PDF · máx. 5 MB c/u · hasta 5 archivos
             </Typography>
             {files.length > 0 && (
@@ -187,13 +187,14 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
                       alignItems: "center",
                       gap: 1,
                       p: 1,
-                      border: "1px solid #e5e7eb",
+                      border: 1,
+                      borderColor: "divider",
                       borderRadius: 1.5,
-                      bgcolor: "#f9fafb",
+                      bgcolor: "action.hover",
                     }}
                   >
                     {f.type === "application/pdf" ? (
-                      <PictureAsPdfOutlined sx={{ color: "#dc2626" }} />
+                      <PictureAsPdfOutlined sx={{ color: "error.main" }} />
                     ) : f.type.startsWith("image/") ? (
                       <ImageOutlined sx={{ color: "primary.main" }} />
                     ) : (
@@ -211,7 +212,7 @@ export default function NewTicketDialog({ open, onClose, onCreated }) {
                       >
                         {f.name}
                       </Typography>
-                      <Typography sx={{ fontSize: 11, color: "#6b7280" }}>
+                      <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
                         {(f.size / 1024).toFixed(1)} KB
                       </Typography>
                     </Box>

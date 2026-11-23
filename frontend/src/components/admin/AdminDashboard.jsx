@@ -7,7 +7,6 @@ import AdminHome from "./AdminHome";
 import TicketsTable from "./TicketsTable";
 import ReportsSection from "./ReportsSection";
 import AreaManagementSection from "./AreaManagementSection";
-import KnowledgeBaseSection from "./KnowledgeBaseSection";
 import SettingsSection from "./SettingsSection";
 import TicketDetail from "./TicketDetail";
 import { Paper, Typography, LinearProgress } from "@mui/material";
@@ -16,7 +15,6 @@ import {
   ConfirmationNumberOutlined,
   BarChartOutlined,
   ApartmentOutlined,
-  MenuBookOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
 
@@ -26,7 +24,7 @@ function PlaceholderSection({ title }) {
       <Typography variant="h5" sx={{ mb: 1 }}>
         {title}
       </Typography>
-      <Typography sx={{ color: "#6b7280" }}>Sección en construcción.</Typography>
+      <Typography sx={{ color: "text.secondary" }}>Sección en construcción.</Typography>
     </Paper>
   );
 }
@@ -68,7 +66,6 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
     },
     { key: "reports", label: "Reportes", icon: <BarChartOutlined fontSize="small" /> },
     { key: "areas", label: "Gestión de Áreas", icon: <ApartmentOutlined fontSize="small" /> },
-    { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
     { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
@@ -82,7 +79,7 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
       active={active}
       onSelect={(k) => navigate(k === "dashboard" ? "/admin" : `/admin/${k}`)}
       onLogout={onLogout}
-      user={{ name: displayName, role: admin.rol }}
+      user={{ name: displayName, role: admin.rol, foto_perfil: admin.foto_perfil }}
       mode={mode}
       onToggleMode={onToggleMode}
       searchValue={search}
@@ -133,20 +130,21 @@ export default function AdminDashboard({ onLogout, admin, mode, onToggleMode }) 
             />
           }
         />
-        <Route path="kb" element={<KnowledgeBaseSection />} />
         <Route
           path="settings"
           element={
             <SettingsSection
               person={{
-                name: admin.username,
+                ...admin,
+                name: displayName,
                 email: admin.email,
                 role: admin.rol,
                 area: admin.area,
+                dni: admin.dni,
+                foto_perfil: admin.foto_perfil,
               }}
               mode={mode}
               onToggleMode={onToggleMode}
-              legajo="2025-000142"
             />
           }
         />

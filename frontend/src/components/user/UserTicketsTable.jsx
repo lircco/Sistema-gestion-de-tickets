@@ -30,7 +30,7 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
           <TableHead>
             <TableRow>
               {["ID", "TÍTULO", "CATEGORÍA", "ESTADO", "FECHA"].map((h) => (
-                <TableCell key={h} sx={{ color: "#6b7280", fontWeight: 700, fontSize: 12 }}>
+                <TableCell key={h} sx={{ color: "text.secondary", fontWeight: 700, fontSize: 12 }}>
                   {h}
                 </TableCell>
               ))}
@@ -47,7 +47,9 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                 <TableCell sx={{ fontWeight: 700 }}>#{r.id}</TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
-                  <Typography sx={{ fontSize: 12, color: "#6b7280" }}>{r.descripcion}</Typography>
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
+                    {r.descripcion}
+                  </Typography>
                   {r.archivo_adjunto &&
                     r.archivo_adjunto !== "null" &&
                     r.archivo_adjunto !== "" && (
@@ -73,7 +75,7 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
                     )}
                 </TableCell>
                 <TableCell>
-                  <Chip size="small" label={r.categoria_nombre} sx={{ bgcolor: "#f3f4f6" }} />
+                  <Chip size="small" label={r.categoria_nombre} />
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={r.estado} />
@@ -86,7 +88,7 @@ export default function UserTicketsTable({ tickets, onOpenNew, onOpenTicket }) {
           </TableBody>
         </Table>
         {tickets.length === 0 && (
-          <Typography sx={{ textAlign: "center", color: "#6b7280", py: 4 }}>
+          <Typography sx={{ textAlign: "center", color: "text.secondary", py: 4 }}>
             No tenés tickets todavía. Creá uno nuevo.
           </Typography>
         )}

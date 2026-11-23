@@ -15,10 +15,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion, Articulo
 from .serializers import (
     TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer,
-    UsuarioSerializer, RespuestaSerializer, NotificacionSerializer
+    UsuarioSerializer, RespuestaSerializer, NotificacionSerializer, ArticuloSerializer
 )
 from .permissions import PuedeGestionarTicket
 
@@ -175,6 +175,11 @@ class TicketViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def responder(self, request, pk=None):
         ticket = self.get_object()
+        if ticket.estado == Ticket.Estados.CERRADO:
+            return Response(
+                {'error': 'El ticket está cerrado: no se pueden enviar más mensajes.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         mensaje = (request.data.get('mensaje') or '').strip()
 
         if not mensaje:
@@ -226,8 +231,16 @@ class CategoriaViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class NotificacionViewSet(viewsets.ModelViewSet):
+class NotificacionViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    # Las notificaciones las crea el sistema: el usuario solo las lista y las
+    # marca como leídas (el serializer deja escribir únicamente 'leida').
     serializer_class = NotificacionSerializer
+    http_method_names = ['get', 'patch', 'post', 'head', 'options']
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = None
 
@@ -240,43 +253,117 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Todas las notificaciones han sido marcadas como leídas.'}, status=status.HTTP_200_OK)
 
 
+class ArticuloViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Articulo.objects.all().order_by('-visitas', '-creado_el')
+    serializer_class = ArticuloSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['titulo', 'contenido', 'resumen', 'categoria']
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.visitas += 1
+        instance.save(update_fields=['visitas'])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def leer(self, request, pk=None):
+        articulo = self.get_object()
+        articulo.visitas += 1
+        articulo.save(update_fields=['visitas'])
+        return Response(self.get_serializer(articulo).data)
+
+
 class UsuarioActualView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    EXTENSIONES_FOTO = {'.png', '.jpg', '.jpeg', '.webp'}
+    MAX_FOTO_BYTES = 5 * 1024 * 1024
+
     def get(self, request):
         usuario = request.user
+        foto_url = None
+        if usuario.foto_perfil:
+            foto_url = usuario.foto_perfil.url
         data = {
             'id': usuario.id,
             'username': usuario.username,
             'email': usuario.email,
             'first_name': usuario.first_name,
+            'last_name': usuario.last_name,
+            'name': f"{usuario.first_name} {usuario.last_name}".strip() or usuario.username,
             'rol': usuario.rol if hasattr(usuario, 'rol') else 'ESTUDIANTE',
             'is_staff': usuario.is_staff,
-            'area': usuario.area_id if hasattr(usuario, 'area_id') else None
+            'area': usuario.area_id if hasattr(usuario, 'area_id') else None,
+            'dni': usuario.dni,
+            'foto_perfil': foto_url,
         }
         return Response(data)
 
     def patch(self, request):
         usuario = request.user
-        if 'area' not in request.data:
-            return Response({'message': 'Perfil actualizado'})
+        campos_modificados = []
 
-        # El área define qué tickets ve un STAFF: solo puede elegirla la primera vez.
-        # Reasignarla queda en manos de un supervisor (panel de administración).
-        if usuario.rol != Usuario.Roles.STAFF:
-            return Response({'error': 'Solo el personal de Staff tiene un área asignada.'}, status=status.HTTP_403_FORBIDDEN)
+        # 1. Actualización de DNI (Regla de negocio: inmutable una vez asignado)
+        if 'dni' in request.data:
+            dni_nuevo = str(request.data.get('dni', '')).strip()
+            if not dni_nuevo:
+                return Response({'error': 'El DNI no puede estar vacío.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            area = Area.objects.get(pk=request.data.get('area'))
-        except (Area.DoesNotExist, ValueError, TypeError):
-            return Response({'error': 'El área seleccionada no existe.'}, status=status.HTTP_400_BAD_REQUEST)
+            if usuario.dni and usuario.dni.strip() and usuario.dni != dni_nuevo:
+                return Response({'error': 'El DNI ya fue registrado y no se puede modificar.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if usuario.area_id is not None and usuario.area_id != area.id:
-            return Response({'error': 'Tu área ya está asignada. Para cambiarla, pedíselo a un supervisor.'}, status=status.HTTP_403_FORBIDDEN)
+            if not (dni_nuevo.isdigit() and 6 <= len(dni_nuevo) <= 12):
+                return Response({'error': 'El DNI debe contener solo números (entre 6 y 12 dígitos).'}, status=status.HTTP_400_BAD_REQUEST)
 
-        usuario.area = area
-        usuario.save(update_fields=['area'])
-        return Response({'message': 'Perfil actualizado', 'area': area.id})
+            if Usuario.objects.filter(dni=dni_nuevo).exclude(pk=usuario.pk).exists():
+                return Response({'error': 'Ya existe una cuenta registrada con este DNI.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            usuario.dni = dni_nuevo
+            campos_modificados.append('dni')
+
+        # 2. Subida de Foto de Perfil
+        if 'foto_perfil' in request.FILES:
+            archivo = request.FILES['foto_perfil']
+            if not archivo.name.lower().endswith(tuple(self.EXTENSIONES_FOTO)):
+                return Response({'error': 'Solo se permiten imágenes (PNG, JPG, JPEG, WEBP).'}, status=status.HTTP_400_BAD_REQUEST)
+            if archivo.size > self.MAX_FOTO_BYTES:
+                return Response({'error': 'La foto de perfil supera el límite de 5 MB.'}, status=status.HTTP_400_BAD_REQUEST)
+            usuario.foto_perfil = archivo
+            campos_modificados.append('foto_perfil')
+
+        # 3. Asignación de Área (solo staff)
+        if 'area' in request.data:
+            if usuario.rol != Usuario.Roles.STAFF:
+                return Response({'error': 'Solo el personal de Staff tiene un área asignada.'}, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                area = Area.objects.get(pk=request.data.get('area'))
+            except (Area.DoesNotExist, ValueError, TypeError):
+                return Response({'error': 'El área seleccionada no existe.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if usuario.area_id is not None and usuario.area_id != area.id:
+                return Response({'error': 'Tu área ya está asignada. Para cambiarla, pedíselo a un supervisor.'}, status=status.HTTP_403_FORBIDDEN)
+
+            usuario.area = area
+            campos_modificados.append('area')
+
+        if campos_modificados:
+            usuario.save(update_fields=campos_modificados)
+
+        foto_url = None
+        if usuario.foto_perfil:
+            foto_url = usuario.foto_perfil.url
+
+        return Response({
+            'message': 'Perfil actualizado',
+            'id': usuario.id,
+            'username': usuario.username,
+            'dni': usuario.dni,
+            'foto_perfil': foto_url,
+            'area': usuario.area_id if hasattr(usuario, 'area_id') else None
+        }, status=status.HTTP_200_OK)
 
 
 class LoginView(APIView):

@@ -12,7 +12,8 @@ from .views import (
     RecuperarPasswordView,
     RestablecerPasswordView,
     CambiarPasswordView,
-    NotificacionViewSet
+    NotificacionViewSet,
+    ArticuloViewSet
 )
 
 router = DefaultRouter()
@@ -21,6 +22,7 @@ router.register(r'areas', AreaViewSet, basename='area')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'registro', RegistroUsuarioViewSet, basename='registro')
 router.register(r'notificaciones', NotificacionViewSet, basename='notificacion')
+router.register(r'articulos', ArticuloViewSet, basename='articulo')
 
 
 urlpatterns = [

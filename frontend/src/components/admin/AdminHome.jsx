@@ -12,13 +12,11 @@ import {
   TableRow,
   Paper,
   Chip,
-  IconButton,
 } from "@mui/material";
 import {
   MailOutlined,
   AssignmentOutlined,
   ArrowForward,
-  VisibilityOutlined,
   CheckCircleOutlined,
   HighlightOffOutlined,
 } from "@mui/icons-material";
@@ -32,53 +30,47 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
         <Typography variant="h4">
           ¡Hola, {adminName ? adminName.split(" ")[0] : "Administrador"}!
         </Typography>
-        <Typography sx={{ color: "#6b7280", mt: 0.5 }}>
+        <Typography sx={{ color: "text.secondary", mt: 0.5 }}>
           Aquí tienes un resumen de la actividad del soporte técnico para hoy.
         </Typography>
       </Box>
 
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2.5}
-        sx={{ flexWrap: { sm: "wrap", md: "nowrap" } }}
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
       >
         <StatCard
-          color="#0a3d62"
+          tone="blue"
           icon={<MailOutlined />}
           value={stats?.total || 0}
           label="TOTAL ACTIVOS"
           chip="+12% vs ayer"
-          chipColor="#dbeafe"
-          chipText="#1d4ed8"
         />
         <StatCard
-          color="#f5b400"
+          tone="amber"
           icon={<AssignmentOutlined />}
           value={stats?.abiertos || 0}
           label="ABIERTOS"
           chip="Activo"
-          chipColor="#fef3c7"
-          chipText="#92400e"
         />
         <StatCard
-          color="#ef4444"
+          tone="red"
           icon={<HighlightOffOutlined />}
           value={stats?.en_progreso || 0}
           label="EN PROGRESO"
           chip="Atención"
-          chipColor="#fee2e2"
-          chipText="#991b1b"
         />
         <StatCard
-          color="#10b981"
+          tone="green"
           icon={<CheckCircleOutlined />}
           value={stats?.cerrados || 0}
           label="CERRADOS"
           chip="92% Eficiencia"
-          chipColor="#d1fae5"
-          chipText="#065f46"
         />
-      </Stack>
+      </Box>
 
       <Stack direction={{ xs: "column", md: "row" }} spacing={2.5}>
         <Paper sx={{ p: 3, width: { md: 280 }, display: "flex", flexDirection: "column" }}>
@@ -107,20 +99,24 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>ID</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>Asunto</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>Prioridad</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>Estado</TableCell>
-                <TableCell sx={{ color: "#6b7280", fontWeight: 600 }}>Acción</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>ID</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Asunto</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Prioridad</TableCell>
+                <TableCell sx={{ color: "text.secondary", fontWeight: 600 }}>Estado</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {tickets.slice(0, 3).map((r) => (
-                <TableRow key={r.id}>
+                <TableRow
+                  key={r.id}
+                  hover
+                  onClick={() => onOpenTicket(r)}
+                  sx={{ cursor: "pointer" }}
+                >
                   <TableCell sx={{ fontWeight: 600 }}>#{r.id}</TableCell>
                   <TableCell>
                     <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{r.titulo}</Typography>
-                    <Typography sx={{ fontSize: 12, color: "#6b7280" }}>
+                    <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                       {r.categoria_nombre}
                     </Typography>
                   </TableCell>
@@ -129,11 +125,6 @@ export default function AdminHome({ stats, tickets, onOpenTicket, onGoTickets, a
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={r.estado} />
-                  </TableCell>
-                  <TableCell>
-                    <IconButton size="small" onClick={() => onOpenTicket(r)}>
-                      <VisibilityOutlined fontSize="small" />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}

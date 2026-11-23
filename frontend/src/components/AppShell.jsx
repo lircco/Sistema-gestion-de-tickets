@@ -28,7 +28,6 @@ import {
   DarkModeOutlined,
   LightModeOutlined,
   NotificationsNoneOutlined,
-  HelpOutlineOutlined,
   SupportAgentOutlined,
   LogoutOutlined,
   SchoolOutlined,
@@ -47,10 +46,10 @@ function SideAction({ icon, label, danger, onClick }) {
         py: 1,
         borderRadius: 1.5,
         cursor: "pointer",
-        color: danger ? "#dc2626" : "#374151",
+        color: danger ? "error.main" : "text.primary",
         fontSize: 14,
         fontWeight: 500,
-        "&:hover": { bgcolor: "#f4f6f9" },
+        "&:hover": { bgcolor: "action.hover" },
       }}
     >
       {icon}
@@ -168,7 +167,7 @@ export default function AppShell({
             justifyContent: "center",
           }}
         >
-          <SchoolOutlined sx={{ color: "#fff", fontSize: 22 }} />
+          <SchoolOutlined sx={{ color: "primary.contrastText", fontSize: 22 }} />
         </Box>
         <Box>
           <Typography sx={{ fontWeight: 800, color: "primary.main", lineHeight: 1 }}>
@@ -197,7 +196,7 @@ export default function AppShell({
                 borderRadius: 1.5,
                 cursor: "pointer",
                 bgcolor: isActive ? "primary.main" : "transparent",
-                color: isActive ? "#fff" : "text.primary",
+                color: isActive ? "primary.contrastText" : "text.primary",
                 fontWeight: isActive ? 600 : 500,
                 fontSize: 14,
                 "&:hover": { bgcolor: isActive ? "primary.main" : "action.hover" },
@@ -217,19 +216,26 @@ export default function AppShell({
           label="Soporte"
           onClick={() => setSupportOpen(true)}
         />
-        <SideAction
-          icon={<LogoutOutlined sx={{ color: "#dc2626" }} />}
-          label="Cerrar Sesión"
-          danger
-          onClick={onLogout}
-        />
+        <SideAction icon={<LogoutOutlined />} label="Cerrar Sesión" danger onClick={onLogout} />
       </Stack>
     </Box>
   );
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-      {!isMobile && sidebar}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            flexShrink: 0,
+            overflowY: "auto",
+          }}
+        >
+          {sidebar}
+        </Box>
+      )}
       {isMobile && (
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)}>
           {sidebar}
@@ -240,7 +246,11 @@ export default function AppShell({
         <Box
           className="app-shell-header"
           sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
             height: 64,
+            flexShrink: 0,
             bgcolor: "background.paper",
             borderBottom: "1px solid",
             borderColor: "divider",
@@ -351,7 +361,8 @@ export default function AppShell({
                     whiteSpace: "normal",
                     bgcolor: notif.leida ? "transparent" : "action.hover",
                     borderLeft: notif.leida ? "none" : "3px solid #3b82f6",
-                    borderBottom: "1px solid #f0f0f0",
+                    borderBottom: 1,
+                    borderBottomColor: "divider",
                     cursor: "pointer",
                     "&:last-child": { borderBottom: 0 },
                   }}
@@ -379,19 +390,16 @@ export default function AppShell({
             )}
           </Menu>
 
-          <IconButton
-            sx={{ display: { xs: "none", sm: "inline-flex" } }}
-            onClick={() => setSupportOpen(true)}
-          >
-            <HelpOutlineOutlined />
-          </IconButton>
           <Stack direction="row" spacing={1.2} sx={{ alignItems: "center", pl: { xs: 0, md: 1 } }}>
             <Box sx={{ textAlign: "right", display: { xs: "none", md: "block" } }}>
               <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{user?.name}</Typography>
               <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{user?.role}</Typography>
             </Box>
             <Tooltip title={`${user?.name || "Usuario"} — ${user?.role || ""}`}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}>
+              <Avatar
+                src={user?.foto_perfil}
+                sx={{ bgcolor: "primary.main", width: 36, height: 36, cursor: "default" }}
+              >
                 {user?.name?.charAt(0) || "U"}
               </Avatar>
             </Tooltip>

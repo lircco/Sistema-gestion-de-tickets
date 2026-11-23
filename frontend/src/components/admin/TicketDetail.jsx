@@ -21,28 +21,20 @@ import {
   SwapHorizOutlined,
   HighlightOffOutlined,
   PrintOutlined,
-  MoreVertOutlined,
   SendOutlined,
   PriorityHighOutlined,
   AttachFileOutlined,
 } from "@mui/icons-material";
 import DetailRow from "../shared/DetailRow";
+import ChatBubble from "../shared/ChatBubble";
+import ClosedChatNotice from "../shared/ClosedChatNotice";
+import usePolling from "../../hooks/use-polling";
 import { api } from "../../lib/api";
+import { ESTADO_LABELS } from "../../lib/estados";
 import { StatusBadge, PriorityBadge } from "../shared/Badges";
 
-const ESTADO_COLOR = {
-  ABIERTO: { bg: "#dbeafe", fg: "#1d4ed8" },
-  EN_PROGRESO: { bg: "#fef3c7", fg: "#92400e" },
-  CERRADO: { bg: "#d1fae5", fg: "#065f46" },
-};
-
-const ESTADO_LABELS = { ABIERTO: "Abierto", EN_PROGRESO: "En Progreso", CERRADO: "Cerrado" };
-
-const PRIORIDAD_COLOR = {
-  ALTA: { bg: "#fee2e2", fg: "#991b1b" },
-  MEDIA: { bg: "#fef3c7", fg: "#92400e" },
-  BAJA: { bg: "#f3f4f6", fg: "#374151" },
-};
+const CHAT_POLL_MS = 5000;
+const CLOSED_POLL_MS = 15000;
 
 const ROL_LABELS = { ESTUDIANTE: "Estudiante", STAFF: "Staff de Área", SUPERVISOR: "Supervisor" };
 
@@ -101,8 +93,14 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
   const handleCambiarPrioridad = (prioridad) =>
     runAction({ prioridad }, `Prioridad actualizada a "${prioridad}".`);
 
+  const isClosed = ticket?.estado === "CERRADO";
+
+  // Trae mensajes nuevos (y cambios de estado) sin recargar la página mientras el
+  // ticket esté abierto. Si está cerrado se consulta más espaciado, por si lo reabren.
+  usePolling(onTicketUpdated, isClosed ? CLOSED_POLL_MS : CHAT_POLL_MS, Boolean(ticket));
+
   const handleSend = async () => {
-    if (!reply.trim() || !ticket) return;
+    if (!reply.trim() || !ticket || isClosed) return;
     setSending(true);
     try {
       await api.enviarRespuesta(ticket.id, reply.trim());
@@ -135,13 +133,86 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
   const solicitanteNombre =
     [ticket.creado_por_first_name, ticket.creado_por_last_name].filter(Boolean).join(" ") ||
     ticket.creado_por_nombre;
-  const estadoColor = ESTADO_COLOR[ticket.estado] || { bg: "#f3f4f6", fg: "#374151" };
-  const prioridadColor = PRIORIDAD_COLOR[ticket.prioridad] || { bg: "#f3f4f6", fg: "#374151" };
+
+  const intervencionesStaff = (ticket.respuestas || [])
+    .filter((r) => r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR")
+    .reduce((acc, r) => {
+      if (!acc.some((item) => item.nombre === r.autor_nombre)) {
+        acc.push({
+          nombre: r.autor_nombre,
+          rol: ROL_LABELS[r.autor_rol] || r.autor_rol,
+          dni: r.autor_dni,
+        });
+      }
+      return acc;
+    }, []);
 
   return (
     <Stack spacing={2.5}>
+      {/* Vista de Impresión Exclusiva (Issue #93) */}
+      <Paper className="print-only" sx={{ p: 2.5, border: "1px solid #ccc" }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+          Comprobante de Ticket #{ticket.id}
+        </Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+          {ticket.titulo}
+        </Typography>
+        <Divider sx={{ mb: 2 }} />
+        <Stack direction="row" spacing={4} sx={{ mb: 1.5 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Información del Estudiante (Solicitante)
+            </Typography>
+            <Typography variant="body2">
+              <strong>Nombre y Apellido:</strong> {solicitanteNombre}
+            </Typography>
+            <Typography variant="body2">
+              <strong>DNI:</strong> {ticket.creado_por_dni || "No registrado"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Email:</strong> {ticket.creado_por_email || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Usuario:</strong> {ticket.creado_por_nombre}
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Información de Destino y Gestión
+            </Typography>
+            <Typography variant="body2">
+              <strong>Área asignada:</strong> {ticket.area_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Categoría:</strong> {ticket.categoria_nombre || "—"}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Estado:</strong> {ESTADO_LABELS[ticket.estado] || ticket.estado}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Prioridad:</strong> {ticket.prioridad}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Fecha de creación:</strong> {new Date(ticket.creado_el).toLocaleString()}
+            </Typography>
+          </Box>
+        </Stack>
+        {intervencionesStaff.length > 0 && (
+          <Box sx={{ mt: 1.5, pt: 1.5, borderTop: "1px dashed #ccc" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+              Personal de Staff Interviniente:
+            </Typography>
+            {intervencionesStaff.map((staff, idx) => (
+              <Typography key={idx} variant="body2">
+                • {staff.nombre} ({staff.rol}) — DNI: {staff.dni || "No registrado"}
+              </Typography>
+            ))}
+          </Box>
+        )}
+      </Paper>
+
       <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-        <IconButton onClick={onBack}>
+        <IconButton onClick={onBack} className="no-print">
           <ArrowBack />
         </IconButton>
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -152,19 +223,9 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             {ticket.titulo}
           </Typography>
         </Box>
-        <Box sx={{ bgcolor: "#f3f4f6", px: 1.5, py: 0.5, borderRadius: 2 }}>
-          <StatusBadge status={ticket.estado} />
-        </Box>
-        <Box
-          sx={{
-            bgcolor: "#f3f4f6",
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 2,
-            display: { xs: "none", sm: "block" },
-          }}
-        >
-          <PriorityBadge priority={ticket.prioridad} />
+        <StatusBadge status={ticket.estado} pill />
+        <Box sx={{ display: { xs: "none", sm: "block" } }}>
+          <PriorityBadge priority={ticket.prioridad} pill />
         </Box>
       </Stack>
 
@@ -179,7 +240,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
                   height: 40,
                   borderRadius: 1.5,
                   bgcolor: "primary.main",
-                  color: "#fff",
+                  color: "primary.contrastText",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -196,6 +257,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             </Stack>
             <Divider sx={{ mb: 1.5 }} />
             <DetailRow label="Usuario" value={ticket.creado_por_nombre} />
+            <DetailRow label="DNI" value={ticket.creado_por_dni || "—"} />
             <DetailRow label="Email" value={ticket.creado_por_email || "—"} />
             {ticket.archivo_adjunto &&
               ticket.archivo_adjunto !== "null" &&
@@ -218,7 +280,7 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
               )}
           </Paper>
 
-          <Paper sx={{ p: 2.5 }}>
+          <Paper sx={{ p: 2.5 }} className="no-print">
             <Typography sx={{ fontWeight: 700, mb: 1.5 }}>Acciones Rápidas</Typography>
             <Stack spacing={1}>
               <Button
@@ -305,81 +367,56 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}
           >
             <Typography sx={{ fontWeight: 700 }}>● Historial de Mensajes</Typography>
-            <Stack direction="row">
-              <IconButton size="small" onClick={() => window.print()}>
+            <Stack direction="row" className="no-print">
+              <IconButton size="small" onClick={() => window.print()} title="Imprimir ticket">
                 <PrintOutlined fontSize="small" />
-              </IconButton>
-              <IconButton size="small">
-                <MoreVertOutlined fontSize="small" />
               </IconButton>
             </Stack>
           </Stack>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                p: 1.8,
-                borderRadius: 2,
-                bgcolor: "action.hover",
-                maxWidth: { xs: "100%", md: "85%" },
-              }}
-            >
-              <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{solicitanteNombre}</Typography>
-                <Typography sx={{ fontSize: 11, opacity: 0.8 }}>
-                  {new Date(ticket.creado_el).toLocaleString()}
-                </Typography>
-              </Stack>
-              <Typography sx={{ fontSize: 13 }}>{ticket.descripcion}</Typography>
-            </Box>
+          <Stack spacing={1.5}>
+            <ChatBubble mine={false} author={solicitanteNombre} date={ticket.creado_el}>
+              {ticket.descripcion}
+            </ChatBubble>
 
             {(ticket.respuestas || []).map((r) => {
               const isAgent = r.autor_rol === "STAFF" || r.autor_rol === "SUPERVISOR";
               return (
-                <Box
-                  key={r.id}
-                  sx={{
-                    p: 1.8,
-                    borderRadius: 2,
-                    bgcolor: isAgent ? "primary.main" : "action.hover",
-                    color: isAgent ? "#fff" : "text.primary",
-                    alignSelf: isAgent ? "flex-end" : "flex-start",
-                    maxWidth: { xs: "100%", md: "85%" },
-                    ml: isAgent ? "auto" : 0,
-                  }}
-                >
-                  <Stack direction="row" sx={{ justifyContent: "space-between", mb: 0.5, gap: 2 }}>
-                    <Typography sx={{ fontSize: 12, fontWeight: 700 }}>{r.autor_nombre}</Typography>
-                    <Typography sx={{ fontSize: 11, opacity: 0.8 }}>
-                      {new Date(r.creado_el).toLocaleString()}
-                    </Typography>
-                  </Stack>
-                  <Typography sx={{ fontSize: 13 }}>{r.mensaje}</Typography>
-                </Box>
+                <ChatBubble key={r.id} mine={isAgent} author={r.autor_nombre} date={r.creado_el}>
+                  {r.mensaje}
+                </ChatBubble>
               );
             })}
           </Stack>
 
-          <Divider sx={{ my: 2 }} />
+          <Box className="no-print">
+            <Divider sx={{ my: 2 }} />
 
-          <TextField
-            placeholder="Escribí tu respuesta o seguimiento aquí..."
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            multiline
-            minRows={3}
-            fullWidth
-            disabled={sending}
-          />
-          <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
-            <Button
-              variant="contained"
-              endIcon={<SendOutlined />}
-              onClick={handleSend}
-              disabled={sending || !reply.trim()}
-            >
-              {sending ? "Enviando..." : "Enviar Respuesta"}
-            </Button>
-          </Stack>
+            {isClosed ? (
+              <ClosedChatNotice />
+            ) : (
+              <>
+                <TextField
+                  placeholder="Escribí tu respuesta o seguimiento aquí..."
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  multiline
+                  minRows={3}
+                  fullWidth
+                  disabled={sending}
+                />
+                <Stack direction="row" sx={{ justifyContent: "flex-end", mt: 1.5 }}>
+                  <Button
+                    variant="contained"
+                    endIcon={<SendOutlined />}
+                    onClick={handleSend}
+                    disabled={sending || !reply.trim()}
+                  >
+                    {sending ? "Enviando..." : "Enviar Respuesta"}
+                  </Button>
+                </Stack>
+              </>
+            )}
+          </Box>
         </Paper>
       </Stack>
 
