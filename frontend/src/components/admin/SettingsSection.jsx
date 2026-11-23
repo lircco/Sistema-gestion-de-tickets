@@ -167,17 +167,6 @@ export default function SettingsSection({ person, mode, onToggleMode }) {
   }, [showArea]);
   const areaNombre = areas.find((a) => a.id === person.area)?.nombre || "";
 
-  const [emailAlerts, setEmailAlerts] = useState(true);
-  const [pushAlerts, setPushAlerts] = useState(() => localStorage.getItem("pushAlerts") === "true");
-  const handlePushAlertsChange = (e) => {
-    const val = e.target.checked;
-    setPushAlerts(val);
-    localStorage.setItem("pushAlerts", val);
-    if (val && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-  };
-
   return (
     <Stack spacing={3}>
       <Typography variant="h4" sx={{ color: "primary.main" }}>
@@ -361,44 +350,6 @@ export default function SettingsSection({ person, mode, onToggleMode }) {
               sx={{ m: 0 }}
             />
           </Box>
-        </Paper>
-
-        <Paper sx={{ p: 3, borderLeft: "4px solid", borderColor: "primary.main" }}>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Notificaciones</Typography>
-          <Stack spacing={2}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>Alertas por Correo</Typography>
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  Recibir actualizaciones de tickets en {person.email}
-                </Typography>
-              </Box>
-              <Switch checked={emailAlerts} onChange={(e) => setEmailAlerts(e.target.checked)} />
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Box>
-                <Typography sx={{ fontWeight: 600 }}>Notificaciones Push</Typography>
-                <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                  Alertas inmediatas en navegador y dispositivo móvil.
-                </Typography>
-              </Box>
-              <Switch checked={pushAlerts} onChange={handlePushAlertsChange} />
-            </Box>
-          </Stack>
         </Paper>
       </Stack>
     </Stack>
