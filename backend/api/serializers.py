@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
-from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion, Articulo
 
 class AreaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -167,3 +167,9 @@ class NotificacionSerializer(serializers.ModelSerializer):
         model = Notificacion
         fields = ['id', 'usuario', 'ticket', 'mensaje', 'leida', 'creada_el']
         read_only_fields = ['id', 'usuario', 'ticket', 'mensaje', 'creada_el']
+
+
+class ArticuloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Articulo
+        fields = ['id', 'titulo', 'resumen', 'contenido', 'categoria', 'visitas', 'creado_el', 'actualizado_el']

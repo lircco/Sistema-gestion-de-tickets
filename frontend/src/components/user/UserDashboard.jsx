@@ -7,11 +7,13 @@ import UserHome from "./UserHome";
 import UserTicketsTable from "./UserTicketsTable";
 import UserTicketDetail from "./UserTicketDetail";
 import NewTicketDialog from "./NewTicketDialog";
+import KnowledgeBaseSection from "../admin/KnowledgeBaseSection";
 import SettingsSection from "../admin/SettingsSection";
 import { Paper, Typography, LinearProgress } from "@mui/material";
 import {
   DashboardOutlined,
   ConfirmationNumberOutlined,
+  MenuBookOutlined,
   SettingsOutlined,
 } from "@mui/icons-material";
 
@@ -44,6 +46,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
   const items = [
     { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined fontSize="small" /> },
     { key: "tickets", label: "Mis Tickets", icon: <ConfirmationNumberOutlined fontSize="small" /> },
+    { key: "kb", label: "Base de Conocimiento", icon: <MenuBookOutlined fontSize="small" /> },
     { key: "settings", label: "Configuración", icon: <SettingsOutlined fontSize="small" /> },
   ];
 
@@ -98,6 +101,7 @@ export default function UserDashboard({ onLogout, user, mode, onToggleMode }) {
               />
             }
           />
+          <Route path="kb" element={<KnowledgeBaseSection user={user} />} />
           <Route
             path="settings"
             element={

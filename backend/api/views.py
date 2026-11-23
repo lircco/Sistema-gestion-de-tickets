@@ -15,10 +15,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion
+from .models import Ticket, Usuario, Area, Categoria, Respuesta, Notificacion, Articulo
 from .serializers import (
     TicketSerializer, RegistroSerializer, AreaSerializer, CategoriaSerializer,
-    UsuarioSerializer, RespuestaSerializer, NotificacionSerializer
+    UsuarioSerializer, RespuestaSerializer, NotificacionSerializer, ArticuloSerializer
 )
 from .permissions import PuedeGestionarTicket
 
@@ -251,6 +251,28 @@ class NotificacionViewSet(
     def marcar_todas_leidas(self, request):
         Notificacion.objects.filter(usuario=request.user, leida=False).update(leida=True)
         return Response({'message': 'Todas las notificaciones han sido marcadas como leídas.'}, status=status.HTTP_200_OK)
+
+
+class ArticuloViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Articulo.objects.all().order_by('-visitas', '-creado_el')
+    serializer_class = ArticuloSerializer
+    permission_classes = [permissions.AllowAny]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['titulo', 'contenido', 'resumen', 'categoria']
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.visitas += 1
+        instance.save(update_fields=['visitas'])
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def leer(self, request, pk=None):
+        articulo = self.get_object()
+        articulo.visitas += 1
+        articulo.save(update_fields=['visitas'])
+        return Response(self.get_serializer(articulo).data)
 
 
 class UsuarioActualView(APIView):

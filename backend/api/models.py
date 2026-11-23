@@ -114,6 +114,24 @@ class Notificacion(models.Model):
     def __str__(self):
         return f"Notificación para {self.usuario.username}: {self.mensaje[:30]}"
 
+
+class Articulo(models.Model):
+    titulo = models.CharField(max_length=200)
+    resumen = models.TextField(blank=True, default='')
+    contenido = models.TextField()
+    categoria = models.CharField(max_length=100)
+    visitas = models.PositiveIntegerField(default=0)
+    creado_el = models.DateTimeField(auto_now_add=True)
+    actualizado_el = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Artículo'
+        verbose_name_plural = 'Artículos'
+        ordering = ['-visitas', '-creado_el']
+
+    def __str__(self):
+        return f"{self.titulo} ({self.categoria})"
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -125,4 +143,4 @@ def actualizar_rol_superusuario(sender, instance, created, **kwargs):
     """
     if instance.is_superuser and instance.rol != Usuario.Roles.SUPERVISOR:
         instance.rol = Usuario.Roles.SUPERVISOR
-        instance.save(update_fields=['rol'])
+        instance.save(update_fields=['rol'])
