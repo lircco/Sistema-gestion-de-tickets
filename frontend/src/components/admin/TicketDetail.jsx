@@ -21,7 +21,6 @@ import {
   SwapHorizOutlined,
   HighlightOffOutlined,
   PrintOutlined,
-  MoreVertOutlined,
   SendOutlined,
   PriorityHighOutlined,
   AttachFileOutlined,
@@ -371,9 +370,6 @@ export default function TicketDetail({ tickets, onBack, admin, onTicketUpdated }
             <Stack direction="row" className="no-print">
               <IconButton size="small" onClick={() => window.print()} title="Imprimir ticket">
                 <PrintOutlined fontSize="small" />
-              </IconButton>
-              <IconButton size="small">
-                <MoreVertOutlined fontSize="small" />
               </IconButton>
             </Stack>
           </Stack>
