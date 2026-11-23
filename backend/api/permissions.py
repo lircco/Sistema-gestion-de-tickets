@@ -19,6 +19,15 @@ class PuedeGestionarTicket(permissions.BasePermission):
     """
     message = 'No tenés permiso para gestionar este ticket.'
 
+    def has_permission(self, request, view):
+        if request.method == 'DELETE':
+            user = request.user
+            if user.is_superuser or getattr(user, 'rol', None) == 'SUPERVISOR':
+                return True
+            self.message = 'Solo un supervisor puede eliminar tickets.'
+            return False
+        return True
+
     def has_object_permission(self, request, view, obj):
         user = request.user
         if request.method == 'DELETE':
