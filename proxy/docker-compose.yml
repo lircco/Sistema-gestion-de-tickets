@@ -13,9 +13,6 @@ services:
         required: false
       - path: ./.env
         required: false
-    environment:
-      DOMAIN_FRONTEND: ${DOMAIN_FRONTEND:-http://localhost}
-      DOMAIN_BACKEND: ${DOMAIN_BACKEND:-http://localhost:8000}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
